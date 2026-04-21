@@ -1,6 +1,10 @@
 <?php
 // ============================================================
 // app/controllers/ContactController.php
-// Handles contact form submission → saves to DB
-// Filled in during Phase 6
+// Handles the Contact form POST — saves submissions to DB.
+// Real implementation in Phase 6.
 // ============================================================
+
+class ContactController extends Controller {
+    public function submit(): void { $this->stub('Contact Form Submit', 6); }
+}
