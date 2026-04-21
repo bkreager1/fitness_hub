@@ -1,0 +1,31 @@
+# ============================================================
+# Rock County Fitness Hub — .gitignore
+# Files and folders Git should NOT track
+# ============================================================
+
+# --- User uploaded images (these are binary files, not code) ---
+# We keep the folder itself but ignore its contents
+public/uploads/*
+!public/uploads/.gitkeep
+
+# --- PHP config with real credentials (NEVER commit passwords) ---
+config/database.local.php
+
+# --- OS junk files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDE / editor folders ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.claude/
+
+# --- PHP error logs ---
+*.log
+error_log
+
+# --- XAMPP specific ---
+/xampp/

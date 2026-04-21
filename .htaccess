@@ -1,0 +1,10 @@
+# ============================================================
+# Root .htaccess
+# Forces all web requests into the /public folder.
+# This means users can NEVER directly access /app or /config
+# from the browser — they only see what public/index.php allows.
+# ============================================================
+
+RewriteEngine On
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]
