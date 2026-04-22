@@ -189,25 +189,30 @@ a:hover    { color: var(--primary-hot); }
 /* ---------- Password show/hide toggle ---------- */
 .password-wrap {
     position: relative;
+    display: block;
 }
-.password-wrap input[type="password"],
-.password-wrap input[type="text"] {
-    padding-right: 4rem;
+/* Extra specificity beats the generic .field input rule above. */
+.field .password-wrap input[type="password"],
+.field .password-wrap input[type="text"] {
+    padding-right: 2.75rem;
 }
 .password-toggle {
     position: absolute;
     right: 0.4rem;
     top: 50%;
     transform: translateY(-50%);
-    background: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    background: transparent;
     border: none;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--text-dim);
-    padding: 0.3rem 0.65rem;
     border-radius: 8px;
+    color: var(--text-faint);
     cursor: pointer;
+    transition: color 0.12s ease, background-color 0.12s ease;
 }
 .password-toggle:hover {
     color: var(--text);
@@ -217,6 +222,15 @@ a:hover    { color: var(--primary-hot); }
     outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
+.password-toggle .eye {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+/* Default: input is type=password → show the open-eye icon. */
+.password-toggle .eye-hide { display: none; }
+/* Toggled on → input is type=text → show the crossed-out eye icon. */
+.password-toggle[aria-pressed="true"] .eye-show { display: none; }
+.password-toggle[aria-pressed="true"] .eye-hide { display: inline-block; }
 
 .checkbox-row {
     display: flex;

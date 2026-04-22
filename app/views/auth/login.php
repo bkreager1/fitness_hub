@@ -29,10 +29,7 @@
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
                            autocomplete="current-password" required>
-                    <button type="button" class="password-toggle"
-                            data-target="password"
-                            aria-label="Show password"
-                            aria-pressed="false">Show</button>
+                    <?= password_toggle_button('password') ?>
                 </div>
             </div>
 

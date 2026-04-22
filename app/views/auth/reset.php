@@ -23,10 +23,7 @@
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
                            autocomplete="new-password" required>
-                    <button type="button" class="password-toggle"
-                            data-target="password"
-                            aria-label="Show password"
-                            aria-pressed="false">Show</button>
+                    <?= password_toggle_button('password') ?>
                 </div>
                 <small class="field-hint">
                     At least 8 characters, with one uppercase, one lowercase, and one number.
@@ -38,10 +35,7 @@
                 <div class="password-wrap">
                     <input type="password" id="password_confirm" name="password_confirm"
                            autocomplete="new-password" required>
-                    <button type="button" class="password-toggle"
-                            data-target="password_confirm"
-                            aria-label="Show password"
-                            aria-pressed="false">Show</button>
+                    <?= password_toggle_button('password_confirm') ?>
                 </div>
             </div>
 
