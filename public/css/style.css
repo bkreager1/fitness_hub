@@ -1,5 +1,239 @@
 /* ============================================================
    public/css/style.css
-   Global styles for Rock County Fitness Hub
-   Filled in during Phase 5 (Landing page)
+   Phase 4 — minimal styles so the auth pages look presentable.
+   Phase 5 will expand this into the full design system.
    ============================================================ */
+
+/* ---------- Reset ---------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Design tokens ---------- */
+:root {
+    --bg:          #1a1a2e;
+    --bg-card:     #22223b;
+    --bg-input:    #1f1f36;
+    --border:      rgba(255, 255, 255, 0.08);
+    --border-soft: rgba(255, 255, 255, 0.05);
+    --text:        #e8e8f0;
+    --text-dim:    #b8b8cc;
+    --text-faint:  #8a8aa8;
+    --primary:     #a78bfa;
+    --primary-hot: #c4b5fd;
+    --accent:      #6366f1;
+    --danger:      #f87171;
+    --danger-bg:   rgba(248, 113, 113, 0.12);
+    --success:     #34d399;
+    --success-bg:  rgba(52, 211, 153, 0.12);
+    --radius:      12px;
+    --radius-lg:   16px;
+}
+
+/* ---------- Base ---------- */
+html, body { height: 100%; }
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a          { color: var(--primary); text-decoration: none; }
+a:hover    { color: var(--primary-hot); }
+
+/* ---------- Site header ---------- */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-soft);
+    background: rgba(0, 0, 0, 0.2);
+}
+.brand {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--text);
+}
+.site-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.nav-hello { color: var(--text-dim); font-size: 0.9rem; }
+.nav-link  {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+.nav-link:hover { color: var(--text); }
+.nav-cta {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+}
+.nav-cta:hover { color: #fff; filter: brightness(1.1); }
+.nav-logout    { display: inline; }
+.as-button {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* ---------- Main + footer ---------- */
+.site-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+}
+.site-footer {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-faint);
+    border-top: 1px solid var(--border-soft);
+}
+
+/* ---------- Flash messages ---------- */
+.flash {
+    max-width: 480px;
+    margin: 1rem auto 0;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+}
+.flash-success {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+/* ---------- Auth card ---------- */
+.auth-shell {
+    display: grid;
+    place-items: center;
+    flex: 1;
+}
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    padding: 2.25rem;
+    width: 100%;
+    max-width: 420px;
+}
+.auth-card h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+.auth-card .lede {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+.auth-footer {
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+.auth-footer a { font-weight: 500; }
+
+/* ---------- Forms ---------- */
+.field { margin-bottom: 1rem; }
+.field label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="password"] {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font: inherit;
+}
+.field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+}
+.field-hint {
+    display: block;
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0.25rem 0 1.25rem;
+    font-size: 0.88rem;
+    color: var(--text-dim);
+}
+.checkbox-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.btn {
+    display: inline-block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: var(--radius);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: #fff;
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+.btn:hover  { filter: brightness(1.08); }
+.btn:active { transform: translateY(1px); }
+
+/* ---------- Error list ---------- */
+.error-box {
+    background: var(--danger-bg);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: var(--danger);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.88rem;
+}
+.error-box ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.error-box li::before {
+    content: "• ";
+    margin-right: 0.25rem;
+}

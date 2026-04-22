@@ -1,6 +1,58 @@
 <?php
 // ============================================================
 // app/models/User.php
-// Database logic for the users table
-// Filled in during Phase 4
+// Database logic for the users table.
+//
+// Columns (Phase 1):
+//   id, name, email, password, profile_image_path, created_at
 // ============================================================
+
+class User {
+
+    // Find a user by primary key. Returns null if not found.
+    public static function find(int $id): ?array {
+        $stmt = db()->prepare('SELECT * FROM users WHERE id = ? LIMIT 1');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    // Find a user by email (case-insensitive because MySQL default collation).
+    // Used by login + forgot-password flows.
+    public static function findByEmail(string $email): ?array {
+        $stmt = db()->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    // Create a new user. Hashes the password with bcrypt before storing.
+    // Returns the new row's id.
+    public static function create(string $name, string $email, string $password): int {
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = db()->prepare(
+            'INSERT INTO users (name, email, password, created_at)
+             VALUES (?, ?, ?, NOW())'
+        );
+        $stmt->execute([$name, $email, $hash]);
+        return (int) db()->lastInsertId();
+    }
+
+    // Verify a plaintext password against a stored bcrypt hash.
+    public static function checkPassword(string $plain, string $hash): bool {
+        return password_verify($plain, $hash);
+    }
+
+    // Update the profile fields a user can change themselves (Phase 8).
+    public static function updateProfile(int $id, string $name, string $email): void {
+        $stmt = db()->prepare('UPDATE users SET name = ?, email = ? WHERE id = ?');
+        $stmt->execute([$name, $email, $id]);
+    }
+
+    // Replace the stored password hash for a user.
+    public static function updatePassword(int $id, string $newPassword): void {
+        $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $stmt = db()->prepare('UPDATE users SET password = ? WHERE id = ?');
+        $stmt->execute([$hash, $id]);
+    }
+}

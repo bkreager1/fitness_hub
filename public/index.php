@@ -60,6 +60,11 @@ try {
         'POST login'    => (new AuthController())->login(),
         'POST logout'   => (new AuthController())->logout(),
 
+        'GET forgot-password'  => (new AuthController())->showForgotPassword(),
+        'POST forgot-password' => (new AuthController())->sendResetLink(),
+        'GET reset-password'   => (new AuthController())->showResetPassword(),
+        'POST reset-password'  => (new AuthController())->resetPassword(),
+
         // ----- Dashboard -----
         'GET dashboard' => (new DashboardController())->index(),
 

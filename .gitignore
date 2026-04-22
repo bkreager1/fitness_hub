@@ -8,6 +8,10 @@
 public/uploads/*
 !public/uploads/.gitkeep
 
+# --- Local-only storage (reset link logs etc.) ---
+storage/*
+!storage/.gitkeep
+
 # --- PHP config with real credentials (NEVER commit passwords) ---
 config/database.local.php
 
