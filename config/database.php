@@ -7,19 +7,26 @@
 // ============================================================
 
 // ----- App-wide constants --------------------------------------------
+// Any of these can be overridden by config/database.local.php
+// (loaded below, before these defaults fire).
+if (is_file(__DIR__ . '/database.local.php')) {
+    require __DIR__ . '/database.local.php';
+}
+
 // BASE_URL = the public URL path your app lives at.
 // On XAMPP at http://localhost/fitness_hub/ this should be '/fitness_hub'
 // When you deploy to Hostinger at the root of a domain, change to ''
-define('BASE_URL',  '/fitness_hub');
-define('SITE_NAME', 'Rock County Fitness Hub');
+defined('BASE_URL')  or define('BASE_URL',  '/fitness_hub');
+defined('SITE_NAME') or define('SITE_NAME', 'Rock County Fitness Hub');
 
 // ----- Database credentials ------------------------------------------
-// XAMPP defaults: user=root, blank password, MySQL on localhost:3306
-define('DB_HOST',    'localhost');
-define('DB_NAME',    'fitness_hub');
-define('DB_USER',    'root');
-define('DB_PASS',    '');
-define('DB_CHARSET', 'utf8mb4');
+// XAMPP defaults: user=root, blank password, MySQL on localhost:3306.
+// database.local.php (loaded above, gitignored) can override any of these.
+defined('DB_HOST')    or define('DB_HOST',    'localhost');
+defined('DB_NAME')    or define('DB_NAME',    'fitness_hub');
+defined('DB_USER')    or define('DB_USER',    'root');
+defined('DB_PASS')    or define('DB_PASS',    '');
+defined('DB_CHARSET') or define('DB_CHARSET', 'utf8mb4');
 
 // ----- Filesystem paths ----------------------------------------------
 // APP_ROOT = absolute path to the project root on disk
