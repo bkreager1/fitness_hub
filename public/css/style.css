@@ -217,6 +217,43 @@ a:hover    { color: var(--primary-hot); }
 .btn:hover  { filter: brightness(1.08); }
 .btn:active { transform: translateY(1px); }
 
+/* ---------- Stub / placeholder card ---------- */
+.stub-wrap {
+    display: grid;
+    place-items: center;
+    flex: 1;
+}
+.stub-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    padding: 2.5rem;
+    max-width: 480px;
+    width: 100%;
+}
+.stub-badge {
+    display: inline-block;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+}
+.stub-card h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.stub-card p {
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+}
+
 /* ---------- Error list ---------- */
 .error-box {
     background: var(--danger-bg);
