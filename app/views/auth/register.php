@@ -33,8 +33,14 @@
 
             <div class="field">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password"
-                       autocomplete="new-password" required>
+                <div class="password-wrap">
+                    <input type="password" id="password" name="password"
+                           autocomplete="new-password" required>
+                    <button type="button" class="password-toggle"
+                            data-target="password"
+                            aria-label="Show password"
+                            aria-pressed="false">Show</button>
+                </div>
                 <small class="field-hint">
                     At least 8 characters, with one uppercase, one lowercase, and one number.
                 </small>
@@ -42,8 +48,14 @@
 
             <div class="field">
                 <label for="password_confirm">Confirm password</label>
-                <input type="password" id="password_confirm" name="password_confirm"
-                       autocomplete="new-password" required>
+                <div class="password-wrap">
+                    <input type="password" id="password_confirm" name="password_confirm"
+                           autocomplete="new-password" required>
+                    <button type="button" class="password-toggle"
+                            data-target="password_confirm"
+                            aria-label="Show password"
+                            aria-pressed="false">Show</button>
+                </div>
             </div>
 
             <button type="submit" class="btn">Create account</button>

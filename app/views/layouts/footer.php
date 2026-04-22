@@ -9,5 +9,6 @@
     <footer class="site-footer">
         <small>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?></small>
     </footer>
+    <script src="<?= asset('js/auth.js') ?>" defer></script>
 </body>
 </html>

@@ -186,6 +186,38 @@ a:hover    { color: var(--primary-hot); }
     margin-top: 0.35rem;
 }
 
+/* ---------- Password show/hide toggle ---------- */
+.password-wrap {
+    position: relative;
+}
+.password-wrap input[type="password"],
+.password-wrap input[type="text"] {
+    padding-right: 4rem;
+}
+.password-toggle {
+    position: absolute;
+    right: 0.4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    padding: 0.3rem 0.65rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.password-toggle:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+}
+.password-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
 .checkbox-row {
     display: flex;
     align-items: center;
