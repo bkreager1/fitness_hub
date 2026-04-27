@@ -9,7 +9,10 @@ class PagesController extends Controller {
 
     // GET /
     public function home(): void {
-        $this->stub('Landing Page', 5);
+        $this->view('pages/home', [
+            'title'  => 'Home',
+            'active' => 'home',
+        ]);
     }
 
     // GET /about

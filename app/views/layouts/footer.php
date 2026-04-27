@@ -2,13 +2,31 @@
 // ============================================================
 // app/views/layouts/footer.php
 // Shared site footer — included on every page.
-// Phase 4 version: minimal. Phase 5 expands this.
+// Phase 5 version: quick links + copyright + global JS.
 // ============================================================
 ?>
     </main>
+
     <footer class="site-footer">
-        <small>&copy; <?= date('Y') ?> <?= e(SITE_NAME) ?></small>
+        <div class="container footer-row">
+            <small class="footer-copy">
+                &copy; <?= date('Y') ?> <?= e(SITE_NAME) ?>. All rights reserved.
+            </small>
+            <ul class="footer-links">
+                <li><a href="<?= url('') ?>">Home</a></li>
+                <li><a href="<?= url('about') ?>">About</a></li>
+                <li><a href="<?= url('contact') ?>">Contact</a></li>
+                <?php if (is_logged_in()): ?>
+                    <li><a href="<?= url('dashboard') ?>">Dashboard</a></li>
+                <?php else: ?>
+                    <li><a href="<?= url('login') ?>">Log in</a></li>
+                    <li><a href="<?= url('register') ?>">Sign up</a></li>
+                <?php endif; ?>
+            </ul>
+        </div>
     </footer>
+
+    <script src="<?= asset('js/main.js') ?>" defer></script>
     <script src="<?= asset('js/auth.js') ?>" defer></script>
 </body>
 </html>
