@@ -1,4 +1,11 @@
 <?php // app/views/pages/contact.php — Phase 6 ?>
+<?php
+    // Pull each field's error once at the top — keeps the markup
+    // below readable and avoids calling field_error() twice per field.
+    $errName    = field_error('name');
+    $errEmail   = field_error('email');
+    $errMessage = field_error('message');
+?>
 
 <section class="hero hero--compact">
     <div class="container">
@@ -17,13 +24,9 @@
         <!-- ===== Form ===== -->
         <div class="contact-card">
 
-            <?php if ($errs = flash('errors')): ?>
-                <div class="error-box">
-                    <ul>
-                        <?php foreach (explode("\n", $errs) as $err): ?>
-                            <li><?= e($err) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+            <?php if ($success = flash('contact_success')): ?>
+                <div class="flash flash-success flash--inline" role="status">
+                    <?= e($success) ?>
                 </div>
             <?php endif; ?>
 
@@ -34,14 +37,24 @@
                     <label for="name">Name</label>
                     <input type="text" id="name" name="name"
                            value="<?= e(old('name')) ?>"
-                           autocomplete="name" maxlength="100" required>
+                           autocomplete="name" maxlength="100"
+                           <?= $errName ? 'aria-invalid="true"' : '' ?>
+                           required>
+                    <?php if ($errName): ?>
+                        <p class="field-error"><?= e($errName) ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="field">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email"
                            value="<?= e(old('email')) ?>"
-                           autocomplete="email" maxlength="150" required>
+                           autocomplete="email" maxlength="150"
+                           <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                           required>
+                    <?php if ($errEmail): ?>
+                        <p class="field-error"><?= e($errEmail) ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div class="field">
@@ -49,8 +62,13 @@
                     <textarea id="message" name="message"
                               rows="6" maxlength="2000"
                               placeholder="What's on your mind?"
+                              <?= $errMessage ? 'aria-invalid="true"' : '' ?>
                               required><?= e(old('message')) ?></textarea>
-                    <span class="field-hint">10–2000 characters.</span>
+                    <?php if ($errMessage): ?>
+                        <p class="field-error"><?= e($errMessage) ?></p>
+                    <?php else: ?>
+                        <span class="field-hint">10–2000 characters.</span>
+                    <?php endif; ?>
                 </div>
 
                 <button type="submit" class="btn btn-inline">Send message</button>

@@ -945,6 +945,30 @@ a:hover { color: var(--primary-hot); }
     box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
+/* ----- Inline field error (sits directly under its input) ----- */
+.field-error {
+    color: var(--danger);
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    line-height: 1.35;
+}
+/* Tinted border + focus ring on invalid inputs */
+.field input[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+    border-color: rgba(248, 113, 113, 0.45);
+}
+.field input[aria-invalid="true"]:focus,
+.field textarea[aria-invalid="true"]:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.20);
+}
+
+/* ----- Inline flash variant (renders inside a card, not the page) ----- */
+.flash--inline {
+    max-width: none;
+    margin: 0 0 1.25rem;
+}
+
 /* ----- Phase 6 responsive ----- */
 @media (max-width: 860px) {
     .how-grid,

@@ -68,6 +68,24 @@ function clear_old(): void {
     unset($_SESSION['_old']);
 }
 
+// ----- Field-level errors (associative) ------------------------------
+// Companion to old(): the controller stores ['email' => 'Invalid', ...]
+// via set_errors(), and each field in the view reads its own message
+// with field_error('email'). Cleared automatically after a render
+// (via Controller::view() → clear_errors()).
+
+function set_errors(array $errors): void {
+    $_SESSION['_errors'] = $errors;
+}
+
+function field_error(string $key): ?string {
+    return $_SESSION['_errors'][$key] ?? null;
+}
+
+function clear_errors(): void {
+    unset($_SESSION['_errors']);
+}
+
 // ----- CSRF protection -----------------------------------------------
 // CSRF = Cross-Site Request Forgery. We embed a secret token in every
 // form and check it on submit. Prevents other sites from tricking the

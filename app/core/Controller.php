@@ -27,8 +27,10 @@ class Controller {
         require $file;
         require VIEW_PATH . '/layouts/footer.php';
 
-        // Forms have already been re-rendered with old() — clear them
+        // Forms have already been re-rendered with old() / field_error() —
+        // clear both so a refresh doesn't re-display stale state.
         clear_old();
+        clear_errors();
     }
 
     // ----- Render a view WITHOUT the header/footer wrapper -----------
