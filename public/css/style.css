@@ -802,3 +802,152 @@ a:hover { color: var(--primary-hot); }
     .hero h1         { font-size: 1.85rem; }
     .auth-card       { padding: 1.75rem; }
 }
+
+
+/* ===========================================================
+   13. Phase 6 — About + Contact pages
+   =========================================================== */
+
+/* ----- Compact hero (used on About + Contact intros) ----- */
+.hero--compact {
+    padding: 3rem 0 2.25rem;
+}
+.hero--compact h1     { margin-bottom: 0.75rem; }
+.hero--compact .hero-lede { max-width: 60ch; margin-bottom: 0; }
+
+/* ----- Alternate section band ----- */
+.section--alt {
+    background: var(--bg-elev);
+    border-top:    1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+}
+
+/* ----- Long-form paragraph ----- */
+.prose {
+    color: var(--text-dim);
+    max-width: 60ch;
+    margin-top: 1rem;
+}
+
+/* ----- "How it works" two-column ----- */
+.how-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 3rem;
+    align-items: start;
+}
+.how-grid h2 { margin-top: 0.75rem; }
+
+/* ----- Numbered steps list ----- */
+.steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.steps li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+}
+.steps-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba(255, 122, 26, 0.25);
+}
+.steps li h3 { margin-bottom: 0.2rem; }
+.steps li p  { font-size: 0.95rem; color: var(--text-dim); }
+
+/* ----- "Who it's for" two-column ----- */
+.who-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+/* ----- Small CTA card (about + contact reuse) ----- */
+.cta-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem;
+    box-shadow: var(--shadow);
+}
+.cta-card h3 { margin-bottom: 0.5rem; }
+.cta-card p  { color: var(--text-dim); margin-bottom: 1.25rem; }
+.cta-card .btn { width: 100%; }
+
+/* ----- Contact page two-column ----- */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.contact-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+.info-card h3 { margin-bottom: 0.5rem; }
+.info-card p  { color: var(--text-dim); font-size: 0.95rem; }
+
+/* ----- FAQ (definition list) ----- */
+.faq           { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
+.faq dt        { color: var(--text); font-weight: 600; font-size: 0.95rem; }
+.faq dd        { color: var(--text-dim); font-size: 0.9rem; margin-left: 0; }
+
+/* ----- Textarea (matches input styling from §8) ----- */
+.field textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font: inherit;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 8rem;
+    transition: border-color .12s ease, box-shadow .12s ease;
+}
+.field textarea::placeholder { color: var(--text-faint); }
+.field textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* ----- Phase 6 responsive ----- */
+@media (max-width: 860px) {
+    .how-grid,
+    .who-grid,
+    .contact-grid { grid-template-columns: 1fr; gap: 1.75rem; }
+}

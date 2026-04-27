@@ -17,12 +17,18 @@ class PagesController extends Controller {
 
     // GET /about
     public function about(): void {
-        $this->stub('About', 6);
+        $this->view('pages/about', [
+            'title'  => 'About',
+            'active' => 'about',
+        ]);
     }
 
     // GET /contact
     public function contact(): void {
-        $this->stub('Contact', 6);
+        $this->view('pages/contact', [
+            'title'  => 'Contact',
+            'active' => 'contact',
+        ]);
     }
 
     // Any unknown URL
