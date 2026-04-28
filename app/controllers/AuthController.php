@@ -26,23 +26,36 @@ class AuthController extends Controller {
         // Never save passwords in old-input.
         save_old(['name' => $name, 'email' => $email]);
 
+        // Field-level errors — keyed by input name so the view can
+        // render each one directly under the input it belongs to.
         $errors = [];
-        if ($name === '')                    $errors[] = 'Name is required.';
-        if (mb_strlen($name) > 100)          $errors[] = 'Name must be 100 characters or fewer.';
-        if ($email === '')                   $errors[] = 'Email is required.';
-        elseif (!filter_var($email, FILTER_VALIDATE_EMAIL))
-                                             $errors[] = 'Please enter a valid email address.';
 
-        if ($passErr = $this->validatePassword($password)) $errors[] = $passErr;
-        if ($password !== $confirm)          $errors[] = 'Passwords do not match.';
+        if ($name === '') {
+            $errors['name'] = 'Name is required.';
+        } elseif (mb_strlen($name) > 100) {
+            $errors['name'] = 'Name must be 100 characters or fewer.';
+        }
+
+        if ($email === '') {
+            $errors['email'] = 'Email is required.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = 'Please enter a valid email address.';
+        }
+
+        if ($passErr = $this->validatePassword($password)) {
+            $errors['password'] = $passErr;
+        }
+        if ($password !== $confirm) {
+            $errors['password_confirm'] = 'Passwords do not match.';
+        }
 
         // Only hit the DB for uniqueness if nothing else is broken.
-        if (!$errors && User::findByEmail($email)) {
-            $errors[] = 'An account with that email already exists.';
+        if (empty($errors) && User::findByEmail($email)) {
+            $errors['email'] = 'An account with that email already exists.';
         }
 
         if ($errors) {
-            flash('errors', implode("\n", $errors));
+            set_errors($errors);
             $this->redirect('register');
             return;
         }
@@ -77,7 +90,10 @@ class AuthController extends Controller {
         // Use a generic error for both "no such user" and "wrong password" —
         // never leak which one failed.
         if (!$user || !User::checkPassword($password, $user['password'])) {
-            flash('errors', 'Invalid email or password.');
+            // Generic on purpose: don't reveal which field was wrong.
+            // Shown under the password input — by convention, where
+            // users look first when re-entering credentials.
+            set_errors(['password' => 'Invalid email or password.']);
             $this->redirect('login');
             return;
         }
@@ -127,7 +143,7 @@ class AuthController extends Controller {
         save_old(['email' => $email]);
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            flash('errors', 'Please enter a valid email address.');
+            set_errors(['email' => 'Please enter a valid email address.']);
             $this->redirect('forgot-password');
             return;
         }
@@ -190,11 +206,15 @@ class AuthController extends Controller {
         }
 
         $errors = [];
-        if ($passErr = $this->validatePassword($password)) $errors[] = $passErr;
-        if ($password !== $confirm)                        $errors[] = 'Passwords do not match.';
+        if ($passErr = $this->validatePassword($password)) {
+            $errors['password'] = $passErr;
+        }
+        if ($password !== $confirm) {
+            $errors['password_confirm'] = 'Passwords do not match.';
+        }
 
         if ($errors) {
-            flash('errors', implode("\n", $errors));
+            set_errors($errors);
             $this->redirect('reset-password?token=' . urlencode($token));
             return;
         }

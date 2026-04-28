@@ -1,4 +1,8 @@
 <?php // app/views/auth/reset.php ?>
+<?php
+    $errPass    = field_error('password');
+    $errConfirm = field_error('password_confirm');
+?>
 <div class="auth-shell">
     <div class="auth-card">
         <h1>Set a new password</h1>
@@ -22,21 +26,32 @@
                 <label for="password">New password</label>
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
-                           autocomplete="new-password" required>
+                           autocomplete="new-password"
+                           <?= $errPass ? 'aria-invalid="true"' : '' ?>
+                           required>
                     <?= password_toggle_button('password') ?>
                 </div>
-                <small class="field-hint">
-                    At least 8 characters, with one uppercase, one lowercase, and one number.
-                </small>
+                <?php if ($errPass): ?>
+                    <p class="field-error"><?= e($errPass) ?></p>
+                <?php else: ?>
+                    <small class="field-hint">
+                        At least 8 characters, with one uppercase, one lowercase, and one number.
+                    </small>
+                <?php endif; ?>
             </div>
 
             <div class="field">
                 <label for="password_confirm">Confirm new password</label>
                 <div class="password-wrap">
                     <input type="password" id="password_confirm" name="password_confirm"
-                           autocomplete="new-password" required>
+                           autocomplete="new-password"
+                           <?= $errConfirm ? 'aria-invalid="true"' : '' ?>
+                           required>
                     <?= password_toggle_button('password_confirm') ?>
                 </div>
+                <?php if ($errConfirm): ?>
+                    <p class="field-error"><?= e($errConfirm) ?></p>
+                <?php endif; ?>
             </div>
 
             <button type="submit" class="btn">Reset password</button>

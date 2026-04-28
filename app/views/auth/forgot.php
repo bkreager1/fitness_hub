@@ -1,4 +1,5 @@
 <?php // app/views/auth/forgot.php ?>
+<?php $errEmail = field_error('email'); ?>
 <div class="auth-shell">
     <div class="auth-card">
         <h1>Forgot your password?</h1>
@@ -21,7 +22,12 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email"
                        value="<?= e(old('email')) ?>"
-                       autocomplete="email" required>
+                       autocomplete="email"
+                       <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                       required>
+                <?php if ($errEmail): ?>
+                    <p class="field-error"><?= e($errEmail) ?></p>
+                <?php endif; ?>
             </div>
 
             <button type="submit" class="btn">Send reset link</button>

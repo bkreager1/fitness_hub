@@ -1,4 +1,8 @@
 <?php // app/views/auth/login.php ?>
+<?php
+    $errEmail = field_error('email');
+    $errPass  = field_error('password');
+?>
 <div class="auth-shell">
     <div class="auth-card">
         <h1>Welcome back</h1>
@@ -21,16 +25,26 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email"
                        value="<?= e(old('email')) ?>"
-                       autocomplete="email" required>
+                       autocomplete="email"
+                       <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                       required>
+                <?php if ($errEmail): ?>
+                    <p class="field-error"><?= e($errEmail) ?></p>
+                <?php endif; ?>
             </div>
 
             <div class="field">
                 <label for="password">Password</label>
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
-                           autocomplete="current-password" required>
+                           autocomplete="current-password"
+                           <?= $errPass ? 'aria-invalid="true"' : '' ?>
+                           required>
                     <?= password_toggle_button('password') ?>
                 </div>
+                <?php if ($errPass): ?>
+                    <p class="field-error"><?= e($errPass) ?></p>
+                <?php endif; ?>
             </div>
 
             <div class="checkbox-row">
