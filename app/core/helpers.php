@@ -14,9 +14,19 @@ function url(string $path = ''): string {
 }
 
 // Build an asset URL (CSS, JS, uploaded images).
-// Usage: asset('css/style.css')  →  '/fitness_hub/css/style.css'
+// Usage: asset('css/style.css')  →  '/fitness_hub/css/style.css?v=1719345628'
+//
+// Appends ?v=<file-mtime> for files that exist under /public, so
+// browsers automatically re-fetch when an asset is edited. Files
+// outside /public (uploaded images) get the bare URL unchanged.
 function asset(string $path): string {
-    return BASE_URL . '/' . ltrim($path, '/');
+    $rel  = ltrim($path, '/');
+    $url  = BASE_URL . '/' . $rel;
+    $disk = APP_ROOT . '/public/' . $rel;
+    if (is_file($disk)) {
+        $url .= '?v=' . filemtime($disk);
+    }
+    return $url;
 }
 
 // Redirect to another URL and stop the script.

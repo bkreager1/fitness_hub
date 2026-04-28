@@ -5,6 +5,7 @@
 
 -- Drop tables if they exist (safe to re-run during development)
 DROP TABLE IF EXISTS password_resets;
+DROP TABLE IF EXISTS calorie_intake_logs;
 DROP TABLE IF EXISTS strength_logs;
 DROP TABLE IF EXISTS weight_logs;
 DROP TABLE IF EXISTS calorie_logs;
@@ -21,6 +22,7 @@ CREATE TABLE users (
     email              VARCHAR(150) NOT NULL UNIQUE,
     password           VARCHAR(255) NOT NULL,          -- bcrypt hash, never plain text
     profile_image_path VARCHAR(300) DEFAULT NULL,      -- path like /public/uploads/abc.jpg
+    current_goal       ENUM('cut', 'maintain', 'bulk') NOT NULL DEFAULT 'maintain',
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -52,6 +54,22 @@ CREATE TABLE calorie_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
+-- CALORIE INTAKE LOGS TABLE
+-- Each row = one daily calorie intake total for a user.
+-- One row per (user, date), enforced by the UNIQUE key — re-saving
+-- the same date is an UPSERT (overwrites the existing row).
+-- ============================================================
+CREATE TABLE calorie_intake_logs (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL,
+    calories    INT UNSIGNED NOT NULL,
+    logged_date DATE NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_date (user_id, logged_date),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
 -- WEIGHT LOGS TABLE
 -- Each row = one weigh-in entry by a user
 -- Full history — one row per date
@@ -69,15 +87,18 @@ CREATE TABLE weight_logs (
 
 -- ============================================================
 -- STRENGTH LOGS TABLE
--- Each row = one strength session log (bench / squat / deadlift)
--- All three lifts in one row per session date
+-- Each row = one lift attempt (bench / squat / deadlift) with
+-- weight + reps. The dashboard chart filters by lift_type to
+-- draw three separate lines, and uses estimated 1RM
+-- (weight * (1 + reps/30), Epley formula) as the Y-axis value
+-- so cross-rep-range comparisons are meaningful.
 -- ============================================================
 CREATE TABLE strength_logs (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED NOT NULL,
-    bench_press DECIMAL(6,2) DEFAULT NULL,   -- 1-rep max, nullable
-    squat       DECIMAL(6,2) DEFAULT NULL,
-    deadlift    DECIMAL(6,2) DEFAULT NULL,
+    lift_type   ENUM('bench', 'squat', 'deadlift') NOT NULL,
+    weight      DECIMAL(6,2) NOT NULL,
+    reps        TINYINT UNSIGNED NOT NULL,
     unit        ENUM('lbs', 'kg') NOT NULL DEFAULT 'lbs',
     logged_date DATE NOT NULL,
     notes       VARCHAR(300) DEFAULT NULL,

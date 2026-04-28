@@ -53,9 +53,20 @@ class Controller {
 
     // ----- Require that the user is logged in ------------------------
     // Call at the top of any action that should be behind auth.
+    //
+    // Also verifies the session points at a user that still exists in
+    // the database. Without this check, a stale session (DB reset,
+    // user deleted, etc.) crashes downstream queries with FK errors.
     protected function requireLogin(): void {
         if (!is_logged_in()) {
             flash('error', 'Please log in to continue.');
+            $this->redirect('login');
+        }
+        if (User::find((int) current_user_id()) === null) {
+            // Stale session — clear it and bounce to login.
+            $_SESSION = [];
+            session_regenerate_id(true);
+            flash('error', 'Your session is no longer valid. Please log in again.');
             $this->redirect('login');
         }
     }

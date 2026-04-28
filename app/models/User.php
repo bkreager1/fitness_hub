@@ -55,4 +55,13 @@ class User {
         $stmt = db()->prepare('UPDATE users SET password = ? WHERE id = ?');
         $stmt->execute([$hash, $id]);
     }
+
+    // Set the user's active calorie goal. Caller must validate the
+    // value against ALLOWED_GOALS before calling.
+    public const ALLOWED_GOALS = ['cut', 'maintain', 'bulk'];
+
+    public static function updateGoal(int $id, string $goal): void {
+        $stmt = db()->prepare('UPDATE users SET current_goal = ? WHERE id = ?');
+        $stmt->execute([$goal, $id]);
+    }
 }

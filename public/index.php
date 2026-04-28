@@ -69,9 +69,11 @@ try {
         'GET dashboard' => (new DashboardController())->index(),
 
         // ----- Calorie tracker -----
-        'GET calorie'         => (new CalorieController())->index(),
-        'POST calorie'        => (new CalorieController())->save(),
-        'POST calorie/delete' => (new CalorieController())->delete(),
+        'GET calorie'                => (new CalorieController())->index(),
+        'POST calorie/targets'       => (new CalorieController())->saveTargets(),
+        'POST calorie/intake'        => (new CalorieController())->saveIntake(),
+        'POST calorie/intake/delete' => (new CalorieController())->deleteIntake(),
+        'POST calorie/goal'          => (new CalorieController())->setGoal(),
 
         // ----- Weight tracker -----
         'GET weight'         => (new WeightController())->index(),

@@ -1,12 +1,363 @@
 <?php
 // ============================================================
 // app/controllers/CalorieController.php
-// Handles the calorie calculator + saved history (CRUD).
-// Real implementation in Phase 7.
+// Calorie tracker — split into two concerns:
+//
+//   1. Targets — calorie_logs rows. Calculated occasionally from
+//      the user's stats (age/sex/height/weight/activity) using the
+//      Mifflin-St Jeor formula. Latest row = current targets.
+//
+//   2. Daily intake — calorie_intake_logs rows. One row per
+//      (user, date), upserted when re-saved. The data points the
+//      user logs every day, plotted against their target as a line.
+//
+// Plus: the user's "current goal" (cut / maintain / bulk) lives on
+// users.current_goal and drives which target the intake hint, the
+// history table column, and the chart highlight key off.
+//
+// Routes:
+//   GET  /calorie                → index()
+//   POST /calorie/targets        → saveTargets()    (snapshot of stats + targets)
+//   POST /calorie/intake         → saveIntake()     (upsert one day's calories)
+//   POST /calorie/intake/delete  → deleteIntake()
+//   POST /calorie/goal           → setGoal()        (cut / maintain / bulk)
 // ============================================================
 
 class CalorieController extends Controller {
-    public function index(): void  { $this->stub('Calorie Tracker',       7); }
-    public function save(): void   { $this->stub('Save Calorie Log',      7); }
-    public function delete(): void { $this->stub('Delete Calorie Log',    7); }
+
+    // Mifflin-St Jeor activity multipliers. Keys must match the
+    // calorie_logs.activity_level ENUM exactly.
+    private const ACTIVITY_MULTIPLIERS = [
+        'sedentary'         => 1.2,
+        'lightly_active'    => 1.375,
+        'moderately_active' => 1.55,
+        'very_active'       => 1.725,
+        'extra_active'      => 1.9,
+    ];
+
+    private const LB_PER_KG = 2.2046226218;
+    private const CM_PER_IN = 2.54;
+
+    // GET /calorie ------------------------------------------------
+    public function index(): void {
+        $this->requireLogin();
+
+        $userId = current_user_id();
+        $today  = date('Y-m-d');
+
+        // Active goal — drives intake hint copy, history column, and
+        // chart line highlight. Falls back to 'maintain' if the column
+        // is somehow missing (older users / pre-migration).
+        $user       = User::find($userId);
+        $activeGoal = $user['current_goal'] ?? 'maintain';
+        if (!in_array($activeGoal, User::ALLOWED_GOALS, true)) {
+            $activeGoal = 'maintain';
+        }
+
+        // Targets: most recent stat-snapshot row drives the targets
+        // card and pre-fills the (collapsed) stats form.
+        $latest = CalorieLog::latestForUser($userId);
+
+        // Intake: full history newest-first for the table, plus
+        // today's existing row (if any) to pre-fill the intake form.
+        $intakeHistory = CalorieIntake::forUser($userId);
+        $todayIntake   = CalorieIntake::forUserOnDate($userId, $today);
+
+        // Chart wants oldest-first for left-to-right time progression.
+        $intakeChartData = array_map(static fn(array $r): array => [
+            'date'     => $r['logged_date'],
+            'calories' => (int) $r['calories'],
+        ], array_reverse($intakeHistory));
+
+        // Stats prefill (mirrors what the form needs in either unit
+        // pane). Empty array for first-time users → blank form.
+        $prefill = [];
+        if ($latest) {
+            $heightCm = (float) $latest['height_cm'];
+            $weightKg = (float) $latest['weight_kg'];
+
+            $totalIn = $heightCm / self::CM_PER_IN;
+            $ft      = (int) floor($totalIn / 12);
+            $in      = (int) round($totalIn - $ft * 12);
+            if ($in === 12) { $ft++; $in = 0; }
+
+            $prefill = [
+                'age'            => (string) (int) $latest['age'],
+                'gender'         => $latest['gender'],
+                'activity_level' => $latest['activity_level'],
+                'height_cm'      => (string) (float) round($heightCm, 1),
+                'weight_kg'      => (string) (float) round($weightKg, 1),
+                'height_ft'      => (string) $ft,
+                'height_in'      => (string) $in,
+                'weight_lb'      => (string) (float) round($weightKg * self::LB_PER_KG, 1),
+            ];
+        }
+
+        // If the previous request was a failed intake save, the
+        // "open the stats form?" question is no — keep targets card
+        // collapsed. If it was a failed targets save, force-open the
+        // form so the user sees their errors.
+        $statsFormOpen = !empty(field_error('age'))
+                      || !empty(field_error('gender'))
+                      || !empty(field_error('activity_level'))
+                      || !empty(field_error('height_ft'))
+                      || !empty(field_error('height_cm'))
+                      || !empty(field_error('weight_lb'))
+                      || !empty(field_error('weight_kg'))
+                      || !empty(field_error('logged_date'));
+
+        $this->view('calorie/index', [
+            'title'           => 'Calorie tracker',
+            'active'          => 'dashboard',
+            'today'           => $today,
+            'latest'          => $latest,
+            'intakeHistory'   => $intakeHistory,
+            'intakeChartData' => $intakeChartData,
+            'todayIntake'     => $todayIntake,
+            'levels'          => CalorieLog::ACTIVITY_LEVELS,
+            'prefill'         => $prefill,
+            'statsFormOpen'   => $statsFormOpen,
+            'activeGoal'      => $activeGoal,
+        ]);
+    }
+
+    // POST /calorie/goal ------------------------------------------
+    public function setGoal(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId = current_user_id();
+        $goal   = $_POST['goal'] ?? '';
+
+        if (in_array($goal, User::ALLOWED_GOALS, true)) {
+            User::updateGoal($userId, $goal);
+            // No flash banner — it'd feel noisy for a one-click pill change.
+            // The reloaded page itself reflects the choice.
+        }
+
+        $this->redirect('calorie');
+    }
+
+    // POST /calorie/targets ---------------------------------------
+    // Save a new stats snapshot and (re)compute the targets.
+    public function saveTargets(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId = current_user_id();
+
+        // ----- Read raw input ------------------------------------
+        $unitSystem    = $_POST['unit_system']    ?? 'us';
+        $age           = $_POST['age']            ?? '';
+        $gender        = $_POST['gender']         ?? '';
+        $activityLevel = $_POST['activity_level'] ?? '';
+        $loggedDate    = $_POST['logged_date']    ?? '';
+
+        $heightFt = $_POST['height_ft'] ?? '';
+        $heightIn = $_POST['height_in'] ?? '';
+        $weightLb = $_POST['weight_lb'] ?? '';
+        $heightCm = $_POST['height_cm'] ?? '';
+        $weightKg = $_POST['weight_kg'] ?? '';
+
+        // ----- Validate ------------------------------------------
+        $errors = [];
+
+        $ageInt = null;
+        if ($age === '' || !ctype_digit((string) $age)) {
+            $errors['age'] = 'Age must be a whole number.';
+        } else {
+            $ageInt = (int) $age;
+            if ($ageInt < 13 || $ageInt > 100) {
+                $errors['age'] = 'Age must be between 13 and 100.';
+            }
+        }
+
+        if (!in_array($gender, ['male', 'female'], true)) {
+            $errors['gender'] = 'Please select a gender.';
+        }
+
+        if (!array_key_exists($activityLevel, self::ACTIVITY_MULTIPLIERS)) {
+            $errors['activity_level'] = 'Please select an activity level.';
+        }
+
+        // Date — required, valid, not in the future. The "!" zeroes the
+        // time so today's date isn't read as a future timestamp.
+        if ($loggedDate === '') {
+            $errors['logged_date'] = 'Date is required.';
+        } else {
+            $d = DateTime::createFromFormat('!Y-m-d', $loggedDate);
+            if (!$d || $d->format('Y-m-d') !== $loggedDate) {
+                $errors['logged_date'] = 'Please enter a valid date.';
+            } elseif ($d > new DateTime('today')) {
+                $errors['logged_date'] = 'Date cannot be in the future.';
+            }
+        }
+
+        if (!in_array($unitSystem, ['us', 'metric'], true)) {
+            $unitSystem = 'us';
+        }
+
+        $heightCmFinal = null;
+        $weightKgFinal = null;
+
+        if ($unitSystem === 'us') {
+            $ftValid = ctype_digit((string) $heightFt)
+                    && (int) $heightFt >= 3 && (int) $heightFt <= 8;
+            $inRaw   = $heightIn === '' ? '0' : (string) $heightIn;
+            $inValid = ctype_digit($inRaw)
+                    && (int) $inRaw >= 0 && (int) $inRaw <= 11;
+
+            if (!$ftValid || !$inValid) {
+                $errors['height_ft'] = 'Enter a valid height (e.g. 5 ft 10 in).';
+            } else {
+                $totalIn       = (int) $heightFt * 12 + (int) $inRaw;
+                $heightCmFinal = round($totalIn * self::CM_PER_IN, 2);
+            }
+
+            if ($weightLb === '' || !is_numeric($weightLb)) {
+                $errors['weight_lb'] = 'Weight is required.';
+            } else {
+                $lb = (float) $weightLb;
+                if ($lb < 66 || $lb > 660) {
+                    $errors['weight_lb'] = 'Weight must be between 66 and 660 lbs.';
+                } else {
+                    $weightKgFinal = round($lb / self::LB_PER_KG, 2);
+                }
+            }
+        } else {
+            if ($heightCm === '' || !is_numeric($heightCm)) {
+                $errors['height_cm'] = 'Height is required.';
+            } else {
+                $cm = (float) $heightCm;
+                if ($cm < 100 || $cm > 250) {
+                    $errors['height_cm'] = 'Height must be between 100 and 250 cm.';
+                } else {
+                    $heightCmFinal = round($cm, 2);
+                }
+            }
+
+            if ($weightKg === '' || !is_numeric($weightKg)) {
+                $errors['weight_kg'] = 'Weight is required.';
+            } else {
+                $kg = (float) $weightKg;
+                if ($kg < 30 || $kg > 300) {
+                    $errors['weight_kg'] = 'Weight must be between 30 and 300 kg.';
+                } else {
+                    $weightKgFinal = round($kg, 2);
+                }
+            }
+        }
+
+        // ----- Failure: re-render with errors --------------------
+        if ($errors) {
+            save_old([
+                'unit_system'    => $unitSystem,
+                'age'            => $age,
+                'gender'         => $gender,
+                'activity_level' => $activityLevel,
+                'logged_date'    => $loggedDate,
+                'height_ft'      => $heightFt,
+                'height_in'      => $heightIn,
+                'weight_lb'      => $weightLb,
+                'height_cm'      => $heightCm,
+                'weight_kg'      => $weightKg,
+            ]);
+            set_errors($errors);
+            $this->redirect('calorie');
+        }
+
+        // ----- Mifflin-St Jeor + activity multiplier --------------
+        $bmr = 10 * $weightKgFinal
+             + 6.25 * $heightCmFinal
+             - 5 * $ageInt
+             + ($gender === 'male' ? 5 : -161);
+
+        $maintenance = (int) round($bmr * self::ACTIVITY_MULTIPLIERS[$activityLevel]);
+        $cutting     = max(1200, $maintenance - 500);   // safety floor
+        $bulking     = $maintenance + 500;
+
+        CalorieLog::create($userId, [
+            'age'                  => $ageInt,
+            'gender'               => $gender,
+            'weight_kg'            => $weightKgFinal,
+            'height_cm'            => $heightCmFinal,
+            'activity_level'       => $activityLevel,
+            'maintenance_calories' => $maintenance,
+            'cutting_calories'     => $cutting,
+            'bulking_calories'     => $bulking,
+            'logged_date'          => $loggedDate,
+        ]);
+
+        flash('success', 'Targets updated.');
+        $this->redirect('calorie');
+    }
+
+    // POST /calorie/intake ----------------------------------------
+    // Upsert one day's calorie intake.
+    public function saveIntake(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId   = current_user_id();
+        $date     = $_POST['logged_date'] ?? '';
+        $calories = $_POST['calories']    ?? '';
+
+        // Both old() and field_error() use the "intake_" prefix so the
+        // intake form's keys can't collide with the targets form's
+        // (both have a logged_date field).
+        $errors = [];
+
+        if ($date === '') {
+            $errors['intake_logged_date'] = 'Date is required.';
+        } else {
+            $d = DateTime::createFromFormat('!Y-m-d', $date);
+            if (!$d || $d->format('Y-m-d') !== $date) {
+                $errors['intake_logged_date'] = 'Please enter a valid date.';
+            } elseif ($d > new DateTime('today')) {
+                $errors['intake_logged_date'] = 'Date cannot be in the future.';
+            }
+        }
+
+        // Calories: whole number, sensible range. Floor at 0 so a typo
+        // doesn't crash; ceiling at 20000 so a misplaced zero doesn't
+        // explode the chart's Y-axis.
+        if ($calories === '' || !ctype_digit((string) $calories)) {
+            $errors['intake_calories'] = 'Calories must be a whole number.';
+        } else {
+            $cal = (int) $calories;
+            if ($cal < 0 || $cal > 20000) {
+                $errors['intake_calories'] = 'Calories must be between 0 and 20,000.';
+            }
+        }
+
+        if ($errors) {
+            save_old([
+                'intake_logged_date' => $date,
+                'intake_calories'    => $calories,
+            ]);
+            set_errors($errors);
+            $this->redirect('calorie');
+        }
+
+        CalorieIntake::upsert($userId, (int) $calories, $date);
+
+        flash('success', 'Intake saved.');
+        $this->redirect('calorie');
+    }
+
+    // POST /calorie/intake/delete ---------------------------------
+    public function deleteIntake(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId = current_user_id();
+        $id     = (int) ($_POST['id'] ?? 0);
+
+        if ($id > 0 && CalorieIntake::find($id, $userId)) {
+            CalorieIntake::delete($id, $userId);
+            flash('success', 'Intake log deleted.');
+        }
+
+        $this->redirect('calorie');
+    }
 }
