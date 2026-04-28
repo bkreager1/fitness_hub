@@ -85,6 +85,7 @@ try {
         // ----- Strength tracker -----
         'GET strength'         => (new StrengthController())->index(),
         'POST strength'        => (new StrengthController())->save(),
+        'GET strength/edit'    => (new StrengthController())->edit(),
         'POST strength/update' => (new StrengthController())->update(),
         'POST strength/delete' => (new StrengthController())->delete(),
 

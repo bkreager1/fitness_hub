@@ -746,4 +746,200 @@
             });
         }
     })();
+
+
+    /* ---------------------------------------------------------
+       9. Strength tracker — form unit toggle (lbs ↔ kg).
+          Same shape as the weight form's toggle.
+       --------------------------------------------------------- */
+    (function initStrengthForm () {
+        const form = document.getElementById('strengthForm');
+        if (!form) return;
+
+        const toggle      = document.getElementById('strengthUnitToggle');
+        const unitInput   = document.getElementById('strengthUnit');
+        const weightInput = document.getElementById('strengthWeight');
+        const unitLabel   = document.getElementById('strengthUnitLabel');
+        if (!toggle || !unitInput || !weightInput) return;
+
+        const LB_PER_KG = 2.2046226218;
+        const PLACEHOLDERS = { lbs: '225', kg: '102' };
+        const BOUNDS = {
+            lbs: { min: 1, max: 1500 },
+            kg:  { min: 1, max: 700 },
+        };
+
+        function applyUnitUI (unit) {
+            unitInput.value         = unit;
+            weightInput.placeholder = PLACEHOLDERS[unit];
+            weightInput.min         = BOUNDS[unit].min;
+            weightInput.max         = BOUNDS[unit].max;
+            if (unitLabel) unitLabel.textContent = `(${unit})`;
+
+            toggle.querySelectorAll('button').forEach((b) => {
+                const on = b.dataset.unit === unit;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        }
+
+        toggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-unit]');
+            if (!btn) return;
+            const newUnit = btn.dataset.unit;
+            const oldUnit = unitInput.value;
+            if (newUnit === oldUnit) return;
+
+            const v = parseFloat(weightInput.value);
+            if (!isNaN(v) && v > 0) {
+                const converted = (oldUnit === 'lbs' && newUnit === 'kg')
+                    ? v / LB_PER_KG
+                    : v * LB_PER_KG;
+                weightInput.value = converted.toFixed(1);
+            }
+
+            applyUnitUI(newUnit);
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
+       10. Strength chart (Chart.js).
+           Three lines (bench/squat/deadlift). Y = estimated 1RM
+           via Epley: weight * (1 + reps/30). Display unit is
+           independent of the form's unit and toggleable.
+       --------------------------------------------------------- */
+    (function initStrengthChart () {
+        const canvas = document.getElementById('strengthChart');
+        if (!canvas) return;
+        if (typeof Chart === 'undefined') return;
+
+        let rows;
+        try {
+            rows = JSON.parse(canvas.dataset.rows || '[]');
+        } catch (e) {
+            return;
+        }
+        if (!Array.isArray(rows) || rows.length === 0) return;
+
+        const LB_PER_KG = 2.2046226218;
+        let displayUnit = canvas.dataset.defaultUnit || 'lbs';
+
+        const css  = getComputedStyle(document.documentElement);
+        const text = (css.getPropertyValue('--text-dim') || '#a4a8b5').trim();
+        const grid = 'rgba(148, 163, 184, 0.10)';
+
+        // Unique sorted dates across all lifts → shared X-axis labels.
+        const allDates = [...new Set(rows.map((r) => r.date))].sort();
+        const labels   = allDates.map((d) => {
+            const dt = new Date(d + 'T00:00:00');
+            return isNaN(dt) ? d
+                : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        // Convert canonical kg → display unit, then apply Epley 1RM.
+        function ormFor (row, unit) {
+            const w = unit === 'lbs' ? row.weight_kg * LB_PER_KG : row.weight_kg;
+            return w * (1 + row.reps / 30);
+        }
+
+        // Per-lift array of 1RM values aligned to allDates (null where
+        // the user didn't log that lift on that date). If there are
+        // multiple entries on the same date for a lift, keep the
+        // highest 1RM — that's the most representative for "progress".
+        function dataFor (lift, unit) {
+            const byDate = {};
+            rows.forEach((r) => {
+                if (r.lift_type !== lift) return;
+                const v = ormFor(r, unit);
+                if (!(r.date in byDate) || v > byDate[r.date]) {
+                    byDate[r.date] = v;
+                }
+            });
+            return allDates.map((d) => d in byDate ? byDate[d] : null);
+        }
+
+        const COLORS = {
+            bench:    '#60a5fa',   // sky
+            squat:    '#fb923c',   // orange (matches brand)
+            deadlift: '#34d399',   // mint
+        };
+        const TITLE = {
+            bench:    'Bench',
+            squat:    'Squat',
+            deadlift: 'Deadlift',
+        };
+
+        function makeDataset (lift) {
+            return {
+                label: TITLE[lift],
+                data: dataFor(lift, displayUnit),
+                borderColor: COLORS[lift],
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                tension: 0.25,
+                pointRadius: 4,
+                spanGaps: true,
+                fill: false,
+            };
+        }
+
+        const chart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    makeDataset('bench'),
+                    makeDataset('squat'),
+                    makeDataset('deadlift'),
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: text } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                if (ctx.parsed.y === null || ctx.parsed.y === undefined) return null;
+                                return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} ${displayUnit} (1RM)`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    x: { ticks: { color: text }, grid: { color: grid } },
+                    y: {
+                        ticks: { color: text, callback: (v) => v.toFixed(0) },
+                        grid:  { color: grid },
+                        beginAtZero: false,
+                    },
+                },
+            },
+        });
+
+        const chartToggle = document.getElementById('strengthChartUnitToggle');
+        if (chartToggle) {
+            chartToggle.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-unit]');
+                if (!btn) return;
+                const newUnit = btn.dataset.unit;
+                if (newUnit === displayUnit) return;
+
+                displayUnit = newUnit;
+                ['bench', 'squat', 'deadlift'].forEach((lift, i) => {
+                    chart.data.datasets[i].data = dataFor(lift, displayUnit);
+                });
+                chart.update();
+
+                chartToggle.querySelectorAll('button').forEach((b) => {
+                    const on = b.dataset.unit === displayUnit;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+            });
+        }
+    })();
 })();

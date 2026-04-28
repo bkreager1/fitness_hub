@@ -1364,6 +1364,10 @@ a:hover { color: var(--primary-hot); }
     font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
+    /* Lock line-height: <button> defaults to ~1.2 but <label> inherits
+       the body's 1.55, which makes the radio-pill variant render taller
+       than the surrounding container expects. */
+    line-height: 1.2;
     padding: 0.4rem 0.95rem;
     border-radius: 999px;
     cursor: pointer;
@@ -1377,6 +1381,50 @@ a:hover { color: var(--primary-hot); }
 .goal-pill:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* Radio-input variant: same look as the goal-pill submit buttons,
+   but driven by a hidden <input type="radio"> inside each <label>.
+   `:has(input:checked)` handles the active state without JS. */
+.goal-pill--radio {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.goal-pill--radio input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+}
+.goal-pill--radio:has(input:checked) {
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: #fff;
+}
+.goal-pill--radio:has(input:focus-visible) {
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+/* Mark the whole pill row as invalid when validation fails. */
+.goal-picker__pills.is-invalid {
+    box-shadow: 0 0 0 1px var(--danger);
+}
+
+/* Radio-variant pill row: drop the 3px container padding so the active
+   pill's gradient fills the rounded track edge-to-edge. The button
+   variant (calorie goal picker) keeps the 3px so each button stays
+   visually distinct as a tap target. */
+.goal-picker__pills:has(.goal-pill--radio) { padding: 0; }
+.goal-picker__pills:has(.goal-pill--radio) .goal-pill--radio {
+    padding: 0.55rem 1.1rem;   /* slightly more padding to fill the row */
+}
+
+/* Strength tracker: small "× reps" suffix in the history table. */
+.reps-suffix {
+    color: var(--text-faint);
+    font-weight: 500;
+    font-size: 0.9em;
+    margin-left: 0.35em;
 }
 
 /* ----- Phase 7 responsive ------------------------------------------- */
