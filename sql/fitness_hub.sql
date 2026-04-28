@@ -82,6 +82,7 @@ CREATE TABLE weight_logs (
     logged_date DATE NOT NULL,
     notes       VARCHAR(300) DEFAULT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_user_date (user_id, logged_date),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

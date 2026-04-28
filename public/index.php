@@ -78,6 +78,7 @@ try {
         // ----- Weight tracker -----
         'GET weight'         => (new WeightController())->index(),
         'POST weight'        => (new WeightController())->save(),
+        'GET weight/edit'    => (new WeightController())->edit(),
         'POST weight/update' => (new WeightController())->update(),
         'POST weight/delete' => (new WeightController())->delete(),
 

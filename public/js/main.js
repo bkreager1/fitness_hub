@@ -592,4 +592,158 @@
             },
         });
     })();
+
+
+    /* ---------------------------------------------------------
+       7. Weight tracker — form unit toggle (lbs ↔ kg).
+          Used on /weight (new entry) and /weight/edit. Single
+          weight input, toggle swaps unit + converts typed value.
+       --------------------------------------------------------- */
+    (function initWeightForm () {
+        const form = document.getElementById('weightForm');
+        if (!form) return;
+
+        const toggle      = document.getElementById('weightUnitToggle');
+        const unitInput   = document.getElementById('weightUnit');
+        const weightInput = document.getElementById('weightInput');
+        const unitLabel   = document.getElementById('weightUnitLabel');
+        if (!toggle || !unitInput || !weightInput) return;
+
+        const LB_PER_KG = 2.2046226218;
+        const PLACEHOLDERS = { lbs: '175', kg: '79' };
+        const BOUNDS = {
+            lbs: { min: 66, max: 660 },
+            kg:  { min: 30, max: 300 },
+        };
+
+        function applyUnitUI (unit) {
+            unitInput.value           = unit;
+            weightInput.placeholder   = PLACEHOLDERS[unit];
+            weightInput.min           = BOUNDS[unit].min;
+            weightInput.max           = BOUNDS[unit].max;
+            if (unitLabel) unitLabel.textContent = `(${unit})`;
+
+            toggle.querySelectorAll('button').forEach((b) => {
+                const on = b.dataset.unit === unit;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        }
+
+        toggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-unit]');
+            if (!btn) return;
+            const newUnit = btn.dataset.unit;
+            const oldUnit = unitInput.value;
+            if (newUnit === oldUnit) return;
+
+            // Convert the typed weight if there is one. Empty stays empty.
+            const v = parseFloat(weightInput.value);
+            if (!isNaN(v) && v > 0) {
+                const converted = (oldUnit === 'lbs' && newUnit === 'kg')
+                    ? v / LB_PER_KG
+                    : v * LB_PER_KG;
+                weightInput.value = converted.toFixed(1);
+            }
+
+            applyUnitUI(newUnit);
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
+       8. Weight chart (Chart.js).
+          Single-line trend chart. lbs/kg toggle re-renders the
+          Y values from canonical kg without round-tripping the
+          server.
+       --------------------------------------------------------- */
+    (function initWeightChart () {
+        const canvas = document.getElementById('weightChart');
+        if (!canvas) return;
+        if (typeof Chart === 'undefined') return;
+
+        let rows;
+        try {
+            rows = JSON.parse(canvas.dataset.rows || '[]');
+        } catch (e) {
+            return;
+        }
+        if (!Array.isArray(rows) || rows.length === 0) return;
+
+        const LB_PER_KG = 2.2046226218;
+        let displayUnit = canvas.dataset.defaultUnit || 'lbs';
+
+        const css  = getComputedStyle(document.documentElement);
+        const text = (css.getPropertyValue('--text-dim') || '#a4a8b5').trim();
+        const grid = 'rgba(148, 163, 184, 0.10)';
+
+        const labels = rows.map((r) => {
+            const d = new Date(r.date + 'T00:00:00');
+            return isNaN(d) ? r.date
+                : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        const valuesIn = (unit) => rows.map(
+            (r) => unit === 'lbs' ? r.weight_kg * LB_PER_KG : r.weight_kg
+        );
+
+        const chart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: `Weight (${displayUnit})`,
+                    data: valuesIn(displayUnit),
+                    borderColor: '#ff7a1a',
+                    backgroundColor: 'rgba(255, 122, 26, 0.18)',
+                    borderWidth: 3,
+                    tension: 0.25,
+                    pointRadius: 4,
+                    fill: true,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: text } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => `${ctx.parsed.y.toFixed(1)} ${displayUnit}`,
+                        },
+                    },
+                },
+                scales: {
+                    x: { ticks: { color: text }, grid: { color: grid } },
+                    y: {
+                        ticks: { color: text, callback: (v) => v.toFixed(1) },
+                        grid:  { color: grid },
+                        beginAtZero: false,
+                    },
+                },
+            },
+        });
+
+        const chartToggle = document.getElementById('weightChartUnitToggle');
+        if (chartToggle) {
+            chartToggle.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-unit]');
+                if (!btn) return;
+                const newUnit = btn.dataset.unit;
+                if (newUnit === displayUnit) return;
+
+                displayUnit = newUnit;
+                chart.data.datasets[0].label = `Weight (${displayUnit})`;
+                chart.data.datasets[0].data  = valuesIn(displayUnit);
+                chart.update();
+
+                chartToggle.querySelectorAll('button').forEach((b) => {
+                    const on = b.dataset.unit === displayUnit;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+            });
+        }
+    })();
 })();

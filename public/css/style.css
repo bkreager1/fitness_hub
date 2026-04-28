@@ -1244,6 +1244,53 @@ a:hover { color: var(--primary-hot); }
     box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.30);
 }
 
+/* ----- Inline link button (table edit) ------------------------------ */
+.btn-link {
+    background: none;
+    border: 0;
+    color: var(--text-dim);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: background .15s ease, color .15s ease;
+}
+.btn-link:hover { color: var(--primary-hot); background: var(--primary-soft); }
+.btn-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* Sit Edit + Delete side-by-side in the actions cell with a small gap. */
+.history-table .actions a + form,
+.history-table .actions form + a { margin-left: 0.25rem; }
+
+/* ----- Weight tracker — small inline label decorations -------------- */
+.weight-unit-label,
+.weight-unit-suffix {
+    color: var(--text-faint);
+    font-weight: 500;
+    font-size: 0.85em;
+}
+.weight-unit-suffix { margin-left: 0.15em; }
+
+.field-hint-inline {
+    color: var(--text-faint);
+    font-weight: 400;
+    font-size: 0.85em;
+}
+
+/* Notes column: keep long notes from blowing up the row height. */
+.notes-cell {
+    color: var(--text-dim);
+    max-width: 22rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 /* ----- Inline cal-preview variant (used inside the targets card) ----- */
 /* Strips the nested-card look so the 3-stat row sits flat on the
    tracker-card surface above the collapsible stats form. */
