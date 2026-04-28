@@ -1427,6 +1427,152 @@ a:hover { color: var(--primary-hot); }
     margin-left: 0.35em;
 }
 
+/* ===================================================================
+   Phase 7 — Dashboard
+   =================================================================== */
+
+/* "Today at a glance" — three clickable summary cards in a row. */
+.dash-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+}
+@media (max-width: 860px) {
+    .dash-summary { grid-template-columns: 1fr; }
+}
+
+.dash-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    color: inherit;
+    text-decoration: none;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.dash-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-hot);
+    box-shadow: var(--shadow);
+}
+.dash-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.dash-card__eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    font-weight: 700;
+}
+.dash-card__value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+.dash-card__value--placeholder { color: var(--text-faint); }
+.dash-card__unit {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    margin-left: 0.25rem;
+}
+.dash-card__hint {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+/* Strength card uses a 3-row list instead of a single value. */
+.dash-card__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.dash-card__list li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.dash-card__list-label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+.dash-card__list-value {
+    color: var(--text);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Trend charts row — three smaller charts under the summary cards. */
+.dash-charts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+@media (max-width: 1024px) {
+    .dash-charts { grid-template-columns: 1fr; }
+}
+.dash-charts .tracker-card { margin-bottom: 0; }
+.dash-charts .tracker-card__head { margin-bottom: 1rem; }
+.dash-charts .tracker-card__head h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Compact chart container — used on the dashboard so the trend
+   row doesn't dominate the page like the full-size tracker chart. */
+.chart-wrap--compact { height: 220px; }
+@media (max-width: 520px) {
+    .chart-wrap--compact { height: 200px; }
+}
+
+/* Empty-state shown inside a chart card when that tracker has no
+   data yet. Matches the chart's height so the row stays aligned. */
+.dash-chart-empty {
+    height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    text-align: center;
+    color: var(--text-dim);
+    background: var(--bg-card-2);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+}
+.dash-chart-empty p { margin: 0; font-size: 0.95rem; }
+@media (max-width: 520px) {
+    .dash-chart-empty { height: 200px; }
+}
+
+/* Quick-action cards reuse .feature-card from the home page, but
+   here they're <a> elements — strip the default link styling. */
+.dash-actions { margin-top: 1.5rem; }
+.dash-actions a.feature-card {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+}
+.dash-actions a.feature-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
 /* ----- Phase 7 responsive ------------------------------------------- */
 @media (max-width: 720px) {
     .tracker-card { padding: 1.25rem; }

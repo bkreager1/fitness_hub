@@ -19,6 +19,13 @@ if (is_file(__DIR__ . '/database.local.php')) {
 defined('BASE_URL')  or define('BASE_URL',  '/fitness_hub');
 defined('SITE_NAME') or define('SITE_NAME', 'Rock County Fitness Hub');
 
+// App timezone — drives every date()/DateTime call so "today" matches
+// the user's calendar instead of the server's. XAMPP's php.ini default
+// is often Europe/Berlin which renders dates ~7h ahead of US Central.
+// Override in config/database.local.php if deploying elsewhere.
+defined('APP_TIMEZONE') or define('APP_TIMEZONE', 'America/Chicago');
+date_default_timezone_set(APP_TIMEZONE);
+
 // ----- Database credentials ------------------------------------------
 // XAMPP defaults: user=root, blank password, MySQL on localhost:3306.
 // database.local.php (loaded above, gitignored) can override any of these.
