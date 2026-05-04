@@ -71,6 +71,13 @@ class WeightLog {
         return $stmt->fetchAll();
     }
 
+    // Total number of weigh-ins for a user (for profile summary).
+    public static function countForUser(int $userId): int {
+        $stmt = db()->prepare('SELECT COUNT(*) FROM weight_logs WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent weigh-in (for the dashboard summary later).
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(

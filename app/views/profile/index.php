@@ -16,6 +16,24 @@
 
     // First letter of the name for the initials fallback.
     $initial = mb_strtoupper(mb_substr(trim($user['name']), 0, 1)) ?: '?';
+
+    // Summary block — read-only "at a glance" info.
+    $memberSinceTs = strtotime($user['created_at'] ?? '') ?: null;
+    $memberSince   = $memberSinceTs ? date('F Y', $memberSinceTs) : '—';
+
+    // Map the goal enum to a display label.
+    $goalLabels = ['cut' => 'Cut', 'maintain' => 'Maintain', 'bulk' => 'Bulk'];
+    $goalLabel  = $goalLabels[$user['current_goal'] ?? ''] ?? '—';
+
+    // English-pluralize a count for the activity line.
+    $countLabel = static fn(int $n, string $singular, string $plural): string =>
+        number_format($n) . ' ' . ($n === 1 ? $singular : $plural);
+
+    $logsLine = implode(' · ', [
+        $countLabel((int) $summary['weight_logs'],   'weigh-in',     'weigh-ins'),
+        $countLabel((int) $summary['calorie_days'],  'calorie day',  'calorie days'),
+        $countLabel((int) $summary['strength_sets'], 'lift set',     'lift sets'),
+    ]);
 ?>
 <section class="section">
     <div class="container">
@@ -24,6 +42,22 @@
             <h1>Profile</h1>
             <p class="lede">Update your account info, change your password, or set a profile photo.</p>
         </header>
+
+        <!-- ============ AT-A-GLANCE SUMMARY ============ -->
+        <div class="profile-summary">
+            <div class="profile-summary__item">
+                <span class="profile-summary__label">Member since</span>
+                <span class="profile-summary__value"><?= e($memberSince) ?></span>
+            </div>
+            <div class="profile-summary__item">
+                <span class="profile-summary__label">Current goal</span>
+                <span class="profile-summary__value"><?= e($goalLabel) ?></span>
+            </div>
+            <div class="profile-summary__item profile-summary__item--wide">
+                <span class="profile-summary__label">Logs</span>
+                <span class="profile-summary__value"><?= e($logsLine) ?></span>
+            </div>
+        </div>
 
         <!-- ============ PROFILE PHOTO ============ -->
         <div class="tracker-card">

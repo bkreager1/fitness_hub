@@ -1665,6 +1665,39 @@ img.avatar { object-fit: cover; }
     font-size: 1rem;
 }
 
+/* ----- At-a-glance summary block (read-only info) ------------------- */
+.profile-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.profile-summary__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+/* "Logs" line spans the full width — long, comma-separated counts. */
+.profile-summary__item--wide { grid-column: 1 / -1; }
+
+.profile-summary__label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--text-faint);
+}
+.profile-summary__value {
+    font-size: 1.05rem;
+    color: var(--text);
+    font-weight: 600;
+}
+
 /* ----- Profile photo card layout ------------------------------------ */
 .profile-photo-row {
     display: flex;
@@ -1720,5 +1753,6 @@ img.avatar { object-fit: cover; }
 /* ----- Phase 8 responsive ------------------------------------------- */
 @media (max-width: 600px) {
     .profile-photo-row { flex-direction: column; align-items: stretch; }
+    .profile-summary   { grid-template-columns: 1fr; }
     .nav-profile__name { max-width: 18ch; }
 }

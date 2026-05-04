@@ -51,6 +51,15 @@ class CalorieIntake {
         return $row ?: null;
     }
 
+    // Total number of days a user has logged intake (for profile summary).
+    // The upsert means there's at most one row per (user, date), so this
+    // is also the count of distinct days.
+    public static function countForUser(int $userId): int {
+        $stmt = db()->prepare('SELECT COUNT(*) FROM calorie_intake_logs WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent intake row (for dashboard summary later).
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(

@@ -22,12 +22,22 @@ class ProfileController extends Controller {
     public function index(): void {
         $this->requireLogin();
 
-        $user = User::find((int) current_user_id());
+        $userId = (int) current_user_id();
+        $user   = User::find($userId);
+
+        // Read-only summary shown above the edit forms — gives the page
+        // a "view your profile" feel without duplicating the dashboard.
+        $summary = [
+            'weight_logs'    => WeightLog::countForUser($userId),
+            'calorie_days'   => CalorieIntake::countForUser($userId),
+            'strength_sets'  => StrengthLog::countForUser($userId),
+        ];
 
         $this->view('profile/index', [
-            'title'  => 'Profile',
-            'active' => 'profile',
-            'user'   => $user,
+            'title'   => 'Profile',
+            'active'  => 'profile',
+            'user'    => $user,
+            'summary' => $summary,
         ]);
     }
 

@@ -71,6 +71,14 @@ class StrengthLog {
         return $stmt->fetchAll();
     }
 
+    // Total number of logged lift attempts (for profile summary).
+    // One row = one lift x weight x reps entry, so this is a "sets" count.
+    public static function countForUser(int $userId): int {
+        $stmt = db()->prepare('SELECT COUNT(*) FROM strength_logs WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent lift overall (any type) — used by dashboard later.
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(
