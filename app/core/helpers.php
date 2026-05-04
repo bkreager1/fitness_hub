@@ -147,14 +147,34 @@ function current_user(string $field): ?string {
 
 const PASSWORD_HINT = 'At least 8 characters, with one uppercase letter, one number, and one symbol.';
 
-// Returns null if $password meets the rules, otherwise a user-facing
-// error string for the first rule it fails.
+// Returns null if $password meets all the rules, otherwise a user-facing
+// error string that lists every unmet requirement at once. Reporting
+// them all together avoids the "fix one thing, see the next error,
+// fix it, see the next" loop.
 function validate_password_rules(string $password): ?string {
-    if (strlen($password) < 8)                  return 'Password must be at least 8 characters long.';
-    if (!preg_match('/[A-Z]/', $password))      return 'Password must contain at least one uppercase letter.';
-    if (!preg_match('/[0-9]/', $password))      return 'Password must contain at least one number.';
-    if (!preg_match('/[^A-Za-z0-9]/', $password)) return 'Password must contain at least one symbol.';
-    return null;
+    $tooShort = strlen($password) < 8;
+    $missing  = [];
+    if (!preg_match('/[A-Z]/',       $password)) $missing[] = 'one uppercase letter';
+    if (!preg_match('/[0-9]/',       $password)) $missing[] = 'one number';
+    if (!preg_match('/[^A-Za-z0-9]/', $password)) $missing[] = 'one symbol';
+
+    if (!$tooShort && !$missing) return null;
+
+    $parts = [];
+    if ($tooShort) {
+        $parts[] = 'be at least 8 characters';
+    }
+    if ($missing) {
+        // "X" / "X and Y" / "X, Y, and Z"
+        $compStr = match (count($missing)) {
+            1       => $missing[0],
+            2       => $missing[0] . ' and ' . $missing[1],
+            default => implode(', ', array_slice($missing, 0, -1)) . ', and ' . end($missing),
+        };
+        $parts[] = 'contain ' . $compStr;
+    }
+
+    return 'Password must ' . implode(' and ', $parts) . '.';
 }
 
 // ----- UI partials ---------------------------------------------------
