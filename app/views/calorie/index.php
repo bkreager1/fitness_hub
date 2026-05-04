@@ -7,15 +7,16 @@
 //   1. "Your daily targets" — current cut/maintain/bulk numbers
 //      pulled from the latest calorie_logs row, with an
 //      "Update my stats" button that reveals the calc form.
-//   2. "Log calorie intake"   — daily upsert form (date + calories)
-//   3. "Intake over time"     — chart of intake vs target lines + table
+//   2. "Today's meals"        — list of today's entries + "Add meal" form
+//   3. "Intake over time"     — chart of daily totals vs target + history
 //
 // Variables expected from CalorieController::index():
 //   $today              ISO date for "today"
 //   $latest             latest calorie_logs row (or null)
-//   $intakeHistory      intake rows newest-first
-//   $intakeChartData    intake rows oldest-first, shaped for chart
-//   $todayIntake        today's intake row (or null)
+//   $intakeHistory      per-entry history rows newest-first (table)
+//   $intakeChartData    per-day totals oldest-first (chart)
+//   $todayMeals         today's individual entries (oldest-first)
+//   $todayTotal         summed calories for today (int)
 //   $levels             CalorieLog::ACTIVITY_LEVELS map
 //   $prefill            stats form prefill (or [])
 //   $statsFormOpen      bool — force the stats form open after a fail
@@ -32,8 +33,9 @@ $errHeightCm = field_error('height_cm');
 $errWeightKg = field_error('weight_kg');
 
 // ----- Errors per field (intake form) --------------------------------
-$errIntakeDate = field_error('intake_logged_date');
-$errIntakeCal  = field_error('intake_calories');
+$errIntakeDate  = field_error('intake_logged_date');
+$errIntakeCal   = field_error('intake_calories');
+$errIntakeLabel = field_error('intake_label');
 
 // ----- Targets form state --------------------------------------------
 $unitSystem = old('unit_system', 'us');
@@ -48,12 +50,10 @@ $intakeDate = old('intake_logged_date') !== ''
     ? old('intake_logged_date')
     : $today;
 
-// Pre-fill calories from today's existing row (if any) so users can
-// "add to" the day's running total. If the previous request was a
-// failed save, prefer the typed-but-rejected value.
-$intakeCal = old('intake_calories') !== ''
-    ? old('intake_calories')
-    : (string) ($todayIntake['calories'] ?? '');
+// Calories field is empty by default — each meal is its own entry,
+// so there's no "previous total" to seed it with.
+$intakeCal   = old('intake_calories');
+$intakeLabel = old('intake_label');
 
 // ----- Goal lookups (drives the dynamic copy + highlight) ------------
 // activeGoal is one of 'cut' | 'maintain' | 'bulk' from the controller.
@@ -71,12 +71,10 @@ $activeTarget = $latest ? (int) $latest[$activeMeta['column']] : null;
 
 // ----- Today vs target message ---------------------------------------
 $todayVsTarget = null;
-if ($latest && $todayIntake) {
-    $today_cal = (int) $todayIntake['calories'];
-    $diff      = $today_cal - $activeTarget;
-
+if ($latest && $todayTotal > 0) {
+    $diff = $todayTotal - $activeTarget;
     $todayVsTarget = [
-        'today'  => $today_cal,
+        'today'  => $todayTotal,
         'target' => $activeTarget,
         'diff'   => $diff,
         'label'  => $activeMeta['label'],
@@ -405,7 +403,7 @@ $fmtDate = static function (string $iso): string {
 
             <header class="tracker-card__head">
                 <div>
-                    <h2>Log calorie intake</h2>
+                    <h2>Today's meals</h2>
                     <?php if ($todayVsTarget): ?>
                         <span class="field-hint">
                             You're at <strong><?= e(number_format($todayVsTarget['today'])) ?></strong>
@@ -433,6 +431,44 @@ $fmtDate = static function (string $iso): string {
                 </div>
             </header>
 
+            <?php if (!empty($todayMeals)): ?>
+                <ul class="meals-list">
+                    <?php foreach ($todayMeals as $meal): ?>
+                        <li class="meals-list__item">
+                            <span class="meals-list__label">
+                                <?= e(($meal['label'] ?? '') !== '' ? $meal['label'] : 'Meal') ?>
+                            </span>
+                            <span class="meals-list__value">
+                                <?= e(number_format((int) $meal['calories'])) ?> cal
+                            </span>
+                            <span class="meals-list__actions">
+                                <a class="btn-link"
+                                   href="<?= url('calorie/intake/edit?id=' . (int) $meal['id']) ?>">
+                                    Edit
+                                </a>
+                                <form method="post" action="<?= url('calorie/intake/delete') ?>"
+                                      onsubmit="return confirm('Remove this meal?');">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="id" value="<?= e((string) $meal['id']) ?>">
+                                    <button type="submit" class="btn-link-danger"
+                                            aria-label="Remove this meal">
+                                        Delete
+                                    </button>
+                                </form>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                    <li class="meals-list__total">
+                        <span>Total today</span>
+                        <strong><?= e(number_format($todayTotal)) ?> cal</strong>
+                    </li>
+                </ul>
+            <?php endif; ?>
+
+            <div class="meals-add-divider">
+                <span>Add a meal</span>
+            </div>
+
             <form method="post" action="<?= url('calorie/intake') ?>"
                   id="intakeForm" novalidate>
                 <?= csrf_field() ?>
@@ -452,17 +488,27 @@ $fmtDate = static function (string $iso): string {
                     </div>
 
                     <div class="field">
+                        <label for="intakeLabel">Label <span class="field-optional">(optional)</span></label>
+                        <input type="text" id="intakeLabel" name="label"
+                               value="<?= e($intakeLabel) ?>"
+                               maxlength="50"
+                               placeholder="Lunch, Pizza, Snack…"
+                               <?= $errIntakeLabel ? 'aria-invalid="true"' : '' ?>>
+                        <?php if ($errIntakeLabel): ?>
+                            <p class="field-error"><?= e($errIntakeLabel) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
                         <label for="intakeCalories">Calories</label>
                         <input type="number" id="intakeCalories" name="calories"
                                inputmode="numeric" min="0" max="20000" step="1"
                                value="<?= e($intakeCal) ?>"
-                               placeholder="2100"
+                               placeholder="650"
                                <?= $errIntakeCal ? 'aria-invalid="true"' : '' ?>
                                required>
                         <?php if ($errIntakeCal): ?>
                             <p class="field-error"><?= e($errIntakeCal) ?></p>
-                        <?php else: ?>
-                            <span class="field-hint">Re-saving the same date overwrites the previous total.</span>
                         <?php endif; ?>
                     </div>
 
@@ -470,7 +516,7 @@ $fmtDate = static function (string $iso): string {
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-inline">
-                        Save intake
+                        Add meal
                     </button>
                 </div>
 
@@ -488,11 +534,24 @@ $fmtDate = static function (string $iso): string {
         <?php if (empty($intakeHistory)): ?>
 
             <article class="tracker-card empty-state">
-                <h2>No intake logs yet</h2>
-                <p>Log your first day above to start seeing how you stack up against your targets.</p>
+                <h2>No meals logged yet</h2>
+                <p>Add your first meal above to start seeing how your day stacks up.</p>
             </article>
 
         <?php else: ?>
+
+            <?php
+                // Per-day totals + entry counts so the table can show one
+                // "Day total / vs target" cell per group via rowspan.
+                $dailyTotals      = [];
+                $dailyEntryCounts = [];
+                foreach ($intakeHistory as $r) {
+                    $d = $r['logged_date'];
+                    $dailyTotals[$d]      = ($dailyTotals[$d]      ?? 0) + (int) $r['calories'];
+                    $dailyEntryCounts[$d] = ($dailyEntryCounts[$d] ?? 0) + 1;
+                }
+                $prevDate = null;
+            ?>
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
@@ -520,7 +579,9 @@ $fmtDate = static function (string $iso): string {
                 <header class="tracker-card__head">
                     <h2>History</h2>
                     <span class="field-hint">
-                        <?= count($intakeHistory) ?> log<?= count($intakeHistory) === 1 ? '' : 's' ?> · newest first
+                        <?= count($intakeHistory) ?> meal<?= count($intakeHistory) === 1 ? '' : 's' ?>
+                        across <?= count($dailyTotals) ?> day<?= count($dailyTotals) === 1 ? '' : 's' ?>
+                        · newest first
                     </span>
                 </header>
 
@@ -529,7 +590,9 @@ $fmtDate = static function (string $iso): string {
                         <thead>
                             <tr>
                                 <th scope="col">Date</th>
+                                <th scope="col">Meal</th>
                                 <th scope="col" class="num">Calories</th>
+                                <th scope="col" class="num">Day total</th>
                                 <?php if ($latest): ?>
                                     <th scope="col">vs <?= e($activeMeta['short']) ?></th>
                                 <?php endif; ?>
@@ -538,35 +601,56 @@ $fmtDate = static function (string $iso): string {
                         </thead>
                         <tbody>
                             <?php foreach ($intakeHistory as $row):
-                                $cal  = (int) $row['calories'];
-                                $diff = $latest ? $cal - $activeTarget : null;
+                                $d              = $row['logged_date'];
+                                $isFirstOfGroup = ($d !== $prevDate);
+                                $rowspan        = $isFirstOfGroup ? $dailyEntryCounts[$d] : 0;
+                                $dayTotal       = $dailyTotals[$d];
+                                $diff           = $latest ? $dayTotal - $activeTarget : null;
+                                $label          = ($row['label'] ?? '') !== '' ? $row['label'] : 'Meal';
                             ?>
-                                <tr>
-                                    <td><?= e($fmtDate($row['logged_date'])) ?></td>
-                                    <td class="num strong"><?= e(number_format($cal)) ?></td>
-                                    <?php if ($latest): ?>
-                                        <td>
-                                            <?php if ($diff < 0): ?>
-                                                <span class="text-good"><?= e(number_format(abs($diff))) ?> under</span>
-                                            <?php elseif ($diff > 0): ?>
-                                                <span class="text-warn"><?= e(number_format($diff)) ?> over</span>
-                                            <?php else: ?>
-                                                <span>at target</span>
-                                            <?php endif; ?>
+                                <tr<?= $isFirstOfGroup ? ' class="row-group-start"' : '' ?>>
+                                    <?php if ($isFirstOfGroup): ?>
+                                        <td rowspan="<?= e((string) $rowspan) ?>"
+                                            class="cell-date">
+                                            <?= e($fmtDate($d)) ?>
                                         </td>
                                     <?php endif; ?>
+                                    <td><?= e($label) ?></td>
+                                    <td class="num"><?= e(number_format((int) $row['calories'])) ?></td>
+                                    <?php if ($isFirstOfGroup): ?>
+                                        <td rowspan="<?= e((string) $rowspan) ?>"
+                                            class="num strong">
+                                            <?= e(number_format($dayTotal)) ?>
+                                        </td>
+                                        <?php if ($latest): ?>
+                                            <td rowspan="<?= e((string) $rowspan) ?>">
+                                                <?php if ($diff < 0): ?>
+                                                    <span class="text-good"><?= e(number_format(abs($diff))) ?> under</span>
+                                                <?php elseif ($diff > 0): ?>
+                                                    <span class="text-warn"><?= e(number_format($diff)) ?> over</span>
+                                                <?php else: ?>
+                                                    <span>at target</span>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
                                     <td class="actions">
+                                        <a class="btn-link"
+                                           href="<?= url('calorie/intake/edit?id=' . (int) $row['id']) ?>">
+                                            Edit
+                                        </a>
                                         <form method="post" action="<?= url('calorie/intake/delete') ?>"
-                                              onsubmit="return confirm('Delete this intake log?');">
+                                              onsubmit="return confirm('Delete this meal?');">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="id" value="<?= e((string) $row['id']) ?>">
                                             <button type="submit" class="btn-link-danger"
-                                                    aria-label="Delete intake from <?= e($fmtDate($row['logged_date'])) ?>">
+                                                    aria-label="Delete meal">
                                                 Delete
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
+                                <?php $prevDate = $d; ?>
                             <?php endforeach; ?>
                         </tbody>
                     </table>

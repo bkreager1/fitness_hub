@@ -18,7 +18,9 @@
 // Routes:
 //   GET  /calorie                → index()
 //   POST /calorie/targets        → saveTargets()    (snapshot of stats + targets)
-//   POST /calorie/intake         → saveIntake()     (upsert one day's calories)
+//   POST /calorie/intake         → saveIntake()     (add one meal/entry)
+//   GET  /calorie/intake/edit    → editIntake()     (render edit form)
+//   POST /calorie/intake/update  → updateIntake()   (save edits)
 //   POST /calorie/intake/delete  → deleteIntake()
 //   POST /calorie/goal           → setGoal()        (cut / maintain / bulk)
 // ============================================================
@@ -58,16 +60,19 @@ class CalorieController extends Controller {
         // card and pre-fills the (collapsed) stats form.
         $latest = CalorieLog::latestForUser($userId);
 
-        // Intake: full history newest-first for the table, plus
-        // today's existing row (if any) to pre-fill the intake form.
+        // Intake: full per-entry history (newest-first) for the table,
+        // today's individual entries for the "Today's meals" list,
+        // plus today's running total for the headline.
         $intakeHistory = CalorieIntake::forUser($userId);
-        $todayIntake   = CalorieIntake::forUserOnDate($userId, $today);
+        $todayMeals    = CalorieIntake::forUserOnDate($userId, $today);
+        $todayTotal    = CalorieIntake::totalForUserOnDate($userId, $today);
 
-        // Chart wants oldest-first for left-to-right time progression.
+        // Chart shows daily totals (summed across meals) — oldest-first
+        // for left-to-right time progression.
         $intakeChartData = array_map(static fn(array $r): array => [
             'date'     => $r['logged_date'],
             'calories' => (int) $r['calories'],
-        ], array_reverse($intakeHistory));
+        ], array_reverse(CalorieIntake::dailyTotalsForUser($userId)));
 
         // Stats prefill (mirrors what the form needs in either unit
         // pane). Empty array for first-time users → blank form.
@@ -113,7 +118,8 @@ class CalorieController extends Controller {
             'latest'          => $latest,
             'intakeHistory'   => $intakeHistory,
             'intakeChartData' => $intakeChartData,
-            'todayIntake'     => $todayIntake,
+            'todayMeals'      => $todayMeals,
+            'todayTotal'      => $todayTotal,
             'levels'          => CalorieLog::ACTIVITY_LEVELS,
             'prefill'         => $prefill,
             'statsFormOpen'   => $statsFormOpen,
@@ -293,7 +299,7 @@ class CalorieController extends Controller {
     }
 
     // POST /calorie/intake ----------------------------------------
-    // Upsert one day's calorie intake.
+    // Add a single intake entry (one meal / one logged eating event).
     public function saveIntake(): void {
         $this->requireLogin();
         csrf_verify();
@@ -301,47 +307,80 @@ class CalorieController extends Controller {
         $userId   = current_user_id();
         $date     = $_POST['logged_date'] ?? '';
         $calories = $_POST['calories']    ?? '';
+        $label    = trim((string) ($_POST['label'] ?? ''));
 
-        // Both old() and field_error() use the "intake_" prefix so the
-        // intake form's keys can't collide with the targets form's
-        // (both have a logged_date field).
-        $errors = [];
-
-        if ($date === '') {
-            $errors['intake_logged_date'] = 'Date is required.';
-        } else {
-            $d = DateTime::createFromFormat('!Y-m-d', $date);
-            if (!$d || $d->format('Y-m-d') !== $date) {
-                $errors['intake_logged_date'] = 'Please enter a valid date.';
-            } elseif ($d > new DateTime('today')) {
-                $errors['intake_logged_date'] = 'Date cannot be in the future.';
-            }
-        }
-
-        // Calories: whole number, sensible range. Floor at 0 so a typo
-        // doesn't crash; ceiling at 20000 so a misplaced zero doesn't
-        // explode the chart's Y-axis.
-        if ($calories === '' || !ctype_digit((string) $calories)) {
-            $errors['intake_calories'] = 'Calories must be a whole number.';
-        } else {
-            $cal = (int) $calories;
-            if ($cal < 0 || $cal > 20000) {
-                $errors['intake_calories'] = 'Calories must be between 0 and 20,000.';
-            }
-        }
+        [$errors, $cleanLabel] = $this->validateIntake($date, $calories, $label);
 
         if ($errors) {
             save_old([
                 'intake_logged_date' => $date,
                 'intake_calories'    => $calories,
+                'intake_label'       => $label,
             ]);
             set_errors($errors);
             $this->redirect('calorie');
         }
 
-        CalorieIntake::upsert($userId, (int) $calories, $date);
+        CalorieIntake::create($userId, (int) $calories, $date, $cleanLabel);
 
-        flash('success', 'Intake saved.');
+        flash('success', 'Meal logged.');
+        $this->redirect('calorie');
+    }
+
+    // GET /calorie/intake/edit?id=… --------------------------------
+    public function editIntake(): void {
+        $this->requireLogin();
+
+        $userId = current_user_id();
+        $id     = (int) ($_GET['id'] ?? 0);
+        $row    = $id > 0 ? CalorieIntake::find($id, $userId) : null;
+
+        if (!$row) {
+            flash('error', 'That intake entry could not be found.');
+            $this->redirect('calorie');
+            return;
+        }
+
+        $this->view('calorie/edit', [
+            'title'  => 'Edit meal',
+            'active' => 'dashboard',
+            'row'    => $row,
+        ]);
+    }
+
+    // POST /calorie/intake/update ---------------------------------
+    public function updateIntake(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId   = current_user_id();
+        $id       = (int) ($_POST['id']  ?? 0);
+        $calories = $_POST['calories']   ?? '';
+        $label    = trim((string) ($_POST['label'] ?? ''));
+
+        $row = $id > 0 ? CalorieIntake::find($id, $userId) : null;
+        if (!$row) {
+            flash('error', 'That intake entry could not be found.');
+            $this->redirect('calorie');
+            return;
+        }
+
+        // Date is fixed for an edit — we re-validate it from the row so
+        // a tampered POST can't sneak a different date through.
+        [$errors, $cleanLabel] = $this->validateIntake($row['logged_date'], $calories, $label);
+
+        if ($errors) {
+            save_old([
+                'intake_calories' => $calories,
+                'intake_label'    => $label,
+            ]);
+            set_errors($errors);
+            $this->redirect('calorie/intake/edit?id=' . $id);
+        }
+
+        CalorieIntake::update($id, $userId, (int) $calories, $cleanLabel);
+
+        flash('success', 'Meal updated.');
         $this->redirect('calorie');
     }
 
@@ -355,9 +394,47 @@ class CalorieController extends Controller {
 
         if ($id > 0 && CalorieIntake::find($id, $userId)) {
             CalorieIntake::delete($id, $userId);
-            flash('success', 'Intake log deleted.');
+            flash('success', 'Meal removed.');
         }
 
         $this->redirect('calorie');
+    }
+
+    // ----- Internal helpers --------------------------------------
+
+    // Validate the intake fields and return [errors, cleanedLabel].
+    // The "intake_" prefix on error keys keeps them from colliding
+    // with the targets form (both forms have a logged_date field).
+    private function validateIntake(string $date, $calories, string $label): array {
+        $errors = [];
+
+        if ($date === '') {
+            $errors['intake_logged_date'] = 'Date is required.';
+        } else {
+            $d = DateTime::createFromFormat('!Y-m-d', $date);
+            if (!$d || $d->format('Y-m-d') !== $date) {
+                $errors['intake_logged_date'] = 'Please enter a valid date.';
+            } elseif ($d > new DateTime('today')) {
+                $errors['intake_logged_date'] = 'Date cannot be in the future.';
+            }
+        }
+
+        if ($calories === '' || !ctype_digit((string) $calories)) {
+            $errors['intake_calories'] = 'Calories must be a whole number.';
+        } else {
+            $cal = (int) $calories;
+            if ($cal < 0 || $cal > 20000) {
+                $errors['intake_calories'] = 'Calories must be between 0 and 20,000.';
+            }
+        }
+
+        // Label is optional. Trim and cap to 50 chars (matches column).
+        // Empty string after trim → store NULL, not "".
+        $cleanLabel = $label === '' ? null : mb_substr($label, 0, 50);
+        if ($label !== '' && mb_strlen($label) > 50) {
+            $errors['intake_label'] = 'Label must be 50 characters or fewer.';
+        }
+
+        return [$errors, $cleanLabel];
     }
 }

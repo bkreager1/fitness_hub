@@ -3,32 +3,40 @@
 // app/models/CalorieIntake.php
 // Database logic for the calorie_intake_logs table.
 //
-// Each row = one day's calorie consumption total for a user.
-// Schema enforces UNIQUE(user_id, logged_date), so re-saving the
-// same date upserts via INSERT ... ON DUPLICATE KEY UPDATE.
+// Each row = one meal / one logged eating event for a user.
+// Many rows can share the same (user_id, logged_date) — the day's
+// total is the SUM of those rows. The optional `label` column is
+// a free-form name like "Lunch" or "Pizza".
 //
 // Sister model to CalorieLog (which stores target snapshots).
 // ============================================================
 
 class CalorieIntake {
 
-    // Insert or update one day's intake. Same (user_id, logged_date)
-    // pair overwrites the existing calories. Returns the affected
-    // row's id (whether new or updated).
-    public static function upsert(int $userId, int $calories, string $date): int {
+    // Insert one new intake entry. Returns the new row's id.
+    public static function create(int $userId, int $calories, string $date, ?string $label): int {
         $stmt = db()->prepare(
-            'INSERT INTO calorie_intake_logs (user_id, calories, logged_date)
-             VALUES (?, ?, ?)
-             ON DUPLICATE KEY UPDATE
-                calories = VALUES(calories),
-                id       = LAST_INSERT_ID(id)'
+            'INSERT INTO calorie_intake_logs (user_id, calories, label, logged_date)
+             VALUES (?, ?, ?, ?)'
         );
-        $stmt->execute([$userId, $calories, $date]);
+        $stmt->execute([$userId, $calories, $label, $date]);
         return (int) db()->lastInsertId();
     }
 
-    // Full history for one user, newest-first (table order).
-    // Reverse this in the controller for chart rendering.
+    // Update calories + label on an existing entry. The date is
+    // intentionally not editable — to "move" an entry, delete and
+    // re-add, which keeps the audit trail honest.
+    public static function update(int $id, int $userId, int $calories, ?string $label): void {
+        $stmt = db()->prepare(
+            'UPDATE calorie_intake_logs
+             SET calories = ?, label = ?
+             WHERE id = ? AND user_id = ?'
+        );
+        $stmt->execute([$calories, $label, $id, $userId]);
+    }
+
+    // Full history for one user, newest-first (one row per entry).
+    // Used by the per-meal history table in the view.
     public static function forUser(int $userId): array {
         $stmt = db()->prepare(
             'SELECT * FROM calorie_intake_logs
@@ -39,28 +47,60 @@ class CalorieIntake {
         return $stmt->fetchAll();
     }
 
-    // Today's row (or whatever date the form is asking about).
-    // Used to pre-fill the intake form's calories field.
-    public static function forUserOnDate(int $userId, string $date): ?array {
+    // All entries for a single date, ordered by insertion (oldest-first
+    // so the user's "Today's meals" list reads in the order they ate).
+    public static function forUserOnDate(int $userId, string $date): array {
         $stmt = db()->prepare(
             'SELECT * FROM calorie_intake_logs
-             WHERE user_id = ? AND logged_date = ? LIMIT 1'
+             WHERE user_id = ? AND logged_date = ?
+             ORDER BY id ASC'
         );
         $stmt->execute([$userId, $date]);
-        $row = $stmt->fetch();
-        return $row ?: null;
+        return $stmt->fetchAll();
     }
 
-    // Total number of days a user has logged intake (for profile summary).
-    // The upsert means there's at most one row per (user, date), so this
-    // is also the count of distinct days.
+    // Sum of calories for a single date. Returns 0 if no rows.
+    // Used for "you're at X today" hints + the dashboard card.
+    public static function totalForUserOnDate(int $userId, string $date): int {
+        $stmt = db()->prepare(
+            'SELECT COALESCE(SUM(calories), 0)
+             FROM calorie_intake_logs
+             WHERE user_id = ? AND logged_date = ?'
+        );
+        $stmt->execute([$userId, $date]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // Daily totals for the chart. Returns rows like
+    //   [{ logged_date: 'YYYY-MM-DD', calories: 1850 }, ...]
+    // newest-first; reverse in the controller for the chart's
+    // left-to-right time progression.
+    public static function dailyTotalsForUser(int $userId): array {
+        $stmt = db()->prepare(
+            'SELECT logged_date, SUM(calories) AS calories
+             FROM calorie_intake_logs
+             WHERE user_id = ?
+             GROUP BY logged_date
+             ORDER BY logged_date DESC'
+        );
+        $stmt->execute([$userId]);
+        return $stmt->fetchAll();
+    }
+
+    // Number of distinct days a user has logged any intake on
+    // (for the profile "calorie days" counter). With many rows now
+    // possible per day, we count days, not rows.
     public static function countForUser(int $userId): int {
-        $stmt = db()->prepare('SELECT COUNT(*) FROM calorie_intake_logs WHERE user_id = ?');
+        $stmt = db()->prepare(
+            'SELECT COUNT(DISTINCT logged_date)
+             FROM calorie_intake_logs
+             WHERE user_id = ?'
+        );
         $stmt->execute([$userId]);
         return (int) $stmt->fetchColumn();
     }
 
-    // Most recent intake row (for dashboard summary later).
+    // Most recent entry — used by dashboard summary later if needed.
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(
             'SELECT * FROM calorie_intake_logs

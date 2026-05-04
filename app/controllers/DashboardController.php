@@ -23,7 +23,7 @@ class DashboardController extends Controller {
 
         // ----- Calorie summary -------------------------------------
         $latestTargets = CalorieLog::latestForUser($userId);
-        $todayIntake   = CalorieIntake::forUserOnDate($userId, $today);
+        $todayTotal    = CalorieIntake::totalForUserOnDate($userId, $today);
 
         // Active goal drives which target we compare today's intake against.
         $activeGoal = $user['current_goal'] ?? 'maintain';
@@ -43,8 +43,8 @@ class DashboardController extends Controller {
 
         $calorieCard = [
             'has_targets' => (bool) $latestTargets,
-            'has_today'   => (bool) $todayIntake,
-            'today'       => $todayIntake ? (int) $todayIntake['calories'] : null,
+            'has_today'   => $todayTotal > 0,
+            'today'       => $todayTotal > 0 ? $todayTotal : null,
             'target'      => $latestTargets ? (int) $latestTargets[$goalColumn] : null,
             'goal_label'  => $goalLabel,
         ];
@@ -100,13 +100,14 @@ class DashboardController extends Controller {
         // ----- Chart data (oldest-first, shaped for the existing
         // chart IIFEs in main.js — same canvas IDs and data attrs
         // as the tracker pages, so the JS just works).
-        $intakeHistory = CalorieIntake::forUser($userId);
+        // Daily totals (summed across meals) drive the chart now that
+        // intake is per-meal.
         $intakeChartData = array_map(
             static fn(array $r): array => [
                 'date'     => $r['logged_date'],
                 'calories' => (int) $r['calories'],
             ],
-            array_reverse($intakeHistory)
+            array_reverse(CalorieIntake::dailyTotalsForUser($userId))
         );
         $intakeChartTargets = $latestTargets ? [
             'cut'         => (int) $latestTargets['cutting_calories'],

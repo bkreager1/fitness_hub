@@ -72,6 +72,8 @@ try {
         'GET calorie'                => (new CalorieController())->index(),
         'POST calorie/targets'       => (new CalorieController())->saveTargets(),
         'POST calorie/intake'        => (new CalorieController())->saveIntake(),
+        'GET calorie/intake/edit'    => (new CalorieController())->editIntake(),
+        'POST calorie/intake/update' => (new CalorieController())->updateIntake(),
         'POST calorie/intake/delete' => (new CalorieController())->deleteIntake(),
         'POST calorie/goal'          => (new CalorieController())->setGoal(),
 
