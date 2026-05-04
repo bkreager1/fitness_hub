@@ -150,9 +150,7 @@
                     <?php if ($errNewPw): ?>
                         <p class="field-error"><?= e($errNewPw) ?></p>
                     <?php else: ?>
-                        <small class="field-hint">
-                            At least 8 characters, with one uppercase, one lowercase, and one number.
-                        </small>
+                        <small class="field-hint"><?= e(PASSWORD_HINT) ?></small>
                     <?php endif; ?>
                 </div>
 

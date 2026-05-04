@@ -140,6 +140,23 @@ function current_user(string $field): ?string {
     return $_SESSION['user'][$field] ?? null;
 }
 
+// ----- Password rules ------------------------------------------------
+// Single source of truth for the site-wide password policy: at least
+// 8 chars, one uppercase, one number, one symbol. The matching hint
+// text shown to users lives in PASSWORD_HINT below — keep them in sync.
+
+const PASSWORD_HINT = 'At least 8 characters, with one uppercase letter, one number, and one symbol.';
+
+// Returns null if $password meets the rules, otherwise a user-facing
+// error string for the first rule it fails.
+function validate_password_rules(string $password): ?string {
+    if (strlen($password) < 8)                  return 'Password must be at least 8 characters long.';
+    if (!preg_match('/[A-Z]/', $password))      return 'Password must contain at least one uppercase letter.';
+    if (!preg_match('/[0-9]/', $password))      return 'Password must contain at least one number.';
+    if (!preg_match('/[^A-Za-z0-9]/', $password)) return 'Password must contain at least one symbol.';
+    return null;
+}
+
 // ----- UI partials ---------------------------------------------------
 
 // Render the eye-icon show/hide button that pairs with a password input.

@@ -95,7 +95,7 @@ class ProfileController extends Controller {
             $errors['current_password'] = 'Current password is incorrect.';
         }
 
-        if ($passErr = $this->validatePassword($new)) {
+        if ($passErr = validate_password_rules($new)) {
             $errors['new_password'] = $passErr;
         }
         if ($new !== $confirm) {
@@ -186,16 +186,6 @@ class ProfileController extends Controller {
     }
 
     // ============ INTERNAL HELPERS ============
-
-    // Mirror of AuthController::validatePassword. Kept local so Phase 4 stays
-    // untouched; if a third caller appears, lift this into helpers.php.
-    private function validatePassword(string $password): ?string {
-        if (strlen($password) < 8)             return 'Password must be at least 8 characters long.';
-        if (!preg_match('/[A-Z]/', $password)) return 'Password must contain at least one uppercase letter.';
-        if (!preg_match('/[a-z]/', $password)) return 'Password must contain at least one lowercase letter.';
-        if (!preg_match('/[0-9]/', $password)) return 'Password must contain at least one number.';
-        return null;
-    }
 
     // Translate a $_FILES entry's error code + size into a user-facing message.
     // Returns null if the upload itself looks OK (caller still needs to check MIME).
