@@ -118,7 +118,7 @@ body {
 }
 
 h1, h2, h3, h4 { line-height: 1.2; letter-spacing: -0.01em; }
-h1 { font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 800; }
+h1 { font-size: clamp(1.75rem, 5vw, 2.75rem); font-weight: 800; }
 h2 { font-size: clamp(1.5rem, 2.5vw, 2rem);  font-weight: 700; }
 h3 { font-size: 1.15rem; font-weight: 600; }
 
@@ -728,7 +728,9 @@ a:hover { color: var(--primary-hot); }
 
 .features {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    /* Natural 1→2→3 col scaling: each card needs at least 260px,
+       so on phones we get 1 col, on tablets 2, and on desktop 3+. */
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.25rem;
 }
 .feature-card {
@@ -792,12 +794,11 @@ a:hover { color: var(--primary-hot); }
 @media (max-width: 860px) {
     .hero            { padding: 3rem 0 2.5rem; }
     .hero-grid       { grid-template-columns: 1fr; gap: 2rem; }
-    .features        { grid-template-columns: 1fr; }
     .section         { padding: 3rem 0; }
-}
 
-@media (max-width: 720px) {
-    /* Mobile nav */
+    /* Mobile nav — bumped up from 720px because the logged-in nav
+       (Home/About/Contact/Dashboard + profile pill + Logout) was
+       crowding the bar between 720 and 860. */
     .nav-toggle      { display: inline-flex; }
 
     .site-nav {
@@ -826,13 +827,14 @@ a:hover { color: var(--primary-hot); }
     .nav-link.is-active::after { display: none; }
     .nav-cta         { text-align: center; margin-top: 0.35rem; }
     .nav-hello       { padding: 0.5rem 0.85rem; }
+}
 
+@media (max-width: 720px) {
     .bmi-grid--imperial { grid-template-columns: 1fr 1fr; }
     .bmi-result      { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 420px) {
-    .hero h1         { font-size: 1.85rem; }
     .auth-card       { padding: 1.75rem; }
 }
 
@@ -1215,6 +1217,18 @@ a:hover { color: var(--primary-hot); }
     margin: 0 -0.5rem;
     padding: 0 0.5rem;
 }
+/* On narrow screens the table scrolls horizontally — fade the right
+   edge so the user has a visual cue that there's more content over
+   there. The fade is intentionally subtle (last 28px) and only kicks
+   in below the breakpoint where overflow actually happens. */
+@media (max-width: 720px) {
+    .history-scroll {
+        -webkit-mask-image: linear-gradient(to right,
+                            black 0%, black calc(100% - 28px), transparent 100%);
+                mask-image: linear-gradient(to right,
+                            black 0%, black calc(100% - 28px), transparent 100%);
+    }
+}
 .history-table {
     width: 100%;
     border-collapse: collapse;
@@ -1548,14 +1562,13 @@ a:hover { color: var(--primary-hot); }
    Phase 7 — Dashboard
    =================================================================== */
 
-/* "Today at a glance" — three clickable summary cards in a row. */
+/* "Today at a glance" — three clickable summary cards in a row.
+   auto-fit lets the row collapse 3→2→1 naturally as space tightens
+   instead of jumping straight from 3 to 1 at a fixed breakpoint. */
 .dash-summary {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.25rem;
-}
-@media (max-width: 860px) {
-    .dash-summary { grid-template-columns: 1fr; }
 }
 
 .dash-card {
@@ -1632,15 +1645,14 @@ a:hover { color: var(--primary-hot); }
     font-variant-numeric: tabular-nums;
 }
 
-/* Trend charts row — three smaller charts under the summary cards. */
+/* Trend charts row — three smaller charts under the summary cards.
+   Same auto-fit pattern as .dash-summary; charts need a touch more
+   width to read (legend + axis labels) so the min is bumped to 300px. */
 .dash-charts {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.25rem;
     margin-top: 1.5rem;
-}
-@media (max-width: 1024px) {
-    .dash-charts { grid-template-columns: 1fr; }
 }
 .dash-charts .tracker-card { margin-bottom: 0; }
 .dash-charts .tracker-card__head { margin-bottom: 1rem; }
