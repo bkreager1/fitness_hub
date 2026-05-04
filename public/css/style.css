@@ -382,7 +382,8 @@ a:hover { color: var(--primary-hot); }
 .field input[type="text"],
 .field input[type="email"],
 .field input[type="password"],
-.field input[type="number"] {
+.field input[type="number"],
+.field input[type="date"] {
     width: 100%;
     padding: 0.7rem 0.9rem;
     background: var(--bg-input);
@@ -397,6 +398,30 @@ a:hover { color: var(--primary-hot); }
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* Date inputs: opt into the browser's dark calendar popup (Chrome,
+   Edge, Firefox, Safari all honor color-scheme), and recolor the
+   calendar icon so it reads on the dark background. Also make the
+   whole field clickable like a button. */
+.field input[type="date"] {
+    color-scheme: dark;
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+}
+.field input[type="date"]:hover {
+    border-color: var(--border-hot);
+}
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1) brightness(0.85) sepia(1) saturate(4) hue-rotate(-10deg);
+    opacity: 0.7;
+    transition: opacity .12s ease;
+    padding: 0.15rem;
+    border-radius: 4px;
+}
+.field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
 }
 .field-hint {
     display: block;

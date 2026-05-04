@@ -433,10 +433,10 @@ $fmtDate = static function (string $iso): string {
 
             <?php if (!empty($todayMeals)): ?>
                 <ul class="meals-list">
-                    <?php foreach ($todayMeals as $meal): ?>
+                    <?php foreach ($todayMeals as $i => $meal): ?>
                         <li class="meals-list__item">
                             <span class="meals-list__label">
-                                <?= e(($meal['label'] ?? '') !== '' ? $meal['label'] : 'Meal') ?>
+                                <?= e(($meal['label'] ?? '') !== '' ? $meal['label'] : 'Meal ' . ($i + 1)) ?>
                             </span>
                             <span class="meals-list__value">
                                 <?= e(number_format((int) $meal['calories'])) ?> cal
@@ -545,10 +545,22 @@ $fmtDate = static function (string $iso): string {
                 // "Day total / vs target" cell per group via rowspan.
                 $dailyTotals      = [];
                 $dailyEntryCounts = [];
+                $byDate           = [];
                 foreach ($intakeHistory as $r) {
                     $d = $r['logged_date'];
                     $dailyTotals[$d]      = ($dailyTotals[$d]      ?? 0) + (int) $r['calories'];
                     $dailyEntryCounts[$d] = ($dailyEntryCounts[$d] ?? 0) + 1;
+                    $byDate[$d][]         = $r;
+                }
+                // Per-day chronological meal numbering: meal 1 = oldest of
+                // that day. History is id DESC within day, so reverse to
+                // count chronologically before stamping numbers.
+                $mealNumbers = [];
+                foreach ($byDate as $rows) {
+                    $rows = array_reverse($rows);
+                    foreach ($rows as $i => $r) {
+                        $mealNumbers[(int) $r['id']] = $i + 1;
+                    }
                 }
                 $prevDate = null;
             ?>
@@ -606,7 +618,9 @@ $fmtDate = static function (string $iso): string {
                                 $rowspan        = $isFirstOfGroup ? $dailyEntryCounts[$d] : 0;
                                 $dayTotal       = $dailyTotals[$d];
                                 $diff           = $latest ? $dayTotal - $activeTarget : null;
-                                $label          = ($row['label'] ?? '') !== '' ? $row['label'] : 'Meal';
+                                $label          = ($row['label'] ?? '') !== ''
+                                    ? $row['label']
+                                    : 'Meal ' . $mealNumbers[(int) $row['id']];
                             ?>
                                 <tr<?= $isFirstOfGroup ? ' class="row-group-start"' : '' ?>>
                                     <?php if ($isFirstOfGroup): ?>
