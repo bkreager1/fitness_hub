@@ -34,6 +34,8 @@ class PagesController extends Controller {
     // Any unknown URL
     public function notFound(): void {
         http_response_code(404);
-        $this->stub('Page Not Found (404)', 0);
+        $this->view('errors/404', [
+            'title' => 'Page not found',
+        ]);
     }
 }
