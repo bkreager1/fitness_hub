@@ -1579,3 +1579,146 @@ a:hover { color: var(--primary-hot); }
     .tracker-card__head { flex-direction: column; align-items: stretch; }
     .form-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ===================================================================
+   Phase 8 — Profile + avatar
+   =================================================================== */
+
+/* ----- Avatar component (used in nav + profile page) ---------------- */
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    object-fit: cover;
+}
+img.avatar { object-fit: cover; }
+
+.avatar-sm { width: 28px; height: 28px; }
+.avatar-lg { width: 96px; height: 96px; }
+
+/* Initials fallback — warm gradient with the user's first letter on top.
+   Letter sizing is a percentage of the circle so it scales with size. */
+.avatar-initials {
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: #fff;
+    font-weight: 700;
+    line-height: 1;
+    border-color: var(--border-hot);
+    text-transform: uppercase;
+    letter-spacing: 0;
+    user-select: none;
+}
+.avatar-sm.avatar-initials  { font-size: 0.85rem; }
+.avatar-lg.avatar-initials  { font-size: 2.4rem; }
+
+/* ----- Nav: avatar + greeting becomes a single profile link --------- */
+.nav-profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 999px;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+.nav-profile:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.04);
+}
+.nav-profile.is-active {
+    color: var(--primary);
+    background: var(--primary-soft);
+}
+.nav-profile.is-active .avatar { border-color: var(--border-hot); }
+.nav-profile:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+/* Truncate long names in the nav so the bar doesn't wrap awkwardly. */
+.nav-profile__name {
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ----- Profile page head -------------------------------------------- */
+.profile-head {
+    margin-bottom: 1.75rem;
+}
+.profile-head h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.85rem;
+    line-height: 1.2;
+}
+.profile-head .lede {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 1rem;
+}
+
+/* ----- Profile photo card layout ------------------------------------ */
+.profile-photo-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.profile-photo-actions {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.profile-upload-form .field { margin-bottom: 0.75rem; }
+.profile-remove-form { margin: 0; }
+
+/* ----- File input on dark theme ------------------------------------- */
+/* Style only the browser-rendered "Choose file" button — leaves the
+   filename label rendering up to the browser. */
+.field input[type="file"] {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    background: var(--bg-input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    cursor: pointer;
+}
+.field input[type="file"]::file-selector-button {
+    margin-right: 0.85rem;
+    padding: 0.35rem 0.85rem;
+    background: var(--bg-card-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.field input[type="file"]::file-selector-button:hover {
+    background: var(--primary-soft);
+    border-color: var(--border-hot);
+    color: var(--text);
+}
+.field input[type="file"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+/* ----- Phase 8 responsive ------------------------------------------- */
+@media (max-width: 600px) {
+    .profile-photo-row { flex-direction: column; align-items: stretch; }
+    .nav-profile__name { max-width: 18ch; }
+}

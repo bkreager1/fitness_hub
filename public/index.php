@@ -90,9 +90,11 @@ try {
         'POST strength/delete' => (new StrengthController())->delete(),
 
         // ----- Profile -----
-        'GET profile'        => (new ProfileController())->index(),
-        'POST profile'       => (new ProfileController())->update(),
-        'POST profile/image' => (new ProfileController())->uploadImage(),
+        'GET profile'               => (new ProfileController())->index(),
+        'POST profile'              => (new ProfileController())->update(),
+        'POST profile/password'     => (new ProfileController())->password(),
+        'POST profile/image'        => (new ProfileController())->uploadImage(),
+        'POST profile/image/delete' => (new ProfileController())->deleteImage(),
 
         // ----- Anything else → 404 -----
         default => (new PagesController())->notFound(),

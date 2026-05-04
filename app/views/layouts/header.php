@@ -64,7 +64,23 @@ $navClass = static fn(string $key): string =>
 
             <?php if (is_logged_in()): ?>
                 <a class="<?= $navClass('dashboard') ?>" href="<?= url('dashboard') ?>">Dashboard</a>
-                <span class="nav-hello">Hi, <?= e(current_user('name')) ?></span>
+                <?php
+                    $navAvatarFile = current_user('profile_image_path');
+                    $navAvatarSrc  = $navAvatarFile ? asset('uploads/' . $navAvatarFile) : null;
+                    $navInitial    = mb_strtoupper(mb_substr(trim((string) current_user('name')), 0, 1)) ?: '?';
+                ?>
+                <a class="nav-profile <?= $active === 'profile' ? 'is-active' : '' ?>"
+                   href="<?= url('profile') ?>"
+                   aria-label="My profile">
+                    <?php if ($navAvatarSrc): ?>
+                        <img class="avatar avatar-sm" src="<?= e($navAvatarSrc) ?>" alt="">
+                    <?php else: ?>
+                        <span class="avatar avatar-sm avatar-initials" aria-hidden="true">
+                            <?= e($navInitial) ?>
+                        </span>
+                    <?php endif; ?>
+                    <span class="nav-profile__name">Hi, <?= e(current_user('name')) ?></span>
+                </a>
                 <form method="post" action="<?= url('logout') ?>" class="nav-logout">
                     <?= csrf_field() ?>
                     <button type="submit" class="nav-link as-button">Log out</button>

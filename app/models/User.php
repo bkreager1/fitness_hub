@@ -56,6 +56,13 @@ class User {
         $stmt->execute([$hash, $id]);
     }
 
+    // Set (or clear, by passing null) the user's profile-image filename.
+    // We store just the bare filename — the URL is reconstructed in views.
+    public static function updateProfileImage(int $id, ?string $filename): void {
+        $stmt = db()->prepare('UPDATE users SET profile_image_path = ? WHERE id = ?');
+        $stmt->execute([$filename, $id]);
+    }
+
     // Set the user's active calorie goal. Caller must validate the
     // value against ALLOWED_GOALS before calling.
     public const ALLOWED_GOALS = ['cut', 'maintain', 'bulk'];
