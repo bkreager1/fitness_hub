@@ -151,10 +151,20 @@ a:hover { color: var(--primary-hot); }
     padding-inline: 1.25rem;
 }
 
+/* Subtle page entry — content fades + rises 6px into place over
+   200ms when the page first paints. Header and footer appear
+   instantly so the structural chrome feels solid; only the per-page
+   content materializes. Reduced-motion users get nothing via the
+   global rule. */
+@keyframes pageEntry {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 .site-main {
     flex: 1;
     display: flex;
     flex-direction: column;
+    animation: pageEntry .2s ease-out both;
 }
 
 
