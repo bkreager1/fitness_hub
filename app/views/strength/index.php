@@ -55,6 +55,10 @@ if ($latest) {
 <!-- ===================== Hero ===================== -->
 <section class="hero hero--compact">
     <div class="container">
+        <a class="back-link" href="<?= url('dashboard') ?>">
+            <span class="back-link__arrow" aria-hidden="true">&larr;</span>
+            Back to dashboard
+        </a>
         <span class="eyebrow">Strength tracker</span>
         <h1>Bench, squat, deadlift — chart your big three.</h1>
         <p class="hero-lede">

@@ -92,6 +92,10 @@ $fmtDate = static function (string $iso): string {
 <!-- ===================== Hero ===================== -->
 <section class="hero hero--compact">
     <div class="container">
+        <a class="back-link" href="<?= url('dashboard') ?>">
+            <span class="back-link__arrow" aria-hidden="true">&larr;</span>
+            Back to dashboard
+        </a>
         <span class="eyebrow">Calorie tracker</span>
         <h1>Track calories — hit your targets.</h1>
         <p class="hero-lede">
