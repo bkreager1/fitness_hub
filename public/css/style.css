@@ -391,6 +391,34 @@ main:focus { outline: none; }
 
 .btn-inline { width: auto; }
 
+/* Submit-in-flight state — set by main.js when a POST form is
+   submitted so the user gets feedback while the network round-trips.
+   The button text is replaced with "Working…" (overridable via
+   data-loading-text) and a small spinner is prepended.
+   Pointer-events:none prevents accidental double-submits. */
+.is-loading {
+    opacity: 0.85;
+    cursor: wait;
+    pointer-events: none;
+}
+.btn-spinner {
+    display: inline-block;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: btnSpin .7s linear infinite;
+    vertical-align: -0.15em;
+}
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+/* Reduced-motion users get the loading label only — no spinning ring. */
+@media (prefers-reduced-motion: reduce) {
+    .btn-spinner { display: none; }
+}
+
 .btn-secondary {
     background: transparent;
     color: var(--text);

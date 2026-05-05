@@ -37,6 +37,46 @@
 
 
     /* ---------------------------------------------------------
+       1b. Submit-in-flight feedback for every POST form.
+       Disables the submit button + swaps its label so the user
+       knows the click registered while the round-trip happens.
+       Customize the label per-button with data-loading-text.
+       --------------------------------------------------------- */
+    (function initFormLoading () {
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            if ((form.method || '').toLowerCase() !== 'post') return;
+
+            // The button that actually triggered the submit. submitter
+            // is null for forms submitted via Enter on a single-field
+            // form — fall back to the form's first submit button.
+            const btn = e.submitter
+                || form.querySelector('button[type="submit"], input[type="submit"]');
+            if (!btn || btn.disabled) return;
+
+            const original = btn.innerHTML;
+            const label    = btn.dataset.loadingText || 'Working…';
+
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> '
+                          + label.replace(/[<>&]/g, (c) =>
+                              ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+
+            // Safety net: if the page hasn't navigated within 10s
+            // (network error, blocked navigation, etc.), restore the
+            // button so the user can retry instead of being stuck.
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+                btn.innerHTML = original;
+            }, 10000);
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        2. Sticky-header scroll shadow
        --------------------------------------------------------- */
     (function initHeaderScroll () {
