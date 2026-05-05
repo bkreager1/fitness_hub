@@ -102,4 +102,10 @@ $navClass = static fn(string $key): string =>
     <div class="flash flash-success"><?= e($msg) ?></div>
 <?php endif; ?>
 
-<main class="site-main" id="main" tabindex="-1">
+<?php
+    // Controllers can call flash('skip_page_entry', '1') before a
+    // redirect to suppress the page-entry fade for that one render —
+    // used by the calorie goal pills so the toggle feels instant.
+    $skipPageEntry = (bool) flash('skip_page_entry');
+?>
+<main class="site-main<?= $skipPageEntry ? ' no-page-entry' : '' ?>" id="main" tabindex="-1">

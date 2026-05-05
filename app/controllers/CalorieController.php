@@ -139,6 +139,9 @@ class CalorieController extends Controller {
             User::updateGoal($userId, $goal);
             // No flash banner — it'd feel noisy for a one-click pill change.
             // The reloaded page itself reflects the choice.
+            // Tell the layout to skip the page-entry fade so the toggle
+            // feels instant (read-and-cleared inside header.php).
+            flash('skip_page_entry', '1');
         }
 
         $this->redirect('calorie');

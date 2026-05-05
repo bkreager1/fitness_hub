@@ -165,6 +165,10 @@ a:hover { color: var(--primary-hot); }
     flex-direction: column;
     animation: pageEntry .35s ease-out both;
 }
+/* Skip the page-entry fade for one render — set by controllers via
+   flash('skip_page_entry', '1') so toggle-style actions (calorie
+   goal pills) feel instant instead of re-animating the whole page. */
+.site-main.no-page-entry { animation: none; }
 
 
 /* ---------- 5. Sticky site header + nav ---------- */
