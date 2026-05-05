@@ -591,12 +591,20 @@ main:focus { outline: none; }
 
 
 /* ---------- 9. Flash + error ---------- */
+/* Slide-down + slight overshoot when the success banner first
+   renders, so the "saved!" cue is unmissable. The cubic-bezier ends
+   slightly above 1 to give a tiny settle bounce. */
+@keyframes flashSlideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 .flash {
     max-width: var(--container);
     margin: 1rem auto 0;
     padding: 0.85rem 1rem;
     border-radius: var(--radius);
     font-size: 0.9rem;
+    animation: flashSlideIn .35s cubic-bezier(.2, .9, .3, 1.05) both;
 }
 .flash-success {
     background: var(--success-bg);
@@ -1370,6 +1378,10 @@ main:focus { outline: none; }
     border-bottom-color: var(--border);
 }
 .history-table tbody tr:last-child td { border-bottom: 0; }
+/* Smooth bg fade on hover (was a hard snap before). */
+.history-table tbody tr {
+    transition: background-color .15s ease;
+}
 .history-table tbody tr:hover { background: var(--bg-card-2); }
 .history-table .num {
     text-align: right;
