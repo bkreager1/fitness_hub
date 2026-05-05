@@ -83,6 +83,18 @@
                         Enter your numbers
                     </span>
                 </div>
+
+                <?php if (!is_logged_in()): ?>
+                    <!-- Sign-up CTA — JS toggles [hidden] in main.js's BMI
+                         render() based on whether there's a valid result.
+                         Hidden for logged-in users (already have an account). -->
+                    <div class="bmi-cta" id="bmiCta" hidden>
+                        <p class="bmi-cta__copy">Want to track your BMI over time?</p>
+                        <a class="btn btn-inline" href="<?= url('register') ?>">
+                            Create a free account
+                        </a>
+                    </div>
+                <?php endif; ?>
             </form>
         </aside>
 

@@ -166,6 +166,11 @@
             return                                  { cat: 'obese',  label: 'Obese' };
         }
 
+        // Sign-up CTA only renders for logged-out users (the PHP guards
+        // it). When the BMI is valid, slide it in; when there's no
+        // result yet, hide it.
+        const ctaEl = document.getElementById('bmiCta');
+
         // ----- Repaint the result card --------------------------
         function render () {
             const bmi = computeBmi();
@@ -174,6 +179,8 @@
             valueEl.textContent = (cat === 'none') ? '—' : bmi.toFixed(1);
             chipEl.textContent  = label;
             chipEl.dataset.cat  = cat;
+
+            if (ctaEl) ctaEl.hidden = (cat === 'none');
         }
 
         // ----- Wire input listeners -----------------------------

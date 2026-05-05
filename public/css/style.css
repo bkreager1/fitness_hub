@@ -850,6 +850,31 @@ main:focus { outline: none; }
 .bmi-result__chip[data-cat="obese"]  { background: var(--danger-bg);      color: var(--danger); }
 .bmi-result__chip[data-cat="none"]   { background: rgba(255,255,255,.05); color: var(--text-faint); }
 
+/* Sign-up CTA shown below the BMI result for logged-out users.
+   main.js toggles [hidden] based on whether there's a valid result.
+   Subtle fade-in so the appearance feels intentional, not jumpy. */
+@keyframes bmiCtaReveal {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.bmi-cta {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    animation: bmiCtaReveal .25s ease both;
+}
+.bmi-cta__copy {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin: 0;
+}
+.bmi-cta .btn { width: auto; padding: 0.7rem 1.25rem; }
+
 
 /* ----- Feature cards ----- */
 .section {
