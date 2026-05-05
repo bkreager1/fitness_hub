@@ -43,10 +43,6 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 <!-- ===================== Hero ===================== -->
 <section class="hero hero--compact">
     <div class="container">
-        <a class="back-link" href="<?= url('dashboard') ?>">
-            <span class="back-link__arrow" aria-hidden="true">&larr;</span>
-            Back to dashboard
-        </a>
         <span class="eyebrow">Weight tracker</span>
         <h1>Log your weigh-ins, watch the trend.</h1>
         <p class="hero-lede">
@@ -61,6 +57,10 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 <!-- ===================== Form card ===================== -->
 <section class="section">
     <div class="container">
+        <a class="back-link" href="<?= url('dashboard') ?>">
+            <span class="back-link__arrow" aria-hidden="true">&larr;</span>
+            Back to dashboard
+        </a>
         <article class="tracker-card">
 
             <header class="tracker-card__head">
