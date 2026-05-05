@@ -161,8 +161,12 @@ $fmtDate = static function (string $iso): string {
                     </div>
                 </div>
 
-                <!-- Goal picker: 3 pills posting to /calorie/goal. -->
-                <form method="post" action="<?= url('calorie/goal') ?>" class="goal-picker">
+                <!-- Goal picker: 3 pills posting to /calorie/goal.
+                     data-no-loading opts the form out of the global
+                     submit-spinner — the page reload is fast and a
+                     loading state on a toggle just adds friction. -->
+                <form method="post" action="<?= url('calorie/goal') ?>"
+                      class="goal-picker" data-no-loading>
                     <?= csrf_field() ?>
                     <span class="field-label goal-picker__label">I'm currently:</span>
                     <div class="goal-picker__pills">

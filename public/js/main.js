@@ -54,6 +54,12 @@
             const btn = e.submitter
                 || form.querySelector('button[type="submit"], input[type="submit"]');
             if (!btn || btn.disabled) return;
+            // Opt-out for instant-feeling toggles (e.g. the calorie
+            // goal picker pills) where the loading state adds friction
+            // without value. Set data-no-loading on the button OR on
+            // the form to skip the spinner + label swap.
+            if (btn.dataset.noLoading != null
+                || form.dataset.noLoading != null) return;
 
             const original = btn.innerHTML;
             const label    = btn.dataset.loadingText || 'Working…';
