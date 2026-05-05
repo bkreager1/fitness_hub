@@ -43,6 +43,20 @@
    `!important` is idiomatic for `[hidden]` and avoids per-class fixes. */
 [hidden] { display: none !important; }
 
+/* Honor the user's reduced-motion preference: kill transitions and
+   animations across the board so the new button lifts, card hovers,
+   and slide-down menu don't trigger vestibular discomfort. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
 
 /* ---------- 2. Design tokens ---------- */
 :root {
@@ -145,6 +159,32 @@ a:hover { color: var(--primary-hot); }
 
 
 /* ---------- 5. Sticky site header + nav ---------- */
+/* Skip-to-main link — invisible until a keyboard user tabs onto it,
+   then slides into view. Lets screen-reader / keyboard users bypass
+   the nav. Targets <main id="main" tabindex="-1"> in header.php. */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: 100;
+    padding: 0.65rem 1rem;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    border-radius: 0 0 var(--radius-sm) 0;
+    text-decoration: none;
+    transition: top .15s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+    top: 0;
+    color: #fff;
+    outline: none;
+}
+/* Suppress the focus ring when JS or the skip link programmatically
+   focuses <main> — it's a target, not an interactive element. */
+main:focus { outline: none; }
+
 .site-header {
     position: sticky;
     top: 0;
@@ -179,6 +219,11 @@ a:hover { color: var(--primary-hot); }
     white-space: nowrap;
 }
 .brand:hover { color: var(--text); }
+.brand:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+}
 .brand-mark {
     display: inline-grid;
     place-items: center;
@@ -206,6 +251,11 @@ a:hover { color: var(--primary-hot); }
     border-radius: var(--radius-sm);
 }
 .nav-link:hover         { color: var(--text); background: rgba(255, 255, 255, 0.03); }
+.nav-link:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    color: var(--text);
+}
 .nav-link.is-active     { color: var(--primary); }
 .nav-link.is-active::after {
     content: "";
@@ -234,6 +284,10 @@ a:hover { color: var(--primary-hot); }
 .nav-cta:active {
     transform: translateY(0);
     box-shadow: 0 4px 12px rgba(255, 122, 26, 0.25);
+}
+.nav-cta:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
 }
 
 .nav-hello   { color: var(--text-dim); font-size: 0.9rem; padding: 0 0.4rem; }
@@ -293,6 +347,11 @@ a:hover { color: var(--primary-hot); }
     font-size: 0.9rem;
 }
 .footer-links a:hover { color: var(--primary); }
+.footer-links a:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
 .footer-copy { font-size: 0.85rem; }
 
 
@@ -691,6 +750,10 @@ a:hover { color: var(--primary-hot); }
 .unit-toggle button.is-active {
     background: linear-gradient(135deg, var(--primary-deep), var(--primary));
     color: #fff;
+}
+.unit-toggle button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
 .bmi-grid {

@@ -33,6 +33,8 @@ $navClass = static fn(string $key): string =>
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <header class="site-header" id="siteHeader">
     <div class="container nav-row">
 
@@ -100,4 +102,4 @@ $navClass = static fn(string $key): string =>
     <div class="flash flash-success"><?= e($msg) ?></div>
 <?php endif; ?>
 
-<main class="site-main">
+<main class="site-main" id="main" tabindex="-1">
