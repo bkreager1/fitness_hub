@@ -1050,6 +1050,13 @@ main:focus { outline: none; }
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 1.1rem 1.25rem;
+    /* Match the .feature-card hover from §11 (lift + warm border + glow). */
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.steps li:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-hot);
+    box-shadow: var(--shadow-glow);
 }
 .steps-num {
     flex-shrink: 0;
