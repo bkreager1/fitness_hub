@@ -39,7 +39,9 @@ $navClass = static fn(string $key): string =>
     <div class="container nav-row">
 
         <a class="brand" href="<?= url('') ?>">
-            <span class="brand-mark" aria-hidden="true">RC</span>
+            <span class="brand-mark" aria-hidden="true">
+                <img src="<?= asset('images/logo3.png') ?>" alt="">
+            </span>
             <span><?= e(SITE_NAME) ?></span>
         </a>
 
