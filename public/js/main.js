@@ -58,11 +58,21 @@
             const original = btn.innerHTML;
             const label    = btn.dataset.loadingText || 'Working…';
 
-            btn.disabled = true;
-            btn.classList.add('is-loading');
-            btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> '
-                          + label.replace(/[<>&]/g, (c) =>
-                              ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+            // Defer the disable + label swap to the next tick. Disabling
+            // the submit button synchronously inside the submit event
+            // can cause some browsers to omit the button's name=value
+            // pair from the POST body — which broke the calorie goal
+            // picker (3 submit buttons in one form, distinguished by
+            // value="cut" / "maintain" / "bulk"). The form has already
+            // started serializing by the time setTimeout's callback
+            // fires, so the original submitter's data is on its way.
+            setTimeout(() => {
+                btn.disabled = true;
+                btn.classList.add('is-loading');
+                btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span> '
+                              + label.replace(/[<>&]/g, (c) =>
+                                  ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+            }, 0);
 
             // Safety net: if the page hasn't navigated within 10s
             // (network error, blocked navigation, etc.), restore the
