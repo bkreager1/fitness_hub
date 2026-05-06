@@ -1546,6 +1546,38 @@ main:focus { outline: none; }
 .history-table tbody tr.row-group-start:first-child td { border-top: 0; }
 
 
+/* ----- Range picker (history time-range filter) -------------------- */
+/* Sits above the chart + history cards; styles its inner toggle via
+   the existing .unit-toggle pill group so we don't ship a parallel
+   look. */
+.range-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0 0 1.25rem;
+}
+.range-picker-row__label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Inline text link (e.g. "try All time" in the empty-range state). */
+.link-inline {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+.link-inline:hover { color: var(--primary-hot); }
+.link-inline:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+
 /* ----- Calorie history — collapsible day rows ----------------------- */
 /* Day-row = always-visible summary; meal-row = the individual meals
    underneath, hidden by default once JS injects the chevron toggle. */

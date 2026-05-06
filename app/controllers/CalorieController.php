@@ -40,6 +40,11 @@ class CalorieController extends Controller {
     private const LB_PER_KG = 2.2046226218;
     private const CM_PER_IN = 2.54;
 
+    // Allowed values for the ?range= history filter. Strings (not ints)
+    // because 'all' is also valid. Default lives in index().
+    private const ALLOWED_RANGES = ['7', '30', '90', 'all'];
+    private const DEFAULT_RANGE  = '30';
+
     // GET /calorie ------------------------------------------------
     public function index(): void {
         $this->requireLogin();
@@ -60,19 +65,39 @@ class CalorieController extends Controller {
         // card and pre-fills the (collapsed) stats form.
         $latest = CalorieLog::latestForUser($userId);
 
-        // Intake: full per-entry history (newest-first) for the table,
-        // today's individual entries for the "Today's meals" list,
-        // plus today's running total for the headline.
-        $intakeHistory = CalorieIntake::forUser($userId);
+        // History range filter: ?range=7|30|90|all. Default 30 days
+        // keeps the chart readable + history scannable as logs grow.
+        // 'all' bypasses the date filter entirely.
+        $range = (string) ($_GET['range'] ?? self::DEFAULT_RANGE);
+        if (!in_array($range, self::ALLOWED_RANGES, true)) {
+            $range = self::DEFAULT_RANGE;
+        }
+        $sinceDate = $range === 'all'
+            ? null
+            : date('Y-m-d', strtotime('-' . $range . ' days'));
+
+        // Intake: per-entry history within the selected range (newest-
+        // first) for the table; today's individual entries for the
+        // "Today's meals" list; today's running total for the headline.
+        // Today/today-total are unaffected by the range filter — they
+        // always show today regardless of what the user has the
+        // history filter set to.
+        $intakeHistory = CalorieIntake::forUser($userId, $sinceDate);
         $todayMeals    = CalorieIntake::forUserOnDate($userId, $today);
         $todayTotal    = CalorieIntake::totalForUserOnDate($userId, $today);
 
+        // Distinguishes "no logs at all" (hide the range picker, show
+        // the original empty state) from "no logs in this range"
+        // (show the picker so the user can widen it).
+        $totalLoggedDays = CalorieIntake::countForUser($userId);
+
         // Chart shows daily totals (summed across meals) — oldest-first
-        // for left-to-right time progression.
+        // for left-to-right time progression. Same range filter as the
+        // history table so chart and table stay in sync.
         $intakeChartData = array_map(static fn(array $r): array => [
             'date'     => $r['logged_date'],
             'calories' => (int) $r['calories'],
-        ], array_reverse(CalorieIntake::dailyTotalsForUser($userId)));
+        ], array_reverse(CalorieIntake::dailyTotalsForUser($userId, $sinceDate)));
 
         // Stats prefill (mirrors what the form needs in either unit
         // pane). Empty array for first-time users → blank form.
@@ -125,6 +150,8 @@ class CalorieController extends Controller {
             'statsFormOpen'   => $statsFormOpen,
             'activeGoal'      => $activeGoal,
             'flashInline'     => true,
+            'range'           => $range,
+            'totalLoggedDays' => $totalLoggedDays,
         ]);
     }
 

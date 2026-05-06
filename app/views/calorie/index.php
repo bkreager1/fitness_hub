@@ -550,10 +550,21 @@ $fmtDate = static function (string $iso): string {
 
 
 <!-- ===================== Section 3 — History ===================== -->
+<?php
+    // Compact labels for the range picker. Keys must match what the
+    // controller validates against (CalorieController::ALLOWED_RANGES).
+    $RANGE_OPTIONS = [
+        '7'   => '7 days',
+        '30'  => '30 days',
+        '90'  => '90 days',
+        'all' => 'All time',
+    ];
+    $rangeLabel = $RANGE_OPTIONS[$range] ?? '30 days';
+?>
 <section class="section">
     <div class="container">
 
-        <?php if (empty($intakeHistory)): ?>
+        <?php if ($totalLoggedDays === 0): ?>
 
             <article class="tracker-card empty-state">
                 <h2>No meals logged yet</h2>
@@ -561,6 +572,43 @@ $fmtDate = static function (string $iso): string {
             </article>
 
         <?php else: ?>
+
+            <!-- Range picker — applies to both the chart and the history
+                 table. data-no-loading skips the submit-spinner since
+                 the page reload is fast and a spinner on a filter pill
+                 just adds friction. -->
+            <form method="get" action="<?= url('calorie') ?>"
+                  class="range-picker-row" data-no-loading>
+                <span class="range-picker-row__label">Showing:</span>
+                <div class="unit-toggle">
+                    <?php foreach ($RANGE_OPTIONS as $key => $label): ?>
+                        <button type="submit" name="range" value="<?= e($key) ?>"
+                                class="<?= $range === $key ? 'is-active' : '' ?>"
+                                aria-pressed="<?= $range === $key ? 'true' : 'false' ?>">
+                            <?= e($label) ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </form>
+
+            <?php if (empty($intakeHistory)): ?>
+
+                <article class="tracker-card empty-state">
+                    <h2>No meals in this range</h2>
+                    <p>
+                        You've logged meals on
+                        <?= e((string) $totalLoggedDays) ?>
+                        day<?= $totalLoggedDays === 1 ? '' : 's' ?> total
+                        <?php if ($range !== 'all'): ?>
+                            — try
+                            <a class="link-inline" href="<?= url('calorie?range=all') ?>">All time</a>
+                            to see the full list.
+                        <?php else: ?>.
+                        <?php endif; ?>
+                    </p>
+                </article>
+
+            <?php else: ?>
 
             <?php
                 // Per-day totals so the day-row can show one number per
@@ -588,6 +636,7 @@ $fmtDate = static function (string $iso): string {
                 <header class="tracker-card__head">
                     <h2>Intake over time</h2>
                     <span class="field-hint">
+                        <?= e($range === 'all' ? 'All time' : 'Last ' . $rangeLabel) ?> ·
                         <?= $latest
                             ? 'Bars are your daily intake. Lines are your cut, maintenance, and bulk targets.'
                             : 'Bars are your daily intake. Set targets above to overlay your goal lines.' ?>
@@ -612,6 +661,7 @@ $fmtDate = static function (string $iso): string {
                     <span class="field-hint">
                         <?= count($intakeHistory) ?> meal<?= count($intakeHistory) === 1 ? '' : 's' ?>
                         across <?= count($dailyTotals) ?> day<?= count($dailyTotals) === 1 ? '' : 's' ?>
+                        · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
                         · newest first
                     </span>
                 </header>
@@ -696,7 +746,9 @@ $fmtDate = static function (string $iso): string {
                 </div>
             </article>
 
-        <?php endif; ?>
+            <?php endif; /* end of: $intakeHistory empty within range */ ?>
+
+        <?php endif; /* end of: $totalLoggedDays === 0 */ ?>
 
     </div>
 </section>

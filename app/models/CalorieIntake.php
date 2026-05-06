@@ -37,13 +37,26 @@ class CalorieIntake {
 
     // Full history for one user, newest-first (one row per entry).
     // Used by the per-meal history table in the view.
-    public static function forUser(int $userId): array {
-        $stmt = db()->prepare(
-            'SELECT * FROM calorie_intake_logs
-             WHERE user_id = ?
-             ORDER BY logged_date DESC, id DESC'
-        );
-        $stmt->execute([$userId]);
+    //
+    // $sinceDate (YYYY-MM-DD) limits the query to entries on or after
+    // that date — used by the time-range filter on the calorie page.
+    // Pass null to fetch all entries.
+    public static function forUser(int $userId, ?string $sinceDate = null): array {
+        if ($sinceDate === null) {
+            $stmt = db()->prepare(
+                'SELECT * FROM calorie_intake_logs
+                 WHERE user_id = ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId]);
+        } else {
+            $stmt = db()->prepare(
+                'SELECT * FROM calorie_intake_logs
+                 WHERE user_id = ? AND logged_date >= ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId, $sinceDate]);
+        }
         return $stmt->fetchAll();
     }
 
@@ -74,16 +87,28 @@ class CalorieIntake {
     // Daily totals for the chart. Returns rows like
     //   [{ logged_date: 'YYYY-MM-DD', calories: 1850 }, ...]
     // newest-first; reverse in the controller for the chart's
-    // left-to-right time progression.
-    public static function dailyTotalsForUser(int $userId): array {
-        $stmt = db()->prepare(
-            'SELECT logged_date, SUM(calories) AS calories
-             FROM calorie_intake_logs
-             WHERE user_id = ?
-             GROUP BY logged_date
-             ORDER BY logged_date DESC'
-        );
-        $stmt->execute([$userId]);
+    // left-to-right time progression. $sinceDate honors the range
+    // filter the same way as forUser().
+    public static function dailyTotalsForUser(int $userId, ?string $sinceDate = null): array {
+        if ($sinceDate === null) {
+            $stmt = db()->prepare(
+                'SELECT logged_date, SUM(calories) AS calories
+                 FROM calorie_intake_logs
+                 WHERE user_id = ?
+                 GROUP BY logged_date
+                 ORDER BY logged_date DESC'
+            );
+            $stmt->execute([$userId]);
+        } else {
+            $stmt = db()->prepare(
+                'SELECT logged_date, SUM(calories) AS calories
+                 FROM calorie_intake_logs
+                 WHERE user_id = ? AND logged_date >= ?
+                 GROUP BY logged_date
+                 ORDER BY logged_date DESC'
+            );
+            $stmt->execute([$userId, $sinceDate]);
+        }
         return $stmt->fetchAll();
     }
 
