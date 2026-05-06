@@ -112,7 +112,7 @@ $fmtDate = static function (string $iso): string {
         </a>
 
         <?php if ($flashMsg = flash('success')): ?>
-            <div class="flash flash-success flash--inline" role="status">
+            <div class="flash flash-success flash--centered" role="status">
                 <?= e($flashMsg) ?>
             </div>
         <?php endif; ?>

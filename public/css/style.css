@@ -1193,6 +1193,13 @@ main:focus { outline: none; }
     margin: 0 0 1.25rem;
 }
 
+/* ----- Compact centered flash (sits above a form, not a full band) ---- */
+.flash--centered {
+    max-width: max-content;
+    margin: 0 auto 1.25rem;
+    text-align: center;
+}
+
 /* ----- Phase 6 responsive ----- */
 @media (max-width: 860px) {
     .how-grid,
