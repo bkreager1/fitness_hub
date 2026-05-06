@@ -573,25 +573,36 @@ $fmtDate = static function (string $iso): string {
 
         <?php else: ?>
 
-            <!-- Range picker — applies to both the chart and the history
-                 table. data-no-loading skips the submit-spinner since
-                 the page reload is fast and a spinner on a filter pill
-                 just adds friction. -->
-            <form method="get" action="<?= url('calorie') ?>"
-                  class="range-picker-row" data-no-loading>
-                <span class="range-picker-row__label">Showing:</span>
-                <div class="unit-toggle">
-                    <?php foreach ($RANGE_OPTIONS as $key => $label): ?>
-                        <button type="submit" name="range" value="<?= e($key) ?>"
-                                class="<?= $range === $key ? 'is-active' : '' ?>"
-                                aria-pressed="<?= $range === $key ? 'true' : 'false' ?>">
-                            <?= e($label) ?>
-                        </button>
-                    <?php endforeach; ?>
-                </div>
-            </form>
+            <?php
+                // Range picker — captured once into a string and rendered
+                // in two spots depending on whether the chart card is
+                // showing: above the empty card when there's no data in
+                // range, or between the chart and history cards when
+                // there is. Lives next to the History card visually so
+                // the filter reads as a property of the list view.
+                ob_start();
+            ?>
+                <!-- data-no-loading skips the submit-spinner since the
+                     page reload is fast and a spinner on a filter pill
+                     just adds friction. -->
+                <form method="get" action="<?= url('calorie') ?>"
+                      class="range-picker-row" data-no-loading>
+                    <span class="range-picker-row__label">Showing:</span>
+                    <div class="unit-toggle">
+                        <?php foreach ($RANGE_OPTIONS as $key => $label): ?>
+                            <button type="submit" name="range" value="<?= e($key) ?>"
+                                    class="<?= $range === $key ? 'is-active' : '' ?>"
+                                    aria-pressed="<?= $range === $key ? 'true' : 'false' ?>">
+                                <?= e($label) ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </form>
+            <?php $rangePickerHtml = ob_get_clean(); ?>
 
             <?php if (empty($intakeHistory)): ?>
+
+                <?= $rangePickerHtml ?>
 
                 <article class="tracker-card empty-state">
                     <h2>No meals in this range</h2>
@@ -654,6 +665,8 @@ $fmtDate = static function (string $iso): string {
                     </canvas>
                 </div>
             </article>
+
+            <?= $rangePickerHtml ?>
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
