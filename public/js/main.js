@@ -114,17 +114,45 @@
 
 
     /* ---------------------------------------------------------
-       2. Sticky-header scroll shadow
+       2. Sticky-header scroll shadow + back-to-top button.
+       Both reads of window.scrollY share a single rAF-throttled
+       handler so we don't run two scroll listeners side-by-side.
        --------------------------------------------------------- */
-    (function initHeaderScroll () {
-        const header = document.getElementById('siteHeader');
-        if (!header) return;
+    (function initScrollHandlers () {
+        const header  = document.getElementById('siteHeader');
+        const backBtn = document.getElementById('backToTop');
 
+        // Show the back-to-top button after scrolling roughly one
+        // viewport height — by then there's a real "way back up" to
+        // offer, and on shorter pages the button never appears.
+        const BACK_TO_TOP_THRESHOLD = 600;
+
+        let queued = false;
         const update = () => {
-            header.classList.toggle('is-scrolled', window.scrollY > 4);
+            queued = false;
+            const y = window.scrollY;
+            if (header)  header.classList.toggle('is-scrolled', y > 4);
+            if (backBtn) backBtn.classList.toggle('is-visible',
+                                                  y > BACK_TO_TOP_THRESHOLD);
+        };
+        const onScroll = () => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(update);
         };
         update();
-        window.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        if (backBtn) {
+            const reduceMotion = window.matchMedia(
+                '(prefers-reduced-motion: reduce)').matches;
+            backBtn.addEventListener('click', () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: reduceMotion ? 'auto' : 'smooth',
+                });
+            });
+        }
     })();
 
 

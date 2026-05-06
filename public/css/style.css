@@ -2332,3 +2332,71 @@ img.avatar { object-fit: cover; }
     .error-actions      { flex-direction: column; align-items: stretch; }
     .error-actions .btn { width: 100%; }
 }
+
+
+/* ===================================================================
+   Back-to-top button
+   Floating bottom-right pill. Hidden until JS adds .is-visible after
+   the user scrolls past the threshold (set in main.js). Designed to
+   be unobtrusive — small, semi-translucent until hover.
+   =================================================================== */
+.back-to-top {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    z-index: 50;
+
+    /* Hidden state: faded out + slightly lower so it slides up on
+       reveal. visibility: hidden keeps it out of the tab order
+       until shown. pointer-events: none stops it from blocking
+       clicks on the layout below it. */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease, visibility .2s,
+                background-color .15s ease, color .15s ease,
+                border-color .15s ease;
+}
+.back-to-top svg {
+    width: 20px;
+    height: 20px;
+}
+.back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.back-to-top:hover {
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: #fff;
+    border-color: transparent;
+}
+.back-to-top:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+/* Reduced-motion: snap visibility instead of fading. The global
+   prefers-reduced-motion rule already shortens the transition; this
+   removes the translate so it doesn't slide up either. */
+@media (prefers-reduced-motion: reduce) {
+    .back-to-top { transform: none; }
+    .back-to-top.is-visible { transform: none; }
+}
+
+@media (max-width: 520px) {
+    .back-to-top { right: 1rem; bottom: 1rem; width: 42px; height: 42px; }
+}

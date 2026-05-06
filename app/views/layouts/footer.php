@@ -26,6 +26,18 @@
         </div>
     </footer>
 
+    <!-- Back-to-top button. Hidden by default via CSS (opacity 0 +
+         visibility hidden + pointer-events none); main.js adds
+         .is-visible once the user scrolls past a threshold. -->
+    <button type="button" id="backToTop" class="back-to-top"
+            aria-label="Back to top">
+        <svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.4"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 14 12 8 18 14"/>
+        </svg>
+    </button>
+
     <script src="<?= asset('js/main.js') ?>" defer></script>
     <script src="<?= asset('js/auth.js') ?>" defer></script>
 </body>
