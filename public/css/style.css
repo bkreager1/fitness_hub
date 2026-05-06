@@ -1545,6 +1545,71 @@ main:focus { outline: none; }
 }
 .history-table tbody tr.row-group-start:first-child td { border-top: 0; }
 
+
+/* ----- Calorie history — collapsible day rows ----------------------- */
+/* Day-row = always-visible summary; meal-row = the individual meals
+   underneath, hidden by default once JS injects the chevron toggle. */
+.history-table--days tbody tr.day-row td {
+    border-top: 1px solid var(--border);
+}
+.history-table--days tbody tr.day-row:first-child td {
+    border-top: 0;
+}
+.history-table--days .meal-row {
+    background: rgba(255, 255, 255, 0.012);
+}
+.history-table--days .meal-row td {
+    border-bottom-color: var(--border-soft);
+}
+.history-table--days .cell-meal-count {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+}
+.history-table--days .cell-date--day {
+    /* Date cell hosts the toggle button; padding is set on the button
+       so the click target fills the cell without doubling up. */
+    padding: 0;
+}
+.history-table--days .cell-date--day .day-toggle {
+    padding: 0.75rem 0.85rem;
+}
+
+.day-toggle {
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: left;
+    width: 100%;
+    border-radius: var(--radius-sm);
+    transition: color .15s ease;
+}
+.day-toggle:hover { color: var(--primary); }
+.day-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+.day-toggle__chevron {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--text-dim);
+    border-bottom: 2px solid var(--text-dim);
+    transform: rotate(-45deg);
+    transition: transform .2s ease;
+    flex-shrink: 0;
+    margin-top: -2px;
+}
+.day-toggle[aria-expanded="true"] .day-toggle__chevron {
+    transform: rotate(45deg);
+}
+.day-toggle:hover .day-toggle__chevron {
+    border-color: var(--primary);
+}
+
 /* ----- Calorie tracker — Today's meals list ------------------------- */
 .meals-list {
     list-style: none;

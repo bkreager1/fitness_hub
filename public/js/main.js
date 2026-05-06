@@ -679,6 +679,60 @@
 
 
     /* ---------------------------------------------------------
+       6b. Calorie history — collapsible day rows.
+          PHP renders the table fully expanded so no-JS users
+          still see all their meals. On load we hide the meal
+          rows and inject a chevron-toggle button into each
+          day-row's date cell so users can drill into a day
+          when they want to edit or delete an individual meal.
+       --------------------------------------------------------- */
+    (function initCalorieHistoryToggles () {
+        const table = document.querySelector('.history-table--days');
+        if (!table) return;
+
+        const dayRows = table.querySelectorAll('.day-row');
+        if (dayRows.length === 0) return;
+
+        const setOpen = (day, open) => {
+            table.querySelectorAll(`.meal-row[data-day="${day}"]`)
+                 .forEach((r) => { r.hidden = !open; });
+        };
+
+        dayRows.forEach((row) => {
+            const day  = row.dataset.day;
+            const cell = row.querySelector('.cell-date');
+            if (!cell || !day) return;
+
+            const dateText = cell.textContent.trim();
+
+            const btn = document.createElement('button');
+            btn.type           = 'button';
+            btn.className      = 'day-toggle';
+            btn.setAttribute('aria-expanded', 'false');
+            btn.setAttribute('aria-label', `Show meals for ${dateText}`);
+            btn.innerHTML =
+                '<span class="day-toggle__chevron" aria-hidden="true"></span>' +
+                '<span class="day-toggle__date"></span>';
+            btn.querySelector('.day-toggle__date').textContent = dateText;
+
+            cell.textContent = '';
+            cell.appendChild(btn);
+
+            // Start collapsed.
+            setOpen(day, false);
+
+            btn.addEventListener('click', () => {
+                const open = btn.getAttribute('aria-expanded') !== 'true';
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                btn.setAttribute('aria-label',
+                    `${open ? 'Hide' : 'Show'} meals for ${dateText}`);
+                setOpen(day, open);
+            });
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        7. Weight tracker — form unit toggle (lbs ↔ kg).
           Used on /weight (new entry) and /weight/edit. Single
           weight input, toggle swaps unit + converts typed value.

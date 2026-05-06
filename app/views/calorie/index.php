@@ -563,16 +563,14 @@ $fmtDate = static function (string $iso): string {
         <?php else: ?>
 
             <?php
-                // Per-day totals + entry counts so the table can show one
-                // "Day total / vs target" cell per group via rowspan.
-                $dailyTotals      = [];
-                $dailyEntryCounts = [];
-                $byDate           = [];
+                // Per-day totals so the day-row can show one number per
+                // group instead of a per-meal breakdown by default.
+                $dailyTotals = [];
+                $byDate      = [];
                 foreach ($intakeHistory as $r) {
                     $d = $r['logged_date'];
-                    $dailyTotals[$d]      = ($dailyTotals[$d]      ?? 0) + (int) $r['calories'];
-                    $dailyEntryCounts[$d] = ($dailyEntryCounts[$d] ?? 0) + 1;
-                    $byDate[$d][]         = $r;
+                    $dailyTotals[$d] = ($dailyTotals[$d] ?? 0) + (int) $r['calories'];
+                    $byDate[$d][]    = $r;
                 }
                 // Per-day chronological meal numbering: meal 1 = oldest of
                 // that day. History is id DESC within day, so reverse to
@@ -584,7 +582,6 @@ $fmtDate = static function (string $iso): string {
                         $mealNumbers[(int) $r['id']] = $i + 1;
                     }
                 }
-                $prevDate = null;
             ?>
 
             <article class="tracker-card">
@@ -620,13 +617,12 @@ $fmtDate = static function (string $iso): string {
                 </header>
 
                 <div class="history-scroll">
-                    <table class="history-table">
+                    <table class="history-table history-table--days">
                         <thead>
                             <tr>
                                 <th scope="col">Date</th>
                                 <th scope="col">Meal</th>
                                 <th scope="col" class="num">Calories</th>
-                                <th scope="col" class="num">Day total</th>
                                 <?php if ($latest): ?>
                                     <th scope="col">vs <?= e($activeMeta['short']) ?></th>
                                 <?php endif; ?>
@@ -634,59 +630,66 @@ $fmtDate = static function (string $iso): string {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($intakeHistory as $row):
-                                $d              = $row['logged_date'];
-                                $isFirstOfGroup = ($d !== $prevDate);
-                                $rowspan        = $isFirstOfGroup ? $dailyEntryCounts[$d] : 0;
-                                $dayTotal       = $dailyTotals[$d];
-                                $diff           = $latest ? $dayTotal - $activeTarget : null;
-                                $label          = ($row['label'] ?? '') !== ''
-                                    ? $row['label']
-                                    : 'Meal ' . $mealNumbers[(int) $row['id']];
+                            <?php foreach ($byDate as $d => $rows):
+                                $count    = count($rows);
+                                $dayTotal = $dailyTotals[$d];
+                                $diff     = $latest ? $dayTotal - $activeTarget : null;
                             ?>
-                                <tr<?= $isFirstOfGroup ? ' class="row-group-start"' : '' ?>>
-                                    <?php if ($isFirstOfGroup): ?>
-                                        <td rowspan="<?= e((string) $rowspan) ?>"
-                                            class="cell-date">
-                                            <?= e($fmtDate($d)) ?>
-                                        </td>
-                                    <?php endif; ?>
-                                    <td><?= e($label) ?></td>
-                                    <td class="num"><?= e(number_format((int) $row['calories'])) ?></td>
-                                    <?php if ($isFirstOfGroup): ?>
-                                        <td rowspan="<?= e((string) $rowspan) ?>"
-                                            class="num strong">
-                                            <?= e(number_format($dayTotal)) ?>
-                                        </td>
-                                        <?php if ($latest): ?>
-                                            <td rowspan="<?= e((string) $rowspan) ?>">
-                                                <?php if ($diff < 0): ?>
-                                                    <span class="text-good"><?= e(number_format(abs($diff))) ?> under</span>
-                                                <?php elseif ($diff > 0): ?>
-                                                    <span class="text-warn"><?= e(number_format($diff)) ?> over</span>
-                                                <?php else: ?>
-                                                    <span>at target</span>
-                                                <?php endif; ?>
-                                            </td>
-                                        <?php endif; ?>
-                                    <?php endif; ?>
-                                    <td class="actions">
-                                        <a class="btn-link"
-                                           href="<?= url('calorie/intake/edit?id=' . (int) $row['id']) ?>">
-                                            Edit
-                                        </a>
-                                        <form method="post" action="<?= url('calorie/intake/delete') ?>"
-                                              onsubmit="return confirm('Delete this meal?');">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="id" value="<?= e((string) $row['id']) ?>">
-                                            <button type="submit" class="btn-link-danger"
-                                                    aria-label="Delete meal">
-                                                Delete
-                                            </button>
-                                        </form>
+                                <!-- Day summary row (always visible). JS injects
+                                     a chevron toggle into the date cell on load
+                                     and hides the meal-rows below until clicked. -->
+                                <tr class="day-row" data-day="<?= e($d) ?>">
+                                    <td class="cell-date cell-date--day">
+                                        <?= e($fmtDate($d)) ?>
                                     </td>
+                                    <td class="cell-meal-count">
+                                        <?= $count ?> meal<?= $count === 1 ? '' : 's' ?>
+                                    </td>
+                                    <td class="num strong">
+                                        <?= e(number_format($dayTotal)) ?>
+                                    </td>
+                                    <?php if ($latest): ?>
+                                        <td>
+                                            <?php if ($diff < 0): ?>
+                                                <span class="text-good"><?= e(number_format(abs($diff))) ?> under</span>
+                                            <?php elseif ($diff > 0): ?>
+                                                <span class="text-warn"><?= e(number_format($diff)) ?> over</span>
+                                            <?php else: ?>
+                                                <span>at target</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    <?php endif; ?>
+                                    <td class="actions"></td>
                                 </tr>
-                                <?php $prevDate = $d; ?>
+                                <?php foreach ($rows as $row):
+                                    $label = ($row['label'] ?? '') !== ''
+                                        ? $row['label']
+                                        : 'Meal ' . $mealNumbers[(int) $row['id']];
+                                ?>
+                                    <tr class="meal-row" data-day="<?= e($d) ?>">
+                                        <td class="cell-date cell-date--indent"></td>
+                                        <td><?= e($label) ?></td>
+                                        <td class="num"><?= e(number_format((int) $row['calories'])) ?></td>
+                                        <?php if ($latest): ?>
+                                            <td></td>
+                                        <?php endif; ?>
+                                        <td class="actions">
+                                            <a class="btn-link"
+                                               href="<?= url('calorie/intake/edit?id=' . (int) $row['id']) ?>">
+                                                Edit
+                                            </a>
+                                            <form method="post" action="<?= url('calorie/intake/delete') ?>"
+                                                  onsubmit="return confirm('Delete this meal?');">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="id" value="<?= e((string) $row['id']) ?>">
+                                                <button type="submit" class="btn-link-danger"
+                                                        aria-label="Delete meal">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
