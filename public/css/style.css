@@ -1594,16 +1594,16 @@ main:focus { outline: none; }
 
 /* Beefier active-pill treatment scoped to the range picker only —
    other unit toggles (lbs/kg, US/metric, chart units) keep their
-   subtler default state. Brighter gradient, stronger inset highlight,
-   and an outer orange halo so the selected window reads at a glance. */
+   subtler default state. Solid bright orange + white inset border
+   + outer halo so the selected window reads at a glance. */
 .range-picker-row .unit-toggle button.is-active {
-    background: linear-gradient(135deg, var(--primary), var(--primary-hot));
+    background: var(--primary-hot);
     color: #fff;
+    font-weight: 700;
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.30),
-        inset 0 -1px 1px rgba(0, 0, 0, 0.18),
-        0 0 0 1px rgba(255, 148, 71, 0.45),
-        0 2px 10px rgba(255, 122, 26, 0.45);
+        inset 0 0 0 2px rgba(255, 255, 255, 0.45),
+        0 0 0 1px var(--primary),
+        0 3px 14px rgba(255, 122, 26, 0.65);
 }
 
 /* Inline text link (e.g. "try All time" in the empty-range state). */
