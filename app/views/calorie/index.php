@@ -592,10 +592,17 @@ $fmtDate = static function (string $iso): string {
                       class="range-picker-row" data-no-loading>
                     <span class="range-picker-row__label">Showing:</span>
                     <div class="unit-toggle">
-                        <?php foreach ($RANGE_OPTIONS as $key => $label): ?>
-                            <button type="submit" name="range" value="<?= e($key) ?>"
-                                    class="<?= $range === $key ? 'is-active' : '' ?>"
-                                    aria-pressed="<?= $range === $key ? 'true' : 'false' ?>">
+                        <?php foreach ($RANGE_OPTIONS as $key => $label):
+                            // PHP coerces numeric string array keys to int on
+                            // foreach, so $key is int(7)/int(30)/int(90) but
+                            // 'all' stays a string. Cast to string here so
+                            // the strict $range === $keyStr check actually
+                            // matches the numeric ranges.
+                            $keyStr = (string) $key;
+                        ?>
+                            <button type="submit" name="range" value="<?= e($keyStr) ?>"
+                                    class="<?= $range === $keyStr ? 'is-active' : '' ?>"
+                                    aria-pressed="<?= $range === $keyStr ? 'true' : 'false' ?>">
                                 <?= e($label) ?>
                             </button>
                         <?php endforeach; ?>
