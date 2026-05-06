@@ -573,15 +573,18 @@ $fmtDate = static function (string $iso): string {
 
         <?php else: ?>
 
-            <?php
-                // Range picker — captured once into a string and rendered
-                // in two spots depending on whether the chart card is
-                // showing: above the empty card when there's no data in
-                // range, or between the chart and history cards when
-                // there is. Lives next to the History card visually so
-                // the filter reads as a property of the list view.
-                ob_start();
-            ?>
+            <!-- Section toolbar — controls the timeline view (chart +
+                 history together). Sits above both cards as a "this
+                 scopes everything below" affordance, styled with a
+                 subtle bottom divider so it reads as a section header
+                 rather than a card or a per-card filter. -->
+            <div class="section-toolbar">
+                <div class="section-toolbar__heading">
+                    <span class="section-toolbar__title">Timeline</span>
+                    <span class="section-toolbar__hint">
+                        Range applies to both the chart and history.
+                    </span>
+                </div>
                 <!-- data-no-loading skips the submit-spinner since the
                      page reload is fast and a spinner on a filter pill
                      just adds friction. -->
@@ -598,11 +601,9 @@ $fmtDate = static function (string $iso): string {
                         <?php endforeach; ?>
                     </div>
                 </form>
-            <?php $rangePickerHtml = ob_get_clean(); ?>
+            </div>
 
             <?php if (empty($intakeHistory)): ?>
-
-                <?= $rangePickerHtml ?>
 
                 <article class="tracker-card empty-state">
                     <h2>No meals in this range</h2>
@@ -665,8 +666,6 @@ $fmtDate = static function (string $iso): string {
                     </canvas>
                 </div>
             </article>
-
-            <?= $rangePickerHtml ?>
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
