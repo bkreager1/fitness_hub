@@ -93,6 +93,27 @@
 
 
     /* ---------------------------------------------------------
+       1c. Auto-dismiss flash banners.
+       Success messages stick around for ~4s, then slide out and
+       remove themselves from the DOM. CSS handles the animation;
+       on prefers-reduced-motion the global animation-duration
+       override makes the dismissal effectively instant.
+       --------------------------------------------------------- */
+    (function initFlashDismiss () {
+        const DISMISS_AFTER = 4000;
+
+        document.querySelectorAll('.flash').forEach((el) => {
+            setTimeout(() => {
+                el.classList.add('is-dismissing');
+                el.addEventListener('animationend', (e) => {
+                    if (e.animationName === 'flashSlideOut') el.remove();
+                }, { once: true });
+            }, DISMISS_AFTER);
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        2. Sticky-header scroll shadow
        --------------------------------------------------------- */
     (function initHeaderScroll () {

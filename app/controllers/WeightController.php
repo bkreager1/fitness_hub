@@ -52,6 +52,7 @@ class WeightController extends Controller {
             'latest'      => $latest,
             'chartData'   => $chartData,
             'defaultUnit' => $defaultUnit,
+            'flashInline' => true,
         ]);
     }
 

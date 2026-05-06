@@ -63,6 +63,7 @@ class StrengthController extends Controller {
             'chartRows'   => $chartRows,
             'defaultUnit' => $defaultUnit,
             'liftLabels'  => StrengthLog::LIFT_LABELS,
+            'flashInline' => true,
         ]);
     }
 

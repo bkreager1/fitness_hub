@@ -61,6 +61,13 @@ $displayWeight = static function (float $kg, string $asUnit): string {
             <span class="back-link__arrow" aria-hidden="true">&larr;</span>
             Back to dashboard
         </a>
+
+        <?php if ($flashMsg = flash('success')): ?>
+            <div class="flash flash-success flash--inline" role="status">
+                <?= e($flashMsg) ?>
+            </div>
+        <?php endif; ?>
+
         <article class="tracker-card">
 
             <header class="tracker-card__head">

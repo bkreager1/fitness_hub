@@ -124,6 +124,7 @@ class CalorieController extends Controller {
             'prefill'         => $prefill,
             'statsFormOpen'   => $statsFormOpen,
             'activeGoal'      => $activeGoal,
+            'flashInline'     => true,
         ]);
     }
 

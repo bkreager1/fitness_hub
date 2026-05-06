@@ -100,8 +100,13 @@ $navClass = static fn(string $key): string =>
     </div>
 </header>
 
-<?php if ($msg = flash('success')): ?>
-    <div class="flash flash-success"><?= e($msg) ?></div>
+<?php
+    // Tracker pages opt out of the global banner ($flashInline = true
+    // in their view data) and render the success flash inline next to
+    // the form, where the user's eyes already are after a save.
+    if (empty($flashInline) && ($msg = flash('success'))):
+?>
+    <div class="flash flash-success" role="status"><?= e($msg) ?></div>
 <?php endif; ?>
 
 <?php
