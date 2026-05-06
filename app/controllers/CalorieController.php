@@ -298,7 +298,7 @@ class CalorieController extends Controller {
             'logged_date'          => $loggedDate,
         ]);
 
-        flash('success', 'Targets updated.');
+        flash('targets_success', 'Targets updated.');
         $this->redirect('calorie');
     }
 
@@ -327,7 +327,7 @@ class CalorieController extends Controller {
 
         CalorieIntake::create($userId, (int) $calories, $date, $cleanLabel);
 
-        flash('success', 'Meal logged.');
+        flash('intake_success', 'Meal logged.');
         $this->redirect('calorie');
     }
 
@@ -384,7 +384,7 @@ class CalorieController extends Controller {
 
         CalorieIntake::update($id, $userId, (int) $calories, $cleanLabel);
 
-        flash('success', 'Meal updated.');
+        flash('intake_success', 'Meal updated.');
         $this->redirect('calorie');
     }
 
@@ -398,7 +398,7 @@ class CalorieController extends Controller {
 
         if ($id > 0 && CalorieIntake::find($id, $userId)) {
             CalorieIntake::delete($id, $userId);
-            flash('success', 'Meal removed.');
+            flash('intake_success', 'Meal removed.');
         }
 
         $this->redirect('calorie');

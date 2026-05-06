@@ -110,6 +110,13 @@ $fmtDate = static function (string $iso): string {
             <span class="back-link__arrow" aria-hidden="true">&larr;</span>
             Back to dashboard
         </a>
+
+        <?php if ($flashMsg = flash('targets_success')): ?>
+            <div class="flash flash-success flash--centered" role="status">
+                <?= e($flashMsg) ?>
+            </div>
+        <?php endif; ?>
+
         <article class="tracker-card">
 
             <header class="tracker-card__head">
@@ -408,7 +415,7 @@ $fmtDate = static function (string $iso): string {
 <section class="section section--alt">
     <div class="container">
 
-        <?php if ($flashMsg = flash('success')): ?>
+        <?php if ($flashMsg = flash('intake_success')): ?>
             <div class="flash flash-success flash--centered" role="status">
                 <?= e($flashMsg) ?>
             </div>
