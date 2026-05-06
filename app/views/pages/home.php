@@ -114,42 +114,27 @@
         <div class="features">
 
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2s4 4 4 8a4 4 0 1 1-8 0c0-4 4-8 4-8z"/>
-                        <path d="M8 14a4 4 0 0 0 8 0"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/calorielogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Calorie tracker</h3>
                 <p>Get a maintenance, cut, and bulk target from the
                    Mifflin-St Jeor formula, then log daily intake against your goal.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 17l5-5 4 4 8-8"/>
-                        <path d="M14 8h6v6"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/weightlogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Weight tracker</h3>
                 <p>Log a weight, see your trend on a clean chart,
                    and switch between lbs and kg whenever you want.</p>
             </article>
 
             <article class="feature-card">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 12h2"/>
-                        <path d="M20 12h2"/>
-                        <rect x="4"  y="9"  width="3" height="6" rx="1"/>
-                        <rect x="17" y="9"  width="3" height="6" rx="1"/>
-                        <rect x="7"  y="11" width="10" height="2"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/strengthlogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Strength tracker</h3>
                 <p>Bench, squat, and deadlift on one chart so you can
                    actually see your big three moving together.</p>
