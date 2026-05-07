@@ -111,34 +111,40 @@
                every tool here is built around the basics that actually work.</p>
         </div>
 
+        <?php
+            // Logged-in visitors land on the dashboard; logged-out
+            // visitors land on the sign-up page so they can start
+            // tracking right away. Same target for all three cards.
+            $cardHref = is_logged_in() ? url('dashboard') : url('register');
+        ?>
         <div class="features">
 
-            <article class="feature-card">
+            <a class="feature-card" href="<?= e($cardHref) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/calorielogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Calorie tracker</h3>
                 <p>Get a maintenance, cut, and bulk target from the
                    Mifflin-St Jeor formula, then log daily intake against your goal.</p>
-            </article>
+            </a>
 
-            <article class="feature-card">
+            <a class="feature-card" href="<?= e($cardHref) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/weightlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Weight tracker</h3>
                 <p>Log a weight, see your trend on a clean chart,
                    and switch between lbs and kg whenever you want.</p>
-            </article>
+            </a>
 
-            <article class="feature-card">
+            <a class="feature-card" href="<?= e($cardHref) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Strength tracker</h3>
                 <p>Bench, squat, and deadlift on one chart so you can
                    actually see your big three moving together.</p>
-            </article>
+            </a>
 
         </div>
     </div>
