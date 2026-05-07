@@ -949,6 +949,14 @@ main:focus { outline: none; }
     object-fit: contain;
     margin: 0 auto 1rem;
 }
+/* Cards that use the PNG logo (home page) get centered text too —
+   image and text aligned together reads cleaner than centered image
+   over left-aligned text. Scoped via :has() so the dashboard's
+   quick-action tiles (also .feature-card, but using .feature-icon)
+   keep their left-aligned look. */
+.feature-card:has(.feature-image) {
+    text-align: center;
+}
 .feature-card h3 { margin-bottom: 0.4rem; color: var(--text); }
 .feature-card p  { font-size: 0.95rem; color: var(--text-dim); }
 
