@@ -257,40 +257,25 @@ $hasAnyChart =
         <div class="features dash-actions">
 
             <a class="feature-card" href="<?= url('calorie') ?>">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2s4 4 4 8a4 4 0 1 1-8 0c0-4 4-8 4-8z"/>
-                        <path d="M8 14a4 4 0 0 0 8 0"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/calorielogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Log calorie intake</h3>
                 <p>Set your targets, then log how many calories you ate today against them.</p>
             </a>
 
             <a class="feature-card" href="<?= url('weight') ?>">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 17l5-5 4 4 8-8"/>
-                        <path d="M14 8h6v6"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/weightlogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Log a weigh-in</h3>
                 <p>Add today's weight, watch the trend smooth out over the week.</p>
             </a>
 
             <a class="feature-card" href="<?= url('strength') ?>">
-                <span class="feature-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2 12h2"/>
-                        <path d="M20 12h2"/>
-                        <rect x="4"  y="9"  width="3" height="6" rx="1"/>
-                        <rect x="17" y="9"  width="3" height="6" rx="1"/>
-                        <rect x="7"  y="11" width="10" height="2"/>
-                    </svg>
-                </span>
+                <img class="feature-image"
+                     src="<?= asset('images/strengthlogo.png') ?>"
+                     alt="" width="88" height="88">
                 <h3>Log a lift</h3>
                 <p>Bench, squat, or deadlift — weight, reps, done. The chart does the rest.</p>
             </a>
