@@ -23,10 +23,10 @@
                 <input type="email" id="email" name="email"
                        value="<?= e(old('email')) ?>"
                        autocomplete="email"
-                       <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                       <?= $errEmail ? 'aria-invalid="true" aria-describedby="email-error"' : '' ?>
                        required>
                 <?php if ($errEmail): ?>
-                    <p class="field-error"><?= e($errEmail) ?></p>
+                    <p id="email-error" class="field-error"><?= e($errEmail) ?></p>
                 <?php endif; ?>
             </div>
 

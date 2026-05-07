@@ -38,10 +38,10 @@
                     <input type="text" id="name" name="name"
                            value="<?= e(old('name')) ?>"
                            autocomplete="name" maxlength="100"
-                           <?= $errName ? 'aria-invalid="true"' : '' ?>
+                           <?= $errName ? 'aria-invalid="true" aria-describedby="name-error"' : '' ?>
                            required>
                     <?php if ($errName): ?>
-                        <p class="field-error"><?= e($errName) ?></p>
+                        <p id="name-error" class="field-error"><?= e($errName) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -50,10 +50,10 @@
                     <input type="email" id="email" name="email"
                            value="<?= e(old('email')) ?>"
                            autocomplete="email" maxlength="150"
-                           <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                           <?= $errEmail ? 'aria-invalid="true" aria-describedby="email-error"' : '' ?>
                            required>
                     <?php if ($errEmail): ?>
-                        <p class="field-error"><?= e($errEmail) ?></p>
+                        <p id="email-error" class="field-error"><?= e($errEmail) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -62,12 +62,14 @@
                     <textarea id="message" name="message"
                               rows="6" maxlength="2000"
                               placeholder="What's on your mind?"
-                              <?= $errMessage ? 'aria-invalid="true"' : '' ?>
+                              <?= $errMessage
+                                 ? 'aria-invalid="true" aria-describedby="message-error"'
+                                 : 'aria-describedby="message-hint"' ?>
                               required><?= e(old('message')) ?></textarea>
                     <?php if ($errMessage): ?>
-                        <p class="field-error"><?= e($errMessage) ?></p>
+                        <p id="message-error" class="field-error"><?= e($errMessage) ?></p>
                     <?php else: ?>
-                        <span class="field-hint">10–2000 characters.</span>
+                        <span id="message-hint" class="field-hint">10–2000 characters.</span>
                     <?php endif; ?>
                 </div>
 

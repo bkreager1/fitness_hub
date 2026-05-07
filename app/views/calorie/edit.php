@@ -63,9 +63,9 @@ $fmtDate = static function (string $iso): string {
                                value="<?= e($labelVal) ?>"
                                maxlength="50"
                                placeholder="Lunch, Pizza, Snack…"
-                               <?= $errLabel ? 'aria-invalid="true"' : '' ?>>
+                               <?= $errLabel ? 'aria-invalid="true" aria-describedby="intake_label-error"' : '' ?>>
                         <?php if ($errLabel): ?>
-                            <p class="field-error"><?= e($errLabel) ?></p>
+                            <p id="intake_label-error" class="field-error"><?= e($errLabel) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -74,10 +74,10 @@ $fmtDate = static function (string $iso): string {
                         <input type="number" id="intakeCalories" name="calories"
                                inputmode="numeric" min="0" max="20000" step="1"
                                value="<?= e($calVal) ?>"
-                               <?= $errCal ? 'aria-invalid="true"' : '' ?>
+                               <?= $errCal ? 'aria-invalid="true" aria-describedby="intake_calories-error"' : '' ?>
                                required>
                         <?php if ($errCal): ?>
-                            <p class="field-error"><?= e($errCal) ?></p>
+                            <p id="intake_calories-error" class="field-error"><?= e($errCal) ?></p>
                         <?php endif; ?>
                     </div>
 

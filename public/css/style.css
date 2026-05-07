@@ -72,10 +72,13 @@
     --border-soft:  rgba(255, 255, 255, 0.04);
     --border-hot:   rgba(255, 138, 56, 0.45);
 
-    /* Text */
+    /* Text — every token clears WCAG AA (4.5:1) on the page bg
+       and on cards. text-faint was bumped from #6f7280 (3.99:1,
+       just under AA) to #8c91a0 (5.86:1) so hints and placeholders
+       stay legible for low-vision users. */
     --text:         #ecedf2;   /* primary off-white */
     --text-dim:     #a4a8b5;   /* secondary gray */
-    --text-faint:   #6f7280;   /* tertiary / hints */
+    --text-faint:   #8c91a0;   /* tertiary / hints */
 
     /* Brand — warm orange */
     --primary:      #ff7a1a;   /* base brand orange */
@@ -182,8 +185,10 @@ a:hover { color: var(--primary-hot); }
     z-index: 100;
     padding: 0.65rem 1rem;
     background: var(--primary);
-    color: #fff;
-    font-weight: 600;
+    /* Dark text on the orange clears 6.8:1 contrast (AAA). White
+       text on the same orange was only 2.7:1 — failed AA. */
+    color: var(--bg);
+    font-weight: 700;
     border-radius: 0 0 var(--radius-sm) 0;
     text-decoration: none;
     transition: top .15s ease;
@@ -191,7 +196,7 @@ a:hover { color: var(--primary-hot); }
 .skip-link:focus,
 .skip-link:focus-visible {
     top: 0;
-    color: #fff;
+    color: var(--bg);
     outline: none;
 }
 /* Suppress the focus ring when JS or the skip link programmatically

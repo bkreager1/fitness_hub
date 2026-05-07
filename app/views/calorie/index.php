@@ -244,10 +244,10 @@ $fmtDate = static function (string $iso): string {
                             <input type="date" id="calDate" name="logged_date"
                                    value="<?= e($loggedDate) ?>"
                                    max="<?= e($today) ?>"
-                                   <?= $errDate ? 'aria-invalid="true"' : '' ?>
+                                   <?= $errDate ? 'aria-invalid="true" aria-describedby="logged_date-error"' : '' ?>
                                    required>
                             <?php if ($errDate): ?>
-                                <p class="field-error"><?= e($errDate) ?></p>
+                                <p id="logged_date-error" class="field-error"><?= e($errDate) ?></p>
                             <?php endif; ?>
                         </div>
 
@@ -257,16 +257,19 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="numeric" min="13" max="100" step="1"
                                    value="<?= e($pre('age')) ?>"
                                    placeholder="30"
-                                   <?= $errAge ? 'aria-invalid="true"' : '' ?>
+                                   <?= $errAge ? 'aria-invalid="true" aria-describedby="age-error"' : '' ?>
                                    required>
                             <?php if ($errAge): ?>
-                                <p class="field-error"><?= e($errAge) ?></p>
+                                <p id="age-error" class="field-error"><?= e($errAge) ?></p>
                             <?php endif; ?>
                         </div>
 
                         <div class="field">
                             <span class="field-label">Sex</span>
-                            <div class="radio-row" <?= $errGender ? 'aria-invalid="true"' : '' ?>>
+                            <div class="radio-row"
+                                 <?= $errGender
+                                    ? 'aria-invalid="true" aria-describedby="gender-error"'
+                                    : 'aria-describedby="gender-hint"' ?>>
                                 <label class="radio-pill">
                                     <input type="radio" name="gender" value="male"
                                            <?= $pre('gender') === 'male' ? 'checked' : '' ?>>
@@ -279,16 +282,16 @@ $fmtDate = static function (string $iso): string {
                                 </label>
                             </div>
                             <?php if ($errGender): ?>
-                                <p class="field-error"><?= e($errGender) ?></p>
+                                <p id="gender-error" class="field-error"><?= e($errGender) ?></p>
                             <?php else: ?>
-                                <span class="field-hint">Used only for the calorie formula.</span>
+                                <span id="gender-hint" class="field-hint">Used only for the calorie formula.</span>
                             <?php endif; ?>
                         </div>
 
                         <div class="field field--wide">
                             <label for="calActivity">Activity level</label>
                             <select id="calActivity" name="activity_level"
-                                    <?= $errLevel ? 'aria-invalid="true"' : '' ?>
+                                    <?= $errLevel ? 'aria-invalid="true" aria-describedby="activity_level-error"' : '' ?>
                                     required>
                                 <option value="">Choose an activity level…</option>
                                 <?php foreach ($levels as $key => $label): ?>
@@ -299,7 +302,7 @@ $fmtDate = static function (string $iso): string {
                                 <?php endforeach; ?>
                             </select>
                             <?php if ($errLevel): ?>
-                                <p class="field-error"><?= e($errLevel) ?></p>
+                                <p id="activity_level-error" class="field-error"><?= e($errLevel) ?></p>
                             <?php endif; ?>
                         </div>
 
@@ -314,7 +317,7 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="numeric" min="3" max="8" step="1"
                                    value="<?= e($pre('height_ft')) ?>"
                                    placeholder="5"
-                                   <?= $errHeightFt ? 'aria-invalid="true"' : '' ?>>
+                                   <?= $errHeightFt ? 'aria-invalid="true" aria-describedby="height_ft-error"' : '' ?>>
                         </div>
                         <div class="field">
                             <label for="calHeightIn">Height (in)</label>
@@ -322,9 +325,9 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="numeric" min="0" max="11" step="1"
                                    value="<?= e($pre('height_in')) ?>"
                                    placeholder="10"
-                                   <?= $errHeightFt ? 'aria-invalid="true"' : '' ?>>
+                                   <?= $errHeightFt ? 'aria-invalid="true" aria-describedby="height_ft-error"' : '' ?>>
                             <?php if ($errHeightFt): ?>
-                                <p class="field-error"><?= e($errHeightFt) ?></p>
+                                <p id="height_ft-error" class="field-error"><?= e($errHeightFt) ?></p>
                             <?php endif; ?>
                         </div>
                         <div class="field">
@@ -333,9 +336,9 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="decimal" min="66" max="660" step="0.1"
                                    value="<?= e($pre('weight_lb')) ?>"
                                    placeholder="170"
-                                   <?= $errWeightLb ? 'aria-invalid="true"' : '' ?>>
+                                   <?= $errWeightLb ? 'aria-invalid="true" aria-describedby="weight_lb-error"' : '' ?>>
                             <?php if ($errWeightLb): ?>
-                                <p class="field-error"><?= e($errWeightLb) ?></p>
+                                <p id="weight_lb-error" class="field-error"><?= e($errWeightLb) ?></p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -349,9 +352,9 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="decimal" min="100" max="250" step="0.1"
                                    value="<?= e($pre('height_cm')) ?>"
                                    placeholder="178"
-                                   <?= $errHeightCm ? 'aria-invalid="true"' : '' ?>>
+                                   <?= $errHeightCm ? 'aria-invalid="true" aria-describedby="height_cm-error"' : '' ?>>
                             <?php if ($errHeightCm): ?>
-                                <p class="field-error"><?= e($errHeightCm) ?></p>
+                                <p id="height_cm-error" class="field-error"><?= e($errHeightCm) ?></p>
                             <?php endif; ?>
                         </div>
                         <div class="field">
@@ -360,9 +363,9 @@ $fmtDate = static function (string $iso): string {
                                    inputmode="decimal" min="30" max="300" step="0.1"
                                    value="<?= e($pre('weight_kg')) ?>"
                                    placeholder="77"
-                                   <?= $errWeightKg ? 'aria-invalid="true"' : '' ?>>
+                                   <?= $errWeightKg ? 'aria-invalid="true" aria-describedby="weight_kg-error"' : '' ?>>
                             <?php if ($errWeightKg): ?>
-                                <p class="field-error"><?= e($errWeightKg) ?></p>
+                                <p id="weight_kg-error" class="field-error"><?= e($errWeightKg) ?></p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -502,10 +505,10 @@ $fmtDate = static function (string $iso): string {
                         <input type="date" id="intakeDate" name="logged_date"
                                value="<?= e($intakeDate) ?>"
                                max="<?= e($today) ?>"
-                               <?= $errIntakeDate ? 'aria-invalid="true"' : '' ?>
+                               <?= $errIntakeDate ? 'aria-invalid="true" aria-describedby="intake_logged_date-error"' : '' ?>
                                required>
                         <?php if ($errIntakeDate): ?>
-                            <p class="field-error"><?= e($errIntakeDate) ?></p>
+                            <p id="intake_logged_date-error" class="field-error"><?= e($errIntakeDate) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -515,9 +518,9 @@ $fmtDate = static function (string $iso): string {
                                value="<?= e($intakeLabel) ?>"
                                maxlength="50"
                                placeholder="Lunch, Pizza, Snack…"
-                               <?= $errIntakeLabel ? 'aria-invalid="true"' : '' ?>>
+                               <?= $errIntakeLabel ? 'aria-invalid="true" aria-describedby="intake_label-error"' : '' ?>>
                         <?php if ($errIntakeLabel): ?>
-                            <p class="field-error"><?= e($errIntakeLabel) ?></p>
+                            <p id="intake_label-error" class="field-error"><?= e($errIntakeLabel) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -527,10 +530,10 @@ $fmtDate = static function (string $iso): string {
                                inputmode="numeric" min="0" max="20000" step="1"
                                value="<?= e($intakeCal) ?>"
                                placeholder="650"
-                               <?= $errIntakeCal ? 'aria-invalid="true"' : '' ?>
+                               <?= $errIntakeCal ? 'aria-invalid="true" aria-describedby="intake_calories-error"' : '' ?>
                                required>
                         <?php if ($errIntakeCal): ?>
-                            <p class="field-error"><?= e($errIntakeCal) ?></p>
+                            <p id="intake_calories-error" class="field-error"><?= e($errIntakeCal) ?></p>
                         <?php endif; ?>
                     </div>
 

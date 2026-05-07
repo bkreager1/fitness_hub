@@ -123,7 +123,8 @@ if ($latest) {
                 <div class="field field--wide">
                     <span class="field-label">Lift</span>
                     <div class="goal-picker__pills <?= $errLift ? 'is-invalid' : '' ?>"
-                         role="radiogroup" aria-label="Lift type">
+                         role="radiogroup" aria-label="Lift type"
+                         <?= $errLift ? 'aria-describedby="lift_type-error"' : '' ?>>
                         <?php foreach ($liftLabels as $key => $label): ?>
                             <label class="goal-pill goal-pill--radio">
                                 <input type="radio" name="lift_type" value="<?= e($key) ?>"
@@ -133,7 +134,7 @@ if ($latest) {
                         <?php endforeach; ?>
                     </div>
                     <?php if ($errLift): ?>
-                        <p class="field-error"><?= e($errLift) ?></p>
+                        <p id="lift_type-error" class="field-error"><?= e($errLift) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -144,10 +145,10 @@ if ($latest) {
                         <input type="date" id="strengthDate" name="logged_date"
                                value="<?= e($loggedDate) ?>"
                                max="<?= e($today) ?>"
-                               <?= $errDate ? 'aria-invalid="true"' : '' ?>
+                               <?= $errDate ? 'aria-invalid="true" aria-describedby="logged_date-error"' : '' ?>
                                required>
                         <?php if ($errDate): ?>
-                            <p class="field-error"><?= e($errDate) ?></p>
+                            <p id="logged_date-error" class="field-error"><?= e($errDate) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -161,10 +162,10 @@ if ($latest) {
                                max="<?= $unit === 'lbs' ? '1500' : '700' ?>"
                                value="<?= e($weightVal) ?>"
                                placeholder="<?= e($placeholderWeight) ?>"
-                               <?= $errWeight ? 'aria-invalid="true"' : '' ?>
+                               <?= $errWeight ? 'aria-invalid="true" aria-describedby="weight-error"' : '' ?>
                                required>
                         <?php if ($errWeight): ?>
-                            <p class="field-error"><?= e($errWeight) ?></p>
+                            <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -174,10 +175,10 @@ if ($latest) {
                                inputmode="numeric" step="1" min="1" max="30"
                                value="<?= e($repsVal) ?>"
                                placeholder="5"
-                               <?= $errReps ? 'aria-invalid="true"' : '' ?>
+                               <?= $errReps ? 'aria-invalid="true" aria-describedby="reps-error"' : '' ?>
                                required>
                         <?php if ($errReps): ?>
-                            <p class="field-error"><?= e($errReps) ?></p>
+                            <p id="reps-error" class="field-error"><?= e($errReps) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -190,9 +191,9 @@ if ($latest) {
                     <textarea id="strengthNotes" name="notes"
                               rows="2" maxlength="300"
                               placeholder="Add any notes about this entry..."
-                              <?= $errNotes ? 'aria-invalid="true"' : '' ?>><?= e($notesVal) ?></textarea>
+                              <?= $errNotes ? 'aria-invalid="true" aria-describedby="notes-error"' : '' ?>><?= e($notesVal) ?></textarea>
                     <?php if ($errNotes): ?>
-                        <p class="field-error"><?= e($errNotes) ?></p>
+                        <p id="notes-error" class="field-error"><?= e($errNotes) ?></p>
                     <?php endif; ?>
                 </div>
 

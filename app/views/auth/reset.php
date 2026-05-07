@@ -27,14 +27,16 @@
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
                            autocomplete="new-password"
-                           <?= $errPass ? 'aria-invalid="true"' : '' ?>
+                           <?= $errPass
+                              ? 'aria-invalid="true" aria-describedby="password-error"'
+                              : 'aria-describedby="password-hint"' ?>
                            required>
                     <?= password_toggle_button('password') ?>
                 </div>
                 <?php if ($errPass): ?>
-                    <p class="field-error"><?= e($errPass) ?></p>
+                    <p id="password-error" class="field-error"><?= e($errPass) ?></p>
                 <?php else: ?>
-                    <small class="field-hint"><?= e(PASSWORD_HINT) ?></small>
+                    <small id="password-hint" class="field-hint"><?= e(PASSWORD_HINT) ?></small>
                 <?php endif; ?>
             </div>
 
@@ -43,12 +45,12 @@
                 <div class="password-wrap">
                     <input type="password" id="password_confirm" name="password_confirm"
                            autocomplete="new-password"
-                           <?= $errConfirm ? 'aria-invalid="true"' : '' ?>
+                           <?= $errConfirm ? 'aria-invalid="true" aria-describedby="password_confirm-error"' : '' ?>
                            required>
                     <?= password_toggle_button('password_confirm') ?>
                 </div>
                 <?php if ($errConfirm): ?>
-                    <p class="field-error"><?= e($errConfirm) ?></p>
+                    <p id="password_confirm-error" class="field-error"><?= e($errConfirm) ?></p>
                 <?php endif; ?>
             </div>
 

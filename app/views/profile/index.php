@@ -87,12 +87,14 @@
                             <label for="avatar">Upload a new photo</label>
                             <input type="file" id="avatar" name="avatar"
                                    accept="image/jpeg,image/png,image/webp"
-                                   <?= $errAvatar ? 'aria-invalid="true"' : '' ?>
+                                   <?= $errAvatar
+                                      ? 'aria-invalid="true" aria-describedby="avatar-error"'
+                                      : 'aria-describedby="avatar-hint"' ?>
                                    required>
                             <?php if ($errAvatar): ?>
-                                <p class="field-error"><?= e($errAvatar) ?></p>
+                                <p id="avatar-error" class="field-error"><?= e($errAvatar) ?></p>
                             <?php else: ?>
-                                <small class="field-hint">JPG, PNG, or WebP. Max 2&nbsp;MB.</small>
+                                <small id="avatar-hint" class="field-hint">JPG, PNG, or WebP. Max 2&nbsp;MB.</small>
                             <?php endif; ?>
                         </div>
 
@@ -126,10 +128,10 @@
                     <input type="text" id="name" name="name"
                            value="<?= e(old('name', $user['name'])) ?>"
                            maxlength="100" autocomplete="name"
-                           <?= $errName ? 'aria-invalid="true"' : '' ?>
+                           <?= $errName ? 'aria-invalid="true" aria-describedby="name-error"' : '' ?>
                            required>
                     <?php if ($errName): ?>
-                        <p class="field-error"><?= e($errName) ?></p>
+                        <p id="name-error" class="field-error"><?= e($errName) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -138,10 +140,10 @@
                     <input type="email" id="email" name="email"
                            value="<?= e(old('email', $user['email'])) ?>"
                            autocomplete="email"
-                           <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                           <?= $errEmail ? 'aria-invalid="true" aria-describedby="email-error"' : '' ?>
                            required>
                     <?php if ($errEmail): ?>
-                        <p class="field-error"><?= e($errEmail) ?></p>
+                        <p id="email-error" class="field-error"><?= e($errEmail) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -163,12 +165,12 @@
                     <div class="password-wrap">
                         <input type="password" id="current_password" name="current_password"
                                autocomplete="current-password"
-                               <?= $errCurrentPw ? 'aria-invalid="true"' : '' ?>
+                               <?= $errCurrentPw ? 'aria-invalid="true" aria-describedby="current_password-error"' : '' ?>
                                required>
                         <?= password_toggle_button('current_password') ?>
                     </div>
                     <?php if ($errCurrentPw): ?>
-                        <p class="field-error"><?= e($errCurrentPw) ?></p>
+                        <p id="current_password-error" class="field-error"><?= e($errCurrentPw) ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -177,14 +179,16 @@
                     <div class="password-wrap">
                         <input type="password" id="new_password" name="new_password"
                                autocomplete="new-password"
-                               <?= $errNewPw ? 'aria-invalid="true"' : '' ?>
+                               <?= $errNewPw
+                                  ? 'aria-invalid="true" aria-describedby="new_password-error"'
+                                  : 'aria-describedby="new_password-hint"' ?>
                                required>
                         <?= password_toggle_button('new_password') ?>
                     </div>
                     <?php if ($errNewPw): ?>
-                        <p class="field-error"><?= e($errNewPw) ?></p>
+                        <p id="new_password-error" class="field-error"><?= e($errNewPw) ?></p>
                     <?php else: ?>
-                        <small class="field-hint"><?= e(PASSWORD_HINT) ?></small>
+                        <small id="new_password-hint" class="field-hint"><?= e(PASSWORD_HINT) ?></small>
                     <?php endif; ?>
                 </div>
 
@@ -193,12 +197,12 @@
                     <div class="password-wrap">
                         <input type="password" id="new_password_confirm" name="new_password_confirm"
                                autocomplete="new-password"
-                               <?= $errConfirmPw ? 'aria-invalid="true"' : '' ?>
+                               <?= $errConfirmPw ? 'aria-invalid="true" aria-describedby="new_password_confirm-error"' : '' ?>
                                required>
                         <?= password_toggle_button('new_password_confirm') ?>
                     </div>
                     <?php if ($errConfirmPw): ?>
-                        <p class="field-error"><?= e($errConfirmPw) ?></p>
+                        <p id="new_password_confirm-error" class="field-error"><?= e($errConfirmPw) ?></p>
                     <?php endif; ?>
                 </div>
 

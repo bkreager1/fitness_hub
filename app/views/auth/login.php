@@ -26,10 +26,10 @@
                 <input type="email" id="email" name="email"
                        value="<?= e(old('email')) ?>"
                        autocomplete="email"
-                       <?= $errEmail ? 'aria-invalid="true"' : '' ?>
+                       <?= $errEmail ? 'aria-invalid="true" aria-describedby="email-error"' : '' ?>
                        required>
                 <?php if ($errEmail): ?>
-                    <p class="field-error"><?= e($errEmail) ?></p>
+                    <p id="email-error" class="field-error"><?= e($errEmail) ?></p>
                 <?php endif; ?>
             </div>
 
@@ -38,12 +38,12 @@
                 <div class="password-wrap">
                     <input type="password" id="password" name="password"
                            autocomplete="current-password"
-                           <?= $errPass ? 'aria-invalid="true"' : '' ?>
+                           <?= $errPass ? 'aria-invalid="true" aria-describedby="password-error"' : '' ?>
                            required>
                     <?= password_toggle_button('password') ?>
                 </div>
                 <?php if ($errPass): ?>
-                    <p class="field-error"><?= e($errPass) ?></p>
+                    <p id="password-error" class="field-error"><?= e($errPass) ?></p>
                 <?php endif; ?>
             </div>
 

@@ -85,10 +85,10 @@ $fmtDate = static function (string $iso): string {
                         <input type="date" id="weightDate" name="logged_date"
                                value="<?= e($loggedDate) ?>"
                                max="<?= e($today) ?>"
-                               <?= $errDate ? 'aria-invalid="true"' : '' ?>
+                               <?= $errDate ? 'aria-invalid="true" aria-describedby="logged_date-error"' : '' ?>
                                required>
                         <?php if ($errDate): ?>
-                            <p class="field-error"><?= e($errDate) ?></p>
+                            <p id="logged_date-error" class="field-error"><?= e($errDate) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -102,10 +102,10 @@ $fmtDate = static function (string $iso): string {
                                max="<?= $unit === 'lbs' ? '660' : '300' ?>"
                                value="<?= e($weightVal) ?>"
                                placeholder="<?= e($placeholderWeight) ?>"
-                               <?= $errWeight ? 'aria-invalid="true"' : '' ?>
+                               <?= $errWeight ? 'aria-invalid="true" aria-describedby="weight-error"' : '' ?>
                                required>
                         <?php if ($errWeight): ?>
-                            <p class="field-error"><?= e($errWeight) ?></p>
+                            <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -118,9 +118,9 @@ $fmtDate = static function (string $iso): string {
                     <textarea id="weightNotes" name="notes"
                               rows="2" maxlength="300"
                               placeholder="Add any notes about this entry..."
-                              <?= $errNotes ? 'aria-invalid="true"' : '' ?>><?= e($notesVal) ?></textarea>
+                              <?= $errNotes ? 'aria-invalid="true" aria-describedby="notes-error"' : '' ?>><?= e($notesVal) ?></textarea>
                     <?php if ($errNotes): ?>
-                        <p class="field-error"><?= e($errNotes) ?></p>
+                        <p id="notes-error" class="field-error"><?= e($errNotes) ?></p>
                     <?php endif; ?>
                 </div>
 
