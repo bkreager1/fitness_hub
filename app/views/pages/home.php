@@ -118,10 +118,16 @@
             $loggedIn = is_logged_in();
             $href = static fn(string $tracker): string =>
                 $loggedIn ? url($tracker) : url('register');
+            // Short accessible name on each card link so screen readers
+            // announce a concise label instead of reading the whole
+            // heading + paragraph in one breath.
+            $cardLabel = static fn(string $name): string =>
+                ($loggedIn ? 'Open ' : 'Sign up to use the ') . $name;
         ?>
         <div class="features">
 
-            <a class="feature-card" href="<?= e($href('calorie')) ?>">
+            <a class="feature-card" href="<?= e($href('calorie')) ?>"
+               aria-label="<?= e($cardLabel('Calorie tracker')) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/calorielogo.png') ?>"
                      alt="" width="88" height="88">
@@ -130,7 +136,8 @@
                    Mifflin-St Jeor formula, then log daily intake against your goal.</p>
             </a>
 
-            <a class="feature-card" href="<?= e($href('weight')) ?>">
+            <a class="feature-card" href="<?= e($href('weight')) ?>"
+               aria-label="<?= e($cardLabel('Weight tracker')) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/weightlogo.png') ?>"
                      alt="" width="88" height="88">
@@ -139,7 +146,8 @@
                    and switch between lbs and kg whenever you want.</p>
             </a>
 
-            <a class="feature-card" href="<?= e($href('strength')) ?>">
+            <a class="feature-card" href="<?= e($href('strength')) ?>"
+               aria-label="<?= e($cardLabel('Strength tracker')) ?>">
                 <img class="feature-image"
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
