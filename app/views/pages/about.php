@@ -1,24 +1,19 @@
 <?php // app/views/pages/about.php — Phase 6 ?>
 
 <!-- ===================== Intro ===================== -->
-<section class="hero">
-    <div class="container hero-grid">
-        <div class="hero-copy">
-            <span class="eyebrow">About</span>
-            <h1>Fitness, without the noise.</h1>
-            <p class="hero-lede">
-                Rock County Fitness Hub is a simple, no-fluff app for tracking
-                the three things that actually move the needle: what you eat,
-                what you weigh, and what you can lift. It was built for
-                beginners, but it is useful for anyone who wants a clean place
-                to stay consistent without the noise, pressure, or confusing
-                fitness advice.
-            </p>
-        </div>
-        <div class="hero-image">
-            <img src="<?= asset('images/about.jpg') ?>"
-                 alt="" width="1200" height="675">
-        </div>
+<section class="hero hero--compact hero--photo"
+         style="--hero-image: url('<?= asset('images/about.jpg') ?>');">
+    <div class="container">
+        <span class="eyebrow">About</span>
+        <h1>Fitness, without the noise.</h1>
+        <p class="hero-lede">
+            Rock County Fitness Hub is a simple, no-fluff app for tracking
+            the three things that actually move the needle: what you eat,
+            what you weigh, and what you can lift. It was built for
+            beginners, but it is useful for anyone who wants a clean place
+            to stay consistent without the noise, pressure, or confusing
+            fitness advice.
+        </p>
     </div>
 </section>
 

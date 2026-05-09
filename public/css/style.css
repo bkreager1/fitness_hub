@@ -708,15 +708,18 @@ main:focus { outline: none; }
     border-bottom: 1px solid var(--border-soft);
 }
 
-/* Landing hero — subtle background photo behind the right side of
-   the hero, faded into the dark gradient on the left so the headline
-   text stays readable. Scoped to .hero--landing so other heroes
-   (about, tracker pages, contact) keep their flat-gradient look. */
-.hero--landing::before {
+/* Hero with a faded background photo. Reusable across pages — the
+   actual image URL comes from the --hero-image custom property set
+   inline on the section, so each page (landing, about, ...) can
+   point at its own photo without forking the CSS. The image is
+   muted to ~22% opacity behind a left-to-right mask fade so the
+   headline text on the left stays readable while the right side
+   shows the photo through. */
+.hero--photo::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url('../images/Landinghero.jpg');
+    background-image: var(--hero-image);
     background-size: cover;
     background-position: center right;
     background-repeat: no-repeat;
@@ -726,28 +729,11 @@ main:focus { outline: none; }
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%, #000 100%);
             mask-image: linear-gradient(to right, transparent 0%, #000 38%, #000 100%);
 }
-/* The container needs its own stacking context so the copy and BMI
-   card sit above the ::before image layer. */
-.hero--landing > .container {
+/* The container needs its own stacking context so the copy (and any
+   asset like the BMI card) sits above the ::before image layer. */
+.hero--photo > .container {
     position: relative;
     z-index: 1;
-}
-
-/* About hero — real image element on the right of the hero-grid
-   (not a background like the landing page). Frames the photo with
-   the project's card treatment so it sits as a deliberate panel
-   instead of a raw bleed. Image fills the right column at the
-   source aspect ratio, height adjusts naturally. */
-.hero-image {
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-soft);
-}
-.hero-image img {
-    display: block;
-    width: 100%;
-    height: auto;
 }
 
 .hero-grid {

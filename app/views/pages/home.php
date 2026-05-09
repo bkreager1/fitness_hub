@@ -1,7 +1,8 @@
 <?php // app/views/pages/home.php — Phase 5 landing page ?>
 
 <!-- ===================== Hero + BMI ===================== -->
-<section class="hero hero--landing">
+<section class="hero hero--photo"
+         style="--hero-image: url('<?= asset('images/Landinghero.jpg') ?>');">
     <div class="container hero-grid">
 
         <div class="hero-copy">
