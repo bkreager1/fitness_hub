@@ -1290,8 +1290,8 @@ main:focus { outline: none; }
     inset: 0;
     background: linear-gradient(
         180deg,
-        rgba(11, 15, 23, 0.85) 0%,
-        rgba(11, 15, 23, 0.92) 100%
+        rgba(11, 15, 23, 0.55) 0%,
+        rgba(11, 15, 23, 0.75) 100%
     );
     z-index: 0;
 }
