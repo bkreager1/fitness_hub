@@ -108,7 +108,7 @@
         <div class="section-head">
             <h2>Three trackers. One simple goal.</h2>
             <p>Whether you're cutting, bulking, or just trying to stay consistent,
-               every tool here is built around the basics that actually work.</p>
+               each tracker focuses on the basics that actually matter.</p>
         </div>
 
         <?php
@@ -132,8 +132,8 @@
                      src="<?= asset('images/calorielogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Calorie tracker</h3>
-                <p>Get a maintenance, cut, and bulk target from the
-                   Mifflin-St Jeor formula, then log daily intake against your goal.</p>
+                <p>Calculate your maintenance, cut, and bulk targets,
+                   then log your daily intake against your goal.</p>
             </a>
 
             <a class="feature-card" href="<?= e($href('weight')) ?>"
@@ -142,8 +142,8 @@
                      src="<?= asset('images/weightlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Weight tracker</h3>
-                <p>Log a weight, see your trend on a clean chart,
-                   and switch between lbs and kg whenever you want.</p>
+                <p>Log your weigh-ins, watch your trend over time,
+                   and switch between lbs and kg whenever you need.</p>
             </a>
 
             <a class="feature-card" href="<?= e($href('strength')) ?>"
@@ -152,8 +152,8 @@
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Strength tracker</h3>
-                <p>Bench, squat, and deadlift on one chart so you can
-                   actually see your big three moving together.</p>
+                <p>Track bench, squat, and deadlift in one place so you
+                   can see your big three progress over time.</p>
             </a>
 
         </div>
@@ -164,7 +164,7 @@
 <!-- ===================== Quote ===================== -->
 <section class="container quote">
     <blockquote>
-        The pain you feel today will be the strength you feel tomorrow.
+        We are what we repeatedly do. Excellence, then, is not an act but a habit.
     </blockquote>
-    <cite>— Gym wisdom</cite>
+    <cite>— Aristotle</cite>
 </section>
