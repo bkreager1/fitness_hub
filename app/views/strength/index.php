@@ -56,11 +56,16 @@ if ($latest) {
 <section class="hero hero--compact">
     <div class="container">
         <span class="eyebrow">Strength tracker</span>
-        <h1>Bench, squat, deadlift — chart your big three.</h1>
+        <div class="hero-heading-row">
+            <h1>Bench, squat, deadlift — chart your big three.</h1>
+            <img class="hero-icon"
+                 src="<?= asset('images/strengthlogo.png') ?>"
+                 alt="" width="96" height="96">
+        </div>
         <p class="hero-lede">
-            Log a lift with weight + reps. The chart below plots your
-            estimated 1-rep max over time so you can see real progress
-            even when you're working in different rep ranges.
+            Log each lift with weight and reps. The chart estimates your
+            one-rep max over time, so you can compare progress even when
+            your rep ranges change.
         </p>
     </div>
 </section>
@@ -93,8 +98,8 @@ if ($latest) {
                         </span>
                     <?php endif; ?>
                     <span class="field-hint">
-                        Tip: log your top working set per lift each session.
-                        Weekly progress entries are the most reliable trend signal.
+                        Tip: log your top working set for each lift. Weekly
+                        entries usually give the cleanest progress trend.
                     </span>
                 </div>
                 <div class="unit-toggle" id="strengthUnitToggle"

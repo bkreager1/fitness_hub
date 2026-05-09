@@ -44,11 +44,16 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 <section class="hero hero--compact">
     <div class="container">
         <span class="eyebrow">Weight tracker</span>
-        <h1>Log your weigh-ins, watch the trend.</h1>
+        <div class="hero-heading-row">
+            <h1>Log your weigh-ins, watch the trend.</h1>
+            <img class="hero-icon"
+                 src="<?= asset('images/weightlogo.png') ?>"
+                 alt="" width="96" height="96">
+        </div>
         <p class="hero-lede">
-            Add a weight any time you step on the scale — the chart below
-            shows the trend over time so the day-to-day noise smooths out.
-            Switch between lbs and kg whenever you want.
+            Add weigh-ins over time and use the chart to focus on the overall
+            trend. Daily scale changes can jump around, but the long-term
+            line gives you a clearer picture.
         </p>
     </div>
 </section>
@@ -86,8 +91,8 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                         </span>
                     <?php endif; ?>
                     <span class="field-hint">
-                        Tip: weigh in first thing in the morning, after the
-                        bathroom and before eating, for the most consistent trend.
+                        Tip: for the most consistent trend, weigh in at the
+                        same time of day, ideally in the morning before eating.
                     </span>
                 </div>
                 <div class="unit-toggle" id="weightUnitToggle"
