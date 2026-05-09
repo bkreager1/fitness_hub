@@ -116,22 +116,27 @@
         <div>
             <h2>Who it's for</h2>
             <p class="prose">
-                If you're brand new to lifting, trying to lose your first 15 lbs,
-                or just sick of guessing whether you're eating enough, this app
-                is for you. It's not a replacement for a doctor, a coach, or
-                your own common sense — it's a place to keep your numbers
-                organized so you can stop relying on memory and start trusting
-                the data.
+                If you are new to lifting, trying to lose weight, or just
+                tired of guessing whether you are eating enough, this app
+                gives you a simple place to track the basics. It is not a
+                replacement for a doctor or coach. It is a tool to keep your
+                numbers organized so you can stop relying on memory and start
+                seeing patterns.
             </p>
         </div>
-        <aside class="cta-card">
-            <h3>Ready to start?</h3>
-            <p>Make a free account and log your first weigh-in in under a minute.</p>
-            <?php if (is_logged_in()): ?>
-                <a class="btn" href="<?= url('dashboard') ?>">Open dashboard</a>
-            <?php else: ?>
-                <a class="btn" href="<?= url('register') ?>">Create your account</a>
-            <?php endif; ?>
+        <aside class="cta-card cta-card--photo">
+            <img class="cta-card__image"
+                 src="<?= asset('images/register.jpg') ?>"
+                 alt="" width="800" height="450">
+            <div class="cta-card__body">
+                <h3>Ready to start?</h3>
+                <p>Make a free account and log your first weigh-in in under a minute.</p>
+                <?php if (is_logged_in()): ?>
+                    <a class="btn" href="<?= url('dashboard') ?>">Open dashboard</a>
+                <?php else: ?>
+                    <a class="btn" href="<?= url('register') ?>">Create your account</a>
+                <?php endif; ?>
+            </div>
         </aside>
     </div>
 </section>

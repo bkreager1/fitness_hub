@@ -1165,6 +1165,27 @@ main:focus { outline: none; }
 .cta-card p  { color: var(--text-dim); margin-bottom: 1.25rem; }
 .cta-card .btn { width: 100%; }
 
+/* Photo variant — full-bleed image at the top of the card with the
+   text content padded below. The card itself drops its padding so
+   the image runs corner-to-corner; overflow:hidden clips the image
+   to the card's rounded corners. Used on /about's "Who it's for"
+   CTA card; the plain .cta-card style still applies on /contact. */
+.cta-card--photo {
+    padding: 0;
+    overflow: hidden;
+}
+.cta-card__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-soft);
+}
+.cta-card__body {
+    padding: 1.5rem 1.75rem 1.75rem;
+}
+
 /* ----- Contact page two-column ----- */
 .contact-grid {
     display: grid;
