@@ -1164,7 +1164,12 @@ main:focus { outline: none; }
     border-radius: var(--radius-lg);
     padding: 1.5rem;
 }
+.info-card h2,
 .info-card h3 { margin-bottom: 0.5rem; }
+/* Heading hierarchy on the contact page demands h2 here (h3 would
+   skip a level after the page's h1). Style as compact card title so
+   the visual matches the original h3 look. */
+.info-card h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
 .info-card p  { color: var(--text-dim); font-size: 0.95rem; }
 
 /* ----- FAQ (definition list) ----- */
@@ -1861,6 +1866,22 @@ main:focus { outline: none; }
 /* ----- Inline status colors (history table + intake hint) ------------ */
 .text-good { color: var(--success); font-weight: 600; }
 .text-warn { color: var(--warning); font-weight: 600; }
+
+/* ----- Visually-hidden utility (a11y) -------------------------------
+   Removes content from the visual flow but keeps it readable to screen
+   readers. Used for chart data tables and other text alternatives that
+   shouldn't be visible but should still be announced. */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 /* ----- Goal picker (Cutting / Maintaining / Bulking pills) ----------- */
 /* Each <button> is a real submit — clicking POSTs to /calorie/goal,

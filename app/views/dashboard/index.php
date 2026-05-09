@@ -184,6 +184,8 @@ $hasAnyChart =
                              IIFE in main.js, which already handles target
                              overlay lines + active-goal highlight. -->
                         <canvas id="intakeChart"
+                                role="img"
+                                aria-label="Recent daily calorie intake bar chart, <?= count($intakeChartData) ?> day<?= count($intakeChartData) === 1 ? '' : 's' ?>. Open the calorie tracker for full data."
                                 data-rows='<?= e(json_encode($intakeChartData, JSON_THROW_ON_ERROR)) ?>'
                                 data-targets='<?= e(json_encode($intakeChartTargets, JSON_THROW_ON_ERROR)) ?>'
                                 data-active-goal="<?= e($activeGoal) ?>">
@@ -204,6 +206,8 @@ $hasAnyChart =
                 <?php if (!empty($weightChartData)): ?>
                     <div class="chart-wrap chart-wrap--compact">
                         <canvas id="weightChart"
+                                role="img"
+                                aria-label="Recent weight trend line chart, <?= count($weightChartData) ?> entr<?= count($weightChartData) === 1 ? 'y' : 'ies' ?>. Open the weight tracker for full data."
                                 data-rows='<?= e(json_encode($weightChartData, JSON_THROW_ON_ERROR)) ?>'
                                 data-default-unit="<?= e($weightChartUnit) ?>">
                         </canvas>
@@ -223,6 +227,8 @@ $hasAnyChart =
                 <?php if (!empty($strengthChartData)): ?>
                     <div class="chart-wrap chart-wrap--compact">
                         <canvas id="strengthChart"
+                                role="img"
+                                aria-label="Recent estimated 1-rep max line chart for bench, squat, and deadlift. Open the strength tracker for full data."
                                 data-rows='<?= e(json_encode($strengthChartData, JSON_THROW_ON_ERROR)) ?>'
                                 data-default-unit="<?= e($strengthChartUnit) ?>">
                         </canvas>
@@ -256,7 +262,8 @@ $hasAnyChart =
 
         <div class="features dash-actions">
 
-            <a class="feature-card" href="<?= url('calorie') ?>">
+            <a class="feature-card" href="<?= url('calorie') ?>"
+               aria-label="Log calorie intake">
                 <img class="feature-image"
                      src="<?= asset('images/calorielogo.png') ?>"
                      alt="" width="88" height="88">
@@ -264,7 +271,8 @@ $hasAnyChart =
                 <p>Set your targets, then log how many calories you ate today against them.</p>
             </a>
 
-            <a class="feature-card" href="<?= url('weight') ?>">
+            <a class="feature-card" href="<?= url('weight') ?>"
+               aria-label="Log a weigh-in">
                 <img class="feature-image"
                      src="<?= asset('images/weightlogo.png') ?>"
                      alt="" width="88" height="88">
@@ -272,7 +280,8 @@ $hasAnyChart =
                 <p>Add today's weight, watch the trend smooth out over the week.</p>
             </a>
 
-            <a class="feature-card" href="<?= url('strength') ?>">
+            <a class="feature-card" href="<?= url('strength') ?>"
+               aria-label="Log a lift">
                 <img class="feature-image"
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">

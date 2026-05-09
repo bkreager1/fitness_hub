@@ -247,10 +247,50 @@ if ($latest) {
                 </header>
                 <div class="chart-wrap">
                     <canvas id="strengthChart"
+                            role="img"
+                            aria-label="Estimated 1-rep max line chart for bench, squat, and deadlift over time. Full data in the table below."
                             data-rows='<?= e(json_encode($chartRows, JSON_THROW_ON_ERROR)) ?>'
                             data-default-unit="<?= e($defaultUnit) ?>">
                     </canvas>
                 </div>
+
+                <!-- Visually-hidden data table — same data the canvas
+                     paints, listed per session with computed 1RM in
+                     the user's default display unit. -->
+                <?php
+                    // Convert kg → display unit, then apply Epley 1RM
+                    // (weight × (1 + reps/30)) — same math the JS does.
+                    $LB_PER_KG = 2.2046226218;
+                    $orm = static function (array $r, string $unit) use ($LB_PER_KG): float {
+                        $w = $unit === 'lbs' ? $r['weight_kg'] * $LB_PER_KG : $r['weight_kg'];
+                        return $w * (1 + $r['reps'] / 30);
+                    };
+                ?>
+                <table class="visually-hidden">
+                    <caption>Strength log, oldest first. Estimated 1-rep max in <?= e($defaultUnit) ?>.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Lift</th>
+                            <th scope="col">Weight × Reps</th>
+                            <th scope="col">Est. 1RM (<?= e($defaultUnit) ?>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($chartRows as $row):
+                            $w = $defaultUnit === 'lbs'
+                                ? $row['weight_kg'] * $LB_PER_KG
+                                : $row['weight_kg'];
+                        ?>
+                            <tr>
+                                <td><?= e($fmtDate($row['date'])) ?></td>
+                                <td><?= e($liftLabels[$row['lift_type']] ?? $row['lift_type']) ?></td>
+                                <td><?= e(number_format($w, 1)) ?> × <?= e((string) $row['reps']) ?></td>
+                                <td><?= e(number_format($orm($row, $defaultUnit), 1)) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </article>
 
             <article class="tracker-card">

@@ -209,10 +209,33 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                 </header>
                 <div class="chart-wrap">
                     <canvas id="weightChart"
+                            role="img"
+                            aria-label="Weight trend line chart, <?= count($chartData) ?> data point<?= count($chartData) === 1 ? '' : 's' ?>. Full data in the table below."
                             data-rows='<?= e(json_encode($chartData, JSON_THROW_ON_ERROR)) ?>'
                             data-default-unit="<?= e($defaultUnit) ?>">
                     </canvas>
                 </div>
+
+                <!-- Visually-hidden data table — screen readers get full
+                     access to the trend the canvas paints. Display unit
+                     is the row's logged unit so it matches the table. -->
+                <table class="visually-hidden">
+                    <caption>Weigh-in history, oldest first</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Weight (<?= e($defaultUnit) ?>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($chartData as $point): ?>
+                            <tr>
+                                <td><?= e($fmtDate($point['date'])) ?></td>
+                                <td><?= e($displayWeight((float) $point['weight_kg'], $defaultUnit)) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </article>
 
             <article class="tracker-card">

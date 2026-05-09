@@ -666,6 +666,8 @@ $fmtDate = static function (string $iso): string {
                 </header>
                 <div class="chart-wrap">
                     <canvas id="intakeChart"
+                            role="img"
+                            aria-label="Daily calorie intake bar chart for <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."
                             data-rows='<?= e(json_encode($intakeChartData, JSON_THROW_ON_ERROR)) ?>'
                             data-targets='<?= e(json_encode($latest ? [
                                 'cut'         => (int) $latest['cutting_calories'],
@@ -675,6 +677,37 @@ $fmtDate = static function (string $iso): string {
                             data-active-goal="<?= e($activeGoal) ?>">
                     </canvas>
                 </div>
+
+                <!-- Visually-hidden data table — gives screen readers full
+                     access to the same numbers the canvas paints. -->
+                <table class="visually-hidden">
+                    <caption>Daily calorie intake, <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?></caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Calories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($intakeChartData as $point): ?>
+                            <tr>
+                                <td><?= e($fmtDate($point['date'])) ?></td>
+                                <td><?= e(number_format((int) $point['calories'])) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <?php if ($latest): ?>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2">
+                                    Targets: cut <?= e(number_format((int) $latest['cutting_calories'])) ?>,
+                                    maintenance <?= e(number_format((int) $latest['maintenance_calories'])) ?>,
+                                    bulk <?= e(number_format((int) $latest['bulking_calories'])) ?> calories per day.
+                                </td>
+                            </tr>
+                        </tfoot>
+                    <?php endif; ?>
+                </table>
             </article>
 
             <article class="tracker-card">

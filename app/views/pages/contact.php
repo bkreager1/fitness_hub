@@ -80,14 +80,14 @@
         <!-- ===== Info aside ===== -->
         <aside class="contact-info">
             <div class="info-card">
-                <h3>What to expect</h3>
+                <h2>What to expect</h2>
                 <p>We're a small team — usually a reply within a couple of
                    business days. If your question is urgent, please mention
                    that in the subject of your message.</p>
             </div>
 
             <div class="info-card">
-                <h3>Common questions</h3>
+                <h2>Common questions</h2>
                 <dl class="faq">
                     <dt>Is the app really free?</dt>
                     <dd>Yes. No paywalled features, no ads.</dd>
