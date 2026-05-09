@@ -124,19 +124,15 @@
                 seeing patterns.
             </p>
         </div>
-        <aside class="cta-card cta-card--photo">
-            <img class="cta-card__image"
-                 src="<?= asset('images/register.jpg') ?>"
-                 alt="" width="800" height="450">
-            <div class="cta-card__body">
-                <h3>Ready to start?</h3>
-                <p>Make a free account and log your first weigh-in in under a minute.</p>
-                <?php if (is_logged_in()): ?>
-                    <a class="btn" href="<?= url('dashboard') ?>">Open dashboard</a>
-                <?php else: ?>
-                    <a class="btn" href="<?= url('register') ?>">Create your account</a>
-                <?php endif; ?>
-            </div>
+        <aside class="cta-card cta-card--photo"
+               style="--cta-image: url('<?= asset('images/register.jpg') ?>');">
+            <h3>Ready to start?</h3>
+            <p>Make a free account and log your first weigh-in in under a minute.</p>
+            <?php if (is_logged_in()): ?>
+                <a class="btn" href="<?= url('dashboard') ?>">Open dashboard</a>
+            <?php else: ?>
+                <a class="btn" href="<?= url('register') ?>">Create your account</a>
+            <?php endif; ?>
         </aside>
     </div>
 </section>
