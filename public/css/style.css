@@ -775,15 +775,14 @@ main:focus { outline: none; }
 .hero-heading-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
+    gap: 1.25rem;
     margin-bottom: 0.75rem;
 }
 .hero-heading-row h1 { margin-bottom: 0; }
 .hero-icon {
     display: block;
-    width: 80px;
-    height: 80px;
+    width: 96px;
+    height: 96px;
     object-fit: contain;
     flex-shrink: 0;
 }

@@ -97,7 +97,7 @@ $fmtDate = static function (string $iso): string {
             <h1>Track calories — hit your targets.</h1>
             <img class="hero-icon"
                  src="<?= asset('images/calorielogo.png') ?>"
-                 alt="" width="80" height="80">
+                 alt="" width="96" height="96">
         </div>
         <p class="hero-lede">
             Calculate your calorie targets, then log your daily intake to see
