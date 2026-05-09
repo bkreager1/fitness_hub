@@ -1649,19 +1649,23 @@ main:focus { outline: none; }
 }
 
 
-/* ----- Calorie history — collapsible day rows ----------------------- */
-/* Day-row = always-visible summary; meal-row = the individual meals
-   underneath, hidden by default once JS injects the chevron toggle. */
+/* ----- Tracker history — collapsible day rows ----------------------- */
+/* Day-row = always-visible summary; per-entry rows underneath are
+   hidden by default once JS injects the chevron toggle. The entry
+   row class varies per tracker (.meal-row on /calorie, .lift-row on
+   /strength) but the look is identical, so we group the selectors. */
 .history-table--days tbody tr.day-row td {
     border-top: 1px solid var(--border);
 }
 .history-table--days tbody tr.day-row:first-child td {
     border-top: 0;
 }
-.history-table--days .meal-row {
+.history-table--days .meal-row,
+.history-table--days .lift-row {
     background: rgba(255, 255, 255, 0.012);
 }
-.history-table--days .meal-row td {
+.history-table--days .meal-row td,
+.history-table--days .lift-row td {
     border-bottom-color: var(--border-soft);
 }
 .history-table--days .cell-meal-count {

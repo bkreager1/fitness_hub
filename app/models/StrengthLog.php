@@ -61,13 +61,26 @@ class StrengthLog {
     }
 
     // Full history for a user, newest first (table order).
-    public static function forUser(int $userId): array {
-        $stmt = db()->prepare(
-            'SELECT * FROM strength_logs
-             WHERE user_id = ?
-             ORDER BY logged_date DESC, id DESC'
-        );
-        $stmt->execute([$userId]);
+    //
+    // $sinceDate (YYYY-MM-DD) limits the query to entries on or after
+    // that date — used by the time-range filter on the strength page.
+    // Pass null to fetch all entries.
+    public static function forUser(int $userId, ?string $sinceDate = null): array {
+        if ($sinceDate === null) {
+            $stmt = db()->prepare(
+                'SELECT * FROM strength_logs
+                 WHERE user_id = ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId]);
+        } else {
+            $stmt = db()->prepare(
+                'SELECT * FROM strength_logs
+                 WHERE user_id = ? AND logged_date >= ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId, $sinceDate]);
+        }
         return $stmt->fetchAll();
     }
 
@@ -75,6 +88,19 @@ class StrengthLog {
     // One row = one lift x weight x reps entry, so this is a "sets" count.
     public static function countForUser(int $userId): int {
         $stmt = db()->prepare('SELECT COUNT(*) FROM strength_logs WHERE user_id = ?');
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // Number of distinct days a user has logged any lift on. Used to
+    // distinguish "no logs at all" from "no logs in this range" on
+    // the strength history range filter.
+    public static function countLoggedDaysForUser(int $userId): int {
+        $stmt = db()->prepare(
+            'SELECT COUNT(DISTINCT logged_date)
+             FROM strength_logs
+             WHERE user_id = ?'
+        );
         $stmt->execute([$userId]);
         return (int) $stmt->fetchColumn();
     }

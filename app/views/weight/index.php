@@ -173,10 +173,21 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 
 
 <!-- ===================== History (chart + table) ===================== -->
+<?php
+    // Compact labels for the range picker. Keys must match what the
+    // controller validates against (WeightController::ALLOWED_RANGES).
+    $RANGE_OPTIONS = [
+        '7'   => '7 days',
+        '30'  => '30 days',
+        '90'  => '90 days',
+        'all' => 'All time',
+    ];
+    $rangeLabel = $RANGE_OPTIONS[$range] ?? '30 days';
+?>
 <section class="section section--alt">
     <div class="container">
 
-        <?php if (empty($history)): ?>
+        <?php if ($totalLoggedDays === 0): ?>
 
             <article class="tracker-card empty-state">
                 <h2>No weigh-ins yet</h2>
@@ -185,11 +196,68 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 
         <?php else: ?>
 
+            <!-- Section toolbar — controls the timeline view (chart +
+                 history together). Sits above both cards as a "this
+                 scopes everything below" affordance, styled with a
+                 subtle bottom divider so it reads as a section header
+                 rather than a card or a per-card filter. -->
+            <div class="section-toolbar">
+                <div class="section-toolbar__heading">
+                    <span class="section-toolbar__title">Timeline</span>
+                    <span class="section-toolbar__hint">
+                        Range applies to both the chart and history.
+                    </span>
+                </div>
+                <!-- data-no-loading skips the submit-spinner since the
+                     page reload is fast and a spinner on a filter pill
+                     just adds friction. -->
+                <form method="get" action="<?= url('weight') ?>"
+                      class="range-picker-row" data-no-loading>
+                    <span class="range-picker-row__label">Showing:</span>
+                    <div class="unit-toggle">
+                        <?php foreach ($RANGE_OPTIONS as $key => $label):
+                            // PHP coerces numeric string array keys to int
+                            // on foreach, so cast to string before strict
+                            // comparison against $range.
+                            $keyStr = (string) $key;
+                        ?>
+                            <button type="submit" name="range" value="<?= e($keyStr) ?>"
+                                    class="<?= $range === $keyStr ? 'is-active' : '' ?>"
+                                    aria-pressed="<?= $range === $keyStr ? 'true' : 'false' ?>">
+                                <?= e($label) ?>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                </form>
+            </div>
+
+            <?php if (empty($history)): ?>
+
+                <article class="tracker-card empty-state">
+                    <h2>No weigh-ins in this range</h2>
+                    <p>
+                        You've logged
+                        <?= e((string) $totalLoggedDays) ?>
+                        weigh-in<?= $totalLoggedDays === 1 ? '' : 's' ?> total
+                        <?php if ($range !== 'all'): ?>
+                            — try
+                            <a class="link-inline" href="<?= url('weight?range=all') ?>">All time</a>
+                            to see the full list.
+                        <?php else: ?>.
+                        <?php endif; ?>
+                    </p>
+                </article>
+
+            <?php else: ?>
+
             <article class="tracker-card">
                 <header class="tracker-card__head">
                     <div>
                         <h2>Weight over time</h2>
-                        <span class="field-hint">Trend across all your logged weigh-ins.</span>
+                        <span class="field-hint">
+                            <?= e($range === 'all' ? 'All time' : 'Last ' . $rangeLabel) ?> ·
+                            Trend across your logged weigh-ins.
+                        </span>
                     </div>
                     <div class="unit-toggle" id="weightChartUnitToggle"
                          role="tablist" aria-label="Chart units">
@@ -210,7 +278,7 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                 <div class="chart-wrap">
                     <canvas id="weightChart"
                             role="img"
-                            aria-label="Weight trend line chart, <?= count($chartData) ?> data point<?= count($chartData) === 1 ? '' : 's' ?>. Full data in the table below."
+                            aria-label="Weight trend line chart, <?= count($chartData) ?> data point<?= count($chartData) === 1 ? '' : 's' ?> across <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."
                             data-rows='<?= e(json_encode($chartData, JSON_THROW_ON_ERROR)) ?>'
                             data-default-unit="<?= e($defaultUnit) ?>">
                     </canvas>
@@ -220,7 +288,7 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                      access to the trend the canvas paints. Display unit
                      is the row's logged unit so it matches the table. -->
                 <table class="visually-hidden">
-                    <caption>Weigh-in history, oldest first</caption>
+                    <caption>Weigh-in history, oldest first, <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?></caption>
                     <thead>
                         <tr>
                             <th scope="col">Date</th>
@@ -242,7 +310,9 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                 <header class="tracker-card__head">
                     <h2>History</h2>
                     <span class="field-hint">
-                        <?= count($history) ?> log<?= count($history) === 1 ? '' : 's' ?> · newest first
+                        <?= count($history) ?> log<?= count($history) === 1 ? '' : 's' ?>
+                        · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
+                        · newest first
                     </span>
                 </header>
 
@@ -288,7 +358,9 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                 </div>
             </article>
 
-        <?php endif; ?>
+            <?php endif; /* end of: $history empty within range */ ?>
+
+        <?php endif; /* end of: $totalLoggedDays === 0 */ ?>
 
     </div>
 </section>

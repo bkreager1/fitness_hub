@@ -722,7 +722,7 @@ $fmtDate = static function (string $iso): string {
                 </header>
 
                 <div class="history-scroll">
-                    <table class="history-table history-table--days">
+                    <table class="history-table history-table--days" data-day-noun="meals">
                         <thead>
                             <tr>
                                 <th scope="col">Date</th>

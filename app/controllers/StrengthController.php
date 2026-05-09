@@ -28,18 +28,41 @@ class StrengthController extends Controller {
     private const REPS_MIN = 1;
     private const REPS_MAX = 30;
 
+    // Allowed values for the ?range= history filter. Strings (not ints)
+    // because 'all' is also valid. Default lives in index().
+    private const ALLOWED_RANGES = ['7', '30', '90', 'all'];
+    private const DEFAULT_RANGE  = '30';
+
     // GET /strength -----------------------------------------------
     public function index(): void {
         $this->requireLogin();
 
         $userId  = current_user_id();
         $today   = date('Y-m-d');
-        $history = StrengthLog::forUser($userId);
         $latest  = StrengthLog::latestForUser($userId);
+
+        // History range filter: ?range=7|30|90|all. Default 30 days
+        // keeps the chart readable + history scannable as logs grow.
+        // 'all' bypasses the date filter entirely.
+        $range = (string) ($_GET['range'] ?? self::DEFAULT_RANGE);
+        if (!in_array($range, self::ALLOWED_RANGES, true)) {
+            $range = self::DEFAULT_RANGE;
+        }
+        $sinceDate = $range === 'all'
+            ? null
+            : date('Y-m-d', strtotime('-' . $range . ' days'));
+
+        $history = StrengthLog::forUser($userId, $sinceDate);
+
+        // Distinguishes "no logs at all" (hide the range picker, show
+        // the original empty state) from "no logs in this range"
+        // (show the picker so the user can widen it).
+        $totalLoggedDays = StrengthLog::countLoggedDaysForUser($userId);
 
         // Chart wants only the fields it needs, in canonical kg so JS
         // can convert + compute 1RM in any display unit. Oldest-first
-        // so left-to-right is time-progressing.
+        // so left-to-right is time-progressing. Same range filter as
+        // the history table so chart and table stay in sync.
         $chartRows = array_map(
             static fn(array $r): array => [
                 'date'      => $r['logged_date'],
@@ -55,15 +78,17 @@ class StrengthController extends Controller {
         $defaultUnit = $latest['unit'] ?? 'lbs';
 
         $this->view('strength/index', [
-            'title'       => 'Strength tracker',
-            'active'      => 'dashboard',
-            'today'       => $today,
-            'history'     => $history,
-            'latest'      => $latest,
-            'chartRows'   => $chartRows,
-            'defaultUnit' => $defaultUnit,
-            'liftLabels'  => StrengthLog::LIFT_LABELS,
-            'flashInline' => true,
+            'title'           => 'Strength tracker',
+            'active'          => 'dashboard',
+            'today'           => $today,
+            'history'         => $history,
+            'latest'          => $latest,
+            'chartRows'       => $chartRows,
+            'defaultUnit'     => $defaultUnit,
+            'liftLabels'      => StrengthLog::LIFT_LABELS,
+            'flashInline'     => true,
+            'range'           => $range,
+            'totalLoggedDays' => $totalLoggedDays,
         ]);
     }
 

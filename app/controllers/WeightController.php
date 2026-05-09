@@ -23,14 +23,37 @@ class WeightController extends Controller {
     private const LB_MIN    = 66.0;
     private const LB_MAX    = 660.0;
 
+    // Allowed values for the ?range= history filter. Strings (not ints)
+    // because 'all' is also valid. Default lives in index().
+    private const ALLOWED_RANGES = ['7', '30', '90', 'all'];
+    private const DEFAULT_RANGE  = '30';
+
     // GET /weight -------------------------------------------------
     public function index(): void {
         $this->requireLogin();
 
         $userId  = current_user_id();
         $today   = date('Y-m-d');
-        $history = WeightLog::forUser($userId);
         $latest  = WeightLog::latestForUser($userId);
+
+        // History range filter: ?range=7|30|90|all. Default 30 days
+        // keeps the chart readable + history scannable as logs grow.
+        // 'all' bypasses the date filter entirely.
+        $range = (string) ($_GET['range'] ?? self::DEFAULT_RANGE);
+        if (!in_array($range, self::ALLOWED_RANGES, true)) {
+            $range = self::DEFAULT_RANGE;
+        }
+        $sinceDate = $range === 'all'
+            ? null
+            : date('Y-m-d', strtotime('-' . $range . ' days'));
+
+        $history = WeightLog::forUser($userId, $sinceDate);
+
+        // Distinguishes "no logs at all" (hide the range picker, show
+        // the original empty state) from "no logs in this range"
+        // (show the picker so the user can widen it). One row per day
+        // for weight, so the row-count == the distinct-day count.
+        $totalLoggedDays = WeightLog::countForUser($userId);
 
         // Chart wants oldest-first for left-to-right time progression.
         // Pass only the date + canonical kg + the row's unit so the JS
@@ -45,14 +68,16 @@ class WeightController extends Controller {
         $defaultUnit = $latest['unit'] ?? 'lbs';
 
         $this->view('weight/index', [
-            'title'       => 'Weight tracker',
-            'active'      => 'dashboard',
-            'today'       => $today,
-            'history'     => $history,
-            'latest'      => $latest,
-            'chartData'   => $chartData,
-            'defaultUnit' => $defaultUnit,
-            'flashInline' => true,
+            'title'           => 'Weight tracker',
+            'active'          => 'dashboard',
+            'today'           => $today,
+            'history'         => $history,
+            'latest'          => $latest,
+            'chartData'       => $chartData,
+            'defaultUnit'     => $defaultUnit,
+            'flashInline'     => true,
+            'range'           => $range,
+            'totalLoggedDays' => $totalLoggedDays,
         ]);
     }
 

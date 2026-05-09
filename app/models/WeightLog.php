@@ -61,13 +61,26 @@ class WeightLog {
 
     // Full history for a user, newest first (table order).
     // Reverse in the controller for chart rendering.
-    public static function forUser(int $userId): array {
-        $stmt = db()->prepare(
-            'SELECT * FROM weight_logs
-             WHERE user_id = ?
-             ORDER BY logged_date DESC, id DESC'
-        );
-        $stmt->execute([$userId]);
+    //
+    // $sinceDate (YYYY-MM-DD) limits the query to entries on or after
+    // that date — used by the time-range filter on the weight page.
+    // Pass null to fetch all entries.
+    public static function forUser(int $userId, ?string $sinceDate = null): array {
+        if ($sinceDate === null) {
+            $stmt = db()->prepare(
+                'SELECT * FROM weight_logs
+                 WHERE user_id = ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId]);
+        } else {
+            $stmt = db()->prepare(
+                'SELECT * FROM weight_logs
+                 WHERE user_id = ? AND logged_date >= ?
+                 ORDER BY logged_date DESC, id DESC'
+            );
+            $stmt->execute([$userId, $sinceDate]);
+        }
         return $stmt->fetchAll();
     }
 
