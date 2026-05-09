@@ -7,7 +7,8 @@
     $errMessage = field_error('message');
 ?>
 
-<section class="hero hero--compact">
+<section class="hero hero--compact hero--photo"
+         style="--hero-image: url('<?= asset('images/contact.jpg') ?>');">
     <div class="container">
         <span class="eyebrow">Contact</span>
         <h1>Got a question or some feedback?</h1>
@@ -19,8 +20,7 @@
     </div>
 </section>
 
-<section class="section section--photo"
-         style="--section-image: url('<?= asset('images/contact.jpg') ?>');">
+<section class="section">
     <div class="container contact-grid">
 
         <!-- ===== Form ===== -->
