@@ -766,22 +766,24 @@ main:focus { outline: none; }
     box-shadow: 0 0 10px var(--primary);
 }
 
-/* Tracker hero icon row — small logo (calorie/weight/strength) sitting
-   beside the .eyebrow pill at the top of a tracker page hero, so the
-   page's brand mark from home/about/dashboard carries through onto
-   the tool itself. The wrapper takes over the eyebrow's bottom margin
-   so the row spaces from the h1 the same way the pill alone used to. */
-.hero-eyebrow-row {
+/* Tracker hero heading row — pairs the page's h1 with the matching
+   tracker logo on the right, vertically centered. Carries the brand
+   mark from home / about / dashboard onto the tool page itself.
+   The wrapper takes over the h1's bottom margin so spacing to the
+   lede stays identical to the pre-icon layout. Generic class names
+   so the pattern can extend to /weight + /strength later. */
+.hero-heading-row {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 1.1rem;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
 }
-.hero-eyebrow-row .eyebrow { margin-bottom: 0; }
+.hero-heading-row h1 { margin-bottom: 0; }
 .hero-icon {
     display: block;
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     flex-shrink: 0;
 }
@@ -1086,6 +1088,10 @@ main:focus { outline: none; }
 @media (max-width: 720px) {
     .bmi-grid--imperial { grid-template-columns: 1fr 1fr; }
     .bmi-result      { flex-direction: column; align-items: flex-start; }
+    /* Tracker hero icon — hide on narrow phones so the h1 has the full
+       width. The icon is decorative (the eyebrow + heading still
+       announce the page), so dropping it on small screens is safe. */
+    .hero-heading-row .hero-icon { display: none; }
 }
 
 @media (max-width: 420px) {

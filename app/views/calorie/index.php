@@ -92,13 +92,13 @@ $fmtDate = static function (string $iso): string {
 <!-- ===================== Hero ===================== -->
 <section class="hero hero--compact">
     <div class="container">
-        <div class="hero-eyebrow-row">
+        <span class="eyebrow">Calorie tracker</span>
+        <div class="hero-heading-row">
+            <h1>Track calories — hit your targets.</h1>
             <img class="hero-icon"
                  src="<?= asset('images/calorielogo.png') ?>"
-                 alt="" width="40" height="40">
-            <span class="eyebrow">Calorie tracker</span>
+                 alt="" width="80" height="80">
         </div>
-        <h1>Track calories — hit your targets.</h1>
         <p class="hero-lede">
             Calculate your calorie targets, then log your daily intake to see
             how closely you are matching your goal. Over time, the chart helps
