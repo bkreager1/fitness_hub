@@ -766,6 +766,26 @@ main:focus { outline: none; }
     box-shadow: 0 0 10px var(--primary);
 }
 
+/* Tracker hero icon row — small logo (calorie/weight/strength) sitting
+   beside the .eyebrow pill at the top of a tracker page hero, so the
+   page's brand mark from home/about/dashboard carries through onto
+   the tool itself. The wrapper takes over the eyebrow's bottom margin
+   so the row spaces from the h1 the same way the pill alone used to. */
+.hero-eyebrow-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.1rem;
+}
+.hero-eyebrow-row .eyebrow { margin-bottom: 0; }
+.hero-icon {
+    display: block;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .hero h1 {
     color: var(--text);
     margin-bottom: 1rem;

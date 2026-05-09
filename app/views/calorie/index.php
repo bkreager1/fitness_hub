@@ -92,12 +92,18 @@ $fmtDate = static function (string $iso): string {
 <!-- ===================== Hero ===================== -->
 <section class="hero hero--compact">
     <div class="container">
-        <span class="eyebrow">Calorie tracker</span>
+        <div class="hero-eyebrow-row">
+            <img class="hero-icon"
+                 src="<?= asset('images/calorielogo.png') ?>"
+                 alt="" width="40" height="40">
+            <span class="eyebrow">Calorie tracker</span>
+        </div>
         <h1>Track calories — hit your targets.</h1>
         <p class="hero-lede">
-            Calculate your calorie targets once, then log how many calories you
-            eat each day. The chart below shows you whether you're staying in
-            your cut, maintenance, or bulk range over time.
+            Calculate your calorie targets, then log your daily intake to see
+            how closely you are matching your goal. Over time, the chart helps
+            you compare your intake against your cut, maintenance, and bulk
+            targets.
         </p>
     </div>
 </section>
@@ -445,8 +451,9 @@ $fmtDate = static function (string $iso): string {
                         </span>
                     <?php elseif ($latest): ?>
                         <span class="field-hint">
-                            Aim for <strong><?= e(number_format($activeTarget)) ?></strong>
-                            cal to hit your <?= e($activeMeta['label']) ?> target.
+                            Your current <?= e($activeMeta['label']) ?> target is
+                            <strong><?= e(number_format($activeTarget)) ?></strong> calories.
+                            Log meals throughout the day to see how close you are.
                         </span>
                     <?php else: ?>
                         <span class="field-hint">
