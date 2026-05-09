@@ -710,9 +710,9 @@ main:focus { outline: none; }
 
 /* Landing hero — subtle background photo behind the right side of
    the hero, faded into the dark gradient on the left so the headline
-   text stays readable. Scoped with :not(.hero--compact) so the
-   tracker / about / contact heroes keep their flat-gradient look. */
-.hero:not(.hero--compact)::before {
+   text stays readable. Scoped to .hero--landing so other heroes
+   (about, tracker pages, contact) keep their flat-gradient look. */
+.hero--landing::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -728,9 +728,26 @@ main:focus { outline: none; }
 }
 /* The container needs its own stacking context so the copy and BMI
    card sit above the ::before image layer. */
-.hero > .container {
+.hero--landing > .container {
     position: relative;
     z-index: 1;
+}
+
+/* About hero — real image element on the right of the hero-grid
+   (not a background like the landing page). Frames the photo with
+   the project's card treatment so it sits as a deliberate panel
+   instead of a raw bleed. Image fills the right column at the
+   source aspect ratio, height adjusts naturally. */
+.hero-image {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-soft);
+}
+.hero-image img {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .hero-grid {

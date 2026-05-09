@@ -1,7 +1,7 @@
 <?php // app/views/pages/home.php — Phase 5 landing page ?>
 
 <!-- ===================== Hero + BMI ===================== -->
-<section class="hero">
+<section class="hero hero--landing">
     <div class="container hero-grid">
 
         <div class="hero-copy">

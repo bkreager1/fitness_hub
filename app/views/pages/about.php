@@ -1,16 +1,24 @@
 <?php // app/views/pages/about.php — Phase 6 ?>
 
 <!-- ===================== Intro ===================== -->
-<section class="hero hero--compact">
-    <div class="container">
-        <span class="eyebrow">About</span>
-        <h1>Fitness, without the noise.</h1>
-        <p class="hero-lede">
-            Rock County Fitness Hub is a free, no-fluff app for tracking the
-            three things that actually move the needle: what you eat, what you
-            weigh, and what you can lift. Built for beginners, useful for
-            anyone — no DMs from a "coach," no $99 supplement stacks, no shame.
-        </p>
+<section class="hero">
+    <div class="container hero-grid">
+        <div class="hero-copy">
+            <span class="eyebrow">About</span>
+            <h1>Fitness, without the noise.</h1>
+            <p class="hero-lede">
+                Rock County Fitness Hub is a simple, no-fluff app for tracking
+                the three things that actually move the needle: what you eat,
+                what you weigh, and what you can lift. It was built for
+                beginners, but it is useful for anyone who wants a clean place
+                to stay consistent without the noise, pressure, or confusing
+                fitness advice.
+            </p>
+        </div>
+        <div class="hero-image">
+            <img src="<?= asset('images/about.png') ?>"
+                 alt="" width="1672" height="941">
+        </div>
     </div>
 </section>
 
@@ -30,9 +38,10 @@
                      src="<?= asset('images/calorielogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Calories</h3>
-                <p>Tell us your stats and goal — the app suggests a daily
-                   calorie target using a well-known formula (Mifflin-St Jeor)
-                   and lets you log what you ate to compare against it.</p>
+                <p>Enter your stats and goal, and the app calculates daily
+                   calorie targets for cutting, maintaining, or bulking.
+                   Then you can log meals and compare your intake against
+                   your goal.</p>
             </article>
 
             <article class="feature-card">
@@ -40,9 +49,9 @@
                      src="<?= asset('images/weightlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Body weight</h3>
-                <p>Weigh in whenever you want. Your trend is plotted over time
-                   so a single bad-scale-day doesn't psych you out. Switch
-                   between lbs and kg without losing your data.</p>
+                <p>Log weigh-ins over time and view your progress on a simple
+                   chart. The trend helps you focus on the bigger picture
+                   instead of one random scale reading.</p>
             </article>
 
             <article class="feature-card">
@@ -50,9 +59,9 @@
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>The big three lifts</h3>
-                <p>Bench press, back squat, deadlift. The classic strength
-                   markers. Log your top set and watch all three lines climb
-                   on one chart over the months.</p>
+                <p>Track bench press, squat, and deadlift with weight and
+                   reps. The chart estimates your one-rep max so progress
+                   is easier to compare across different rep ranges.</p>
             </article>
 
         </div>
