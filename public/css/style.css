@@ -708,6 +708,31 @@ main:focus { outline: none; }
     border-bottom: 1px solid var(--border-soft);
 }
 
+/* Landing hero — subtle background photo behind the right side of
+   the hero, faded into the dark gradient on the left so the headline
+   text stays readable. Scoped with :not(.hero--compact) so the
+   tracker / about / contact heroes keep their flat-gradient look. */
+.hero:not(.hero--compact)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('../images/Landinghero.png');
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    opacity: 0.22;
+    z-index: 0;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%, #000 100%);
+            mask-image: linear-gradient(to right, transparent 0%, #000 38%, #000 100%);
+}
+/* The container needs its own stacking context so the copy and BMI
+   card sit above the ::before image layer. */
+.hero > .container {
+    position: relative;
+    z-index: 1;
+}
+
 .hero-grid {
     display: grid;
     grid-template-columns: 1.05fr 1fr;

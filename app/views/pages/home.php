@@ -11,17 +11,17 @@
                 <span class="accent">One day at a time.</span>
             </h1>
             <p class="hero-lede">
-                Track your calories, weight, and lifts in one clean dashboard.
-                No gimmicks, no sketchy supplements — just the numbers that
-                actually move the needle, and a little encouragement along the way.
+                Track your calories, weight, and lifts in one simple dashboard.
+                No gimmicks, no confusing spreadsheets — just the numbers that
+                help you stay consistent and see real progress.
             </p>
             <div class="hero-cta">
                 <?php if (is_logged_in()): ?>
                     <a class="btn" href="<?= url('dashboard') ?>">Open dashboard</a>
-                    <a class="btn btn-secondary btn-inline" href="<?= url('about') ?>">Learn more</a>
+                    <a class="btn btn-secondary btn-inline" href="<?= url('dashboard') ?>">Log today's progress</a>
                 <?php else: ?>
-                    <a class="btn" href="<?= url('register') ?>">Get started — it's free</a>
-                    <a class="btn btn-secondary btn-inline" href="<?= url('login') ?>">Log in</a>
+                    <a class="btn" href="<?= url('register') ?>">Get started</a>
+                    <a class="btn btn-secondary btn-inline" href="<?= url('about') ?>">Learn more</a>
                 <?php endif; ?>
             </div>
         </div>
