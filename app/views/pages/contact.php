@@ -81,8 +81,7 @@
 
         <!-- ===== Info aside ===== -->
         <aside class="contact-info">
-            <div class="info-card info-card--photo"
-                 style="--info-image: url('<?= asset('images/contact.jpg') ?>');">
+            <div class="info-card">
                 <h2>What to expect</h2>
                 <p>Messages are reviewed regularly. If your question is
                    urgent, include that in your message so it is easier
