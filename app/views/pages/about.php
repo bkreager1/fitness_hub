@@ -16,8 +16,8 @@
             </p>
         </div>
         <div class="hero-image">
-            <img src="<?= asset('images/about.png') ?>"
-                 alt="" width="1672" height="941">
+            <img src="<?= asset('images/about.jpg') ?>"
+                 alt="" width="1200" height="675">
         </div>
     </div>
 </section>

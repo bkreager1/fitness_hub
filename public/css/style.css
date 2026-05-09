@@ -716,7 +716,7 @@ main:focus { outline: none; }
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url('../images/Landinghero.png');
+    background-image: url('../images/Landinghero.jpg');
     background-size: cover;
     background-position: center right;
     background-repeat: no-repeat;
