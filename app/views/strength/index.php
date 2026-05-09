@@ -226,7 +226,7 @@ if ($latest) {
 
             <article class="tracker-card empty-state">
                 <h2>No lifts logged yet</h2>
-                <p>Log your first big-three lift above and the chart will start tracking your estimated 1-rep max from there.</p>
+                <p>Add your first bench, squat, or deadlift entry to start tracking progress.</p>
             </article>
 
         <?php else: ?>

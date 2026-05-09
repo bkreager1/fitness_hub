@@ -191,7 +191,7 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 
             <article class="tracker-card empty-state">
                 <h2>No weigh-ins yet</h2>
-                <p>Log your first weigh-in above and the trend chart will start filling in from there.</p>
+                <p>Add your first weigh-in to start building your trend.</p>
             </article>
 
         <?php else: ?>

@@ -193,7 +193,7 @@ $hasAnyChart =
                     </div>
                 <?php else: ?>
                     <div class="dash-chart-empty">
-                        <p>No intake logs yet.</p>
+                        <p>No calorie entries yet. Log your first meal to start seeing your intake trend.</p>
                         <a href="<?= url('calorie') ?>" class="btn btn-secondary btn-inline">Log calories</a>
                     </div>
                 <?php endif; ?>
@@ -214,7 +214,7 @@ $hasAnyChart =
                     </div>
                 <?php else: ?>
                     <div class="dash-chart-empty">
-                        <p>No weigh-ins yet.</p>
+                        <p>No weigh-ins yet. Add your first weigh-in to start building your trend.</p>
                         <a href="<?= url('weight') ?>" class="btn btn-secondary btn-inline">Log a weigh-in</a>
                     </div>
                 <?php endif; ?>
@@ -235,7 +235,7 @@ $hasAnyChart =
                     </div>
                 <?php else: ?>
                     <div class="dash-chart-empty">
-                        <p>No lifts logged yet.</p>
+                        <p>No lifts logged yet. Add your first bench, squat, or deadlift entry to start tracking progress.</p>
                         <a href="<?= url('strength') ?>" class="btn btn-secondary btn-inline">Log a lift</a>
                     </div>
                 <?php endif; ?>
