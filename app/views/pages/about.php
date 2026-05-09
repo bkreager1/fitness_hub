@@ -72,9 +72,9 @@
             <span class="eyebrow">How it works</span>
             <h2>Three steps. That's the whole pitch.</h2>
             <p class="prose">
-                You don't need to read a 50-page program or watch hours of
-                YouTube to start. Open an account, log a couple of numbers,
-                come back when you have new ones. Consistency beats complexity.
+                You do not need a complicated program to start tracking
+                progress. Create an account, log a few numbers, and come
+                back when you have new ones. Consistency beats complexity.
             </p>
         </div>
 
@@ -83,24 +83,26 @@
                 <span class="steps-num">1</span>
                 <div>
                     <h3>Make an account</h3>
-                    <p>Free, takes about ten seconds. Email + password. Nothing
-                       gets shared, sold, or emailed at you.</p>
+                    <p>Create a free account with your name, email, and
+                       password. Your dashboard keeps your progress organized
+                       in one place.</p>
                 </div>
             </li>
             <li>
                 <span class="steps-num">2</span>
                 <div>
                     <h3>Log your numbers</h3>
-                    <p>Today's weight. Yesterday's lifts. The calories you ate
-                       at lunch. Whatever you've got — log it and forget it.</p>
+                    <p>Log your calories, weigh-ins, and lifts as you go.
+                       Small entries build a clearer picture over time.</p>
                 </div>
             </li>
             <li>
                 <span class="steps-num">3</span>
                 <div>
                     <h3>Watch your trends</h3>
-                    <p>Charts make patterns obvious. The scale lies day to day,
-                       but the line over a month tells the truth.</p>
+                    <p>Use the charts to spot patterns over time. Day-to-day
+                       numbers can jump around, but trends show what is
+                       really happening.</p>
                 </div>
             </li>
         </ol>
