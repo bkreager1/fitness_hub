@@ -80,16 +80,12 @@
 
         <!-- ===== Info aside ===== -->
         <aside class="contact-info">
-            <div class="info-card info-card--photo">
-                <img class="info-card__image"
-                     src="<?= asset('images/contact.jpg') ?>"
-                     alt="" width="800" height="450">
-                <div class="info-card__body">
-                    <h2>What to expect</h2>
-                    <p>Messages are reviewed regularly. If your question is
-                       urgent, include that in your message so it is easier
-                       to spot.</p>
-                </div>
+            <div class="info-card info-card--photo"
+                 style="--info-image: url('<?= asset('images/contact.jpg') ?>');">
+                <h2>What to expect</h2>
+                <p>Messages are reviewed regularly. If your question is
+                   urgent, include that in your message so it is easier
+                   to spot.</p>
             </div>
 
             <div class="info-card">

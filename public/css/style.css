@@ -1234,26 +1234,40 @@ main:focus { outline: none; }
 .info-card h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
 .info-card p  { color: var(--text-dim); font-size: 0.95rem; }
 
-/* Photo-topped variant — small visual at the top of the card with
-   the text content padded below. The card itself drops its padding
-   so the image runs corner-to-corner; overflow:hidden clips the
-   image to the card's rounded corners. Used on /contact's "What
-   to expect" card. */
+/* Photo-bg variant — image fills the entire card as a background,
+   with a dark gradient overlay on top so the heading and paragraph
+   stay readable. The image URL comes from the --info-image custom
+   property set inline on the element. Used on /contact's "What to
+   expect" card. Overlay is a touch heavier than .cta-card--photo
+   because the neon-envelope photo is brighter than the shaker
+   shot used over there. */
 .info-card--photo {
-    padding: 0;
+    position: relative;
     overflow: hidden;
+    background-image: var(--info-image);
+    background-size: cover;
+    background-position: center;
 }
-.info-card__image {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    border-bottom: 1px solid var(--border-soft);
+.info-card--photo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(11, 15, 23, 0.50) 0%,
+        rgba(11, 15, 23, 0.80) 100%
+    );
+    z-index: 0;
 }
-.info-card__body {
-    padding: 1.5rem;
+/* All direct children sit above the overlay. */
+.info-card--photo > * {
+    position: relative;
+    z-index: 1;
 }
+/* Paragraph color in the photo variant — bumps from --text-dim up
+   to --text since the dimmer color falls off against the darkened
+   image. Plain .info-card on "Common questions" is unchanged. */
+.info-card--photo p { color: var(--text); }
 
 /* ----- FAQ (definition list) ----- */
 .faq           { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
