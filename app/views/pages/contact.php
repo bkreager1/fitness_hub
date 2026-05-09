@@ -19,7 +19,8 @@
     </div>
 </section>
 
-<section class="section">
+<section class="section section--photo"
+         style="--section-image: url('<?= asset('images/contact.jpg') ?>');">
     <div class="container contact-grid">
 
         <!-- ===== Form ===== -->
