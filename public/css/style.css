@@ -1234,6 +1234,27 @@ main:focus { outline: none; }
 .info-card h2 { font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em; }
 .info-card p  { color: var(--text-dim); font-size: 0.95rem; }
 
+/* Photo-topped variant — small visual at the top of the card with
+   the text content padded below. The card itself drops its padding
+   so the image runs corner-to-corner; overflow:hidden clips the
+   image to the card's rounded corners. Used on /contact's "What
+   to expect" card. */
+.info-card--photo {
+    padding: 0;
+    overflow: hidden;
+}
+.info-card__image {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-soft);
+}
+.info-card__body {
+    padding: 1.5rem;
+}
+
 /* ----- FAQ (definition list) ----- */
 .faq           { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.4rem; }
 .faq dt        { color: var(--text); font-weight: 600; font-size: 0.95rem; }

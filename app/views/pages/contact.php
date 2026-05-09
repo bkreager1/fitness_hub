@@ -12,8 +12,9 @@
         <span class="eyebrow">Contact</span>
         <h1>Got a question or some feedback?</h1>
         <p class="hero-lede">
-            Drop a note below — bug reports, feature ideas, or just saying
-            hi. Every message lands in our inbox and we read them all.
+            Have a question, found a bug, or have an idea for the site?
+            Send a message below. I read every submission and use the
+            feedback to improve the app.
         </p>
     </div>
 </section>
@@ -79,11 +80,16 @@
 
         <!-- ===== Info aside ===== -->
         <aside class="contact-info">
-            <div class="info-card">
-                <h2>What to expect</h2>
-                <p>We're a small team — usually a reply within a couple of
-                   business days. If your question is urgent, please mention
-                   that in the subject of your message.</p>
+            <div class="info-card info-card--photo">
+                <img class="info-card__image"
+                     src="<?= asset('images/contact.jpg') ?>"
+                     alt="" width="800" height="450">
+                <div class="info-card__body">
+                    <h2>What to expect</h2>
+                    <p>Messages are reviewed regularly. If your question is
+                       urgent, include that in your message so it is easier
+                       to spot.</p>
+                </div>
             </div>
 
             <div class="info-card">
