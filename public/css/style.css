@@ -723,7 +723,7 @@ main:focus { outline: none; }
     background-size: cover;
     background-position: center right;
     background-repeat: no-repeat;
-    opacity: 0.30;
+    opacity: 0.40;
     z-index: 0;
     pointer-events: none;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%, #000 100%);
