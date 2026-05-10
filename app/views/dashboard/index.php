@@ -36,7 +36,8 @@ $fmtDate = static function (string $iso): string {
 
 
 <!-- ===================== Greeting hero ===================== -->
-<section class="hero hero--compact">
+<section class="hero hero--compact hero--photo"
+         style="--hero-image: url('<?= asset('images/dashboard.jpg') ?>');">
     <div class="container">
         <span class="eyebrow"><?= e($todayPretty) ?></span>
         <h1>Hi, <?= e($displayName) ?>.</h1>
