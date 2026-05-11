@@ -3,7 +3,7 @@
     $errEmail = field_error('email');
     $errPass  = field_error('password');
 ?>
-<div class="auth-shell">
+<div class="auth-shell auth-shell--photo auth-shell--login">
     <div class="auth-card">
         <h1>Welcome back</h1>
         <p class="lede">Log in to continue your fitness journey.</p>

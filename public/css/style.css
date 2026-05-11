@@ -513,6 +513,50 @@ main:focus { outline: none; }
 }
 .auth-footer a { font-weight: 500; }
 
+/* Atmospheric photo background for /login and /register. The image
+   fills the area outside the card (like a hero background) so the
+   page feels like a place, not a form. A dark vignette overlay sits
+   on top so the card stays readable, and the card itself picks up a
+   warm orange halo so it lifts cleanly off the photo. */
+.auth-shell--photo {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+.auth-shell--photo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -2;
+}
+.auth-shell--photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at center,
+            rgba(15, 18, 24, 0.42) 0%,
+            rgba(15, 18, 24, 0.68) 70%,
+            rgba(15, 18, 24, 0.86) 100%);
+    z-index: -1;
+}
+.auth-shell--login::before  { background-image: url('../images/loginbackground.png'); }
+.auth-shell--signup::before { background-image: url('../images/signupbackground.png'); }
+
+.auth-shell--photo > .auth-card {
+    position: relative;
+    z-index: 1;
+    border-color: rgba(255, 138, 56, 0.28);
+    box-shadow:
+        0 0 0 1px rgba(255, 122, 26, 0.18),
+        0 0 50px -8px rgba(255, 122, 26, 0.42),
+        0 0 130px -20px rgba(255, 122, 26, 0.28),
+        var(--shadow-lg);
+}
+
 .field { margin-bottom: 1rem; }
 .field label {
     display: block;

@@ -5,7 +5,7 @@
     $errPass    = field_error('password');
     $errConfirm = field_error('password_confirm');
 ?>
-<div class="auth-shell">
+<div class="auth-shell auth-shell--photo auth-shell--signup">
     <div class="auth-card">
         <h1>Create your account</h1>
         <p class="lede">Track your weight, strength, and calories in one place.</p>
