@@ -1,0 +1,209 @@
+<!--
+================================================================
+public/og-template.html
+
+One-off render target for the Open Graph / Twitter Card image
+referenced by app/views/layouts/header.php. Open this file in
+Chrome at http://localhost/fitness_hub/og-template.html and
+screenshot the rendered card at exactly 1200×630, then save the
+result to public/images/og-image.jpg (or .png).
+
+How to screenshot at exact dimensions in Chrome:
+  1. Open this URL in Chrome.
+  2. Press F12 to open DevTools.
+  3. Press Ctrl+Shift+P (Cmd+Shift+P on Mac) to open the
+     DevTools Command Menu.
+  4. Type "screenshot" and pick "Capture full size screenshot".
+  5. PNG saved to your Downloads folder at exactly 1200×630.
+  6. (Optional) Convert to JPG for a smaller file via Squoosh,
+     Photoshop, etc. — JPG is preferred for photo-heavy cards.
+  7. Save the final file as public/images/og-image.jpg.
+
+This file lives under /public so XAMPP can serve it directly
+(.htaccess passes through real files instead of routing them
+to index.php). Safe to leave in place for future re-renders.
+================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OG image template — Rock County Fitness Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --bg:           #0f1218;
+            --text:         #ecedf2;
+            --text-dim:     #d1d5dc;
+            --primary:      #ff7a1a;
+            --primary-hot:  #ff9447;
+            --primary-deep: #e65f00;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #1a1d26;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            color: var(--text);
+        }
+
+        /* The card itself — exactly 1200×630 so Chrome's
+           "Capture full size screenshot" produces the right
+           dimensions with no cropping. */
+        .og-card {
+            position: relative;
+            width: 1200px;
+            height: 630px;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        /* Background photo */
+        .og-card__photo {
+            position: absolute;
+            inset: 0;
+            background-image: url('images/Landinghero.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+        }
+
+        /* Dark gradient overlay so the text always reads. Stronger
+           on the left where the headline sits, lighter on the right
+           where the photo can breathe. */
+        .og-card__overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(105deg,
+                    rgba(15, 18, 24, 0.92) 0%,
+                    rgba(15, 18, 24, 0.78) 45%,
+                    rgba(15, 18, 24, 0.55) 100%),
+                radial-gradient(circle at 18% 30%,
+                    rgba(255, 122, 26, 0.18) 0%,
+                    transparent 45%);
+            z-index: 1;
+        }
+
+        .og-card__content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            padding: 64px 80px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* ----- Top: logo + wordmark ----- */
+        .og-brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .og-brand__mark {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary-deep), var(--primary-hot));
+            box-shadow: 0 6px 20px rgba(255, 122, 26, 0.40);
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+        }
+        .og-brand__mark img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .og-brand__name {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        /* ----- Center: headline ----- */
+        .og-headline {
+            max-width: 920px;
+            margin-top: -40px;   /* nudge up off geometric center */
+        }
+        .og-headline h1 {
+            margin: 0;
+            font-size: 92px;
+            line-height: 1.02;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: var(--text);
+        }
+        .og-headline .accent {
+            display: block;
+            margin-top: 0.15em;
+            background: linear-gradient(135deg, var(--primary-hot), var(--primary));
+            -webkit-background-clip: text;
+                    background-clip: text;
+            color: transparent;
+        }
+
+        /* ----- Bottom: eyebrow ----- */
+        .og-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--primary-hot);
+        }
+        .og-eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 14px var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="og-card">
+
+    <div class="og-card__photo"></div>
+    <div class="og-card__overlay"></div>
+
+    <div class="og-card__content">
+
+        <div class="og-brand">
+            <span class="og-brand__mark">
+                <img src="images/logo3.png" alt="">
+            </span>
+            <span class="og-brand__name">Rock County Fitness Hub</span>
+        </div>
+
+        <div class="og-headline">
+            <h1>
+                Build the body you want.
+                <span class="accent">One day at a time.</span>
+            </h1>
+        </div>
+
+        <div class="og-eyebrow">Calories · Weight · Strength</div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

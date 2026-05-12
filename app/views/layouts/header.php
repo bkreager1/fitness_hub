@@ -29,7 +29,11 @@ $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
 $origin = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
 $ogUrl  = $origin . ($_SERVER['REQUEST_URI'] ?? '/');
 
-$ogImagePath = $ogImage ?? asset('images/Landinghero.jpg');
+// Default OG/social preview image. Rendered once from
+// public/og-template.html and saved as og-image.jpg under
+// /public/images. Falls back to the landing hero photo if a
+// per-page $ogImage override sets a different path.
+$ogImagePath = $ogImage ?? asset('images/og-image.jpg');
 $ogImageAbs  = strpos($ogImagePath, '://') === false
     ? $origin . $ogImagePath
     : $ogImagePath;
