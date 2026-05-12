@@ -14,6 +14,58 @@
     'use strict';
 
     /* ---------------------------------------------------------
+       Shared chart helpers
+       Consumed by the three Chart.js init blocks (intake, weight,
+       strength). Keeps the visual language consistent across the
+       full tracker pages and the dashboard mini-charts which reuse
+       the same canvas IDs.
+
+       makeChartGradient — returns a top-to-bottom CanvasGradient
+       suitable for a line/bar dataset's backgroundColor. The color
+       arg should contain the literal string "ALPHA" where the
+       gradient alpha varies (e.g. 'rgba(255, 122, 26, ALPHA)').
+       Falls back to the input color string before first layout,
+       which Chart.js will replace on the next paint.
+
+       brandedTooltip — Chart.js tooltip options keyed off the
+       --bg-elev / --text / --primary CSS variables. Drop in via
+       options.plugins.tooltip = { ...brandedTooltip(), ...overrides }.
+       --------------------------------------------------------- */
+    function makeChartGradient (chart, color) {
+        const { ctx, chartArea } = chart;
+        if (!chartArea) return color.replace('ALPHA', '0.16');
+        const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+        g.addColorStop(0,    color.replace('ALPHA', '0.35'));
+        g.addColorStop(0.55, color.replace('ALPHA', '0.10'));
+        g.addColorStop(1,    color.replace('ALPHA', '0'));
+        return g;
+    }
+
+    function brandedTooltip () {
+        const css = getComputedStyle(document.documentElement);
+        const bg     = (css.getPropertyValue('--bg-elev')  || '#161a24').trim();
+        const txt    = (css.getPropertyValue('--text')     || '#ecedf2').trim();
+        const dim    = (css.getPropertyValue('--text-dim') || '#a4a8b5').trim();
+        const accent = (css.getPropertyValue('--primary')  || '#ff7a1a').trim();
+        return {
+            backgroundColor: bg,
+            titleColor: accent,
+            titleFont:  { size: 12, weight: '600' },
+            bodyColor:  txt,
+            bodyFont:   { size: 13, weight: '500' },
+            footerColor: dim,
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            borderWidth: 1,
+            cornerRadius: 10,
+            padding: 10,
+            boxPadding: 6,
+            displayColors: true,
+            usePointStyle: true,
+        };
+    }
+
+
+    /* ---------------------------------------------------------
        1. Mobile nav toggle
        --------------------------------------------------------- */
     (function initNavToggle () {
@@ -643,7 +695,13 @@
                 type: 'bar',
                 label: 'Intake',
                 data: rows.map((r) => r.calories),
-                backgroundColor: 'rgba(255, 122, 26, 0.55)',
+                // Scriptable backgroundColor so the gradient rebuilds
+                // on every paint — Chart.js re-invokes this after each
+                // resize/layout. Top of the chart area gets the most
+                // saturated orange and fades toward the baseline, so
+                // tall bars read more confidently than short ones.
+                backgroundColor: (ctx) =>
+                    makeChartGradient(ctx.chart, 'rgba(255, 122, 26, ALPHA)'),
                 borderColor: '#ff7a1a',
                 borderWidth: 1,
                 borderRadius: 6,
@@ -686,8 +744,9 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: text } },
+                    legend: { labels: { color: text, usePointStyle: true } },
                     tooltip: {
+                        ...brandedTooltip(),
                         callbacks: {
                             label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString()} cal`,
                         },
@@ -870,10 +929,15 @@
                     label: `Weight (${displayUnit})`,
                     data: valuesIn(displayUnit),
                     borderColor: '#ff7a1a',
-                    backgroundColor: 'rgba(255, 122, 26, 0.18)',
-                    borderWidth: 3,
-                    tension: 0.25,
-                    pointRadius: 4,
+                    backgroundColor: (ctx) =>
+                        makeChartGradient(ctx.chart, 'rgba(255, 122, 26, ALPHA)'),
+                    borderWidth: 2.5,
+                    tension: 0.35,
+                    pointRadius: 3,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#ff7a1a',
+                    pointBorderColor: 'rgba(15, 18, 24, 0.95)',
+                    pointBorderWidth: 2,
                     fill: true,
                 }],
             },
@@ -882,8 +946,9 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: text } },
+                    legend: { labels: { color: text, usePointStyle: true } },
                     tooltip: {
+                        ...brandedTooltip(),
                         callbacks: {
                             label: (ctx) => `${ctx.parsed.y.toFixed(1)} ${displayUnit}`,
                         },
@@ -1052,8 +1117,12 @@
                 borderColor: COLORS[lift],
                 backgroundColor: 'transparent',
                 borderWidth: 2.5,
-                tension: 0.25,
-                pointRadius: 4,
+                tension: 0.35,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBackgroundColor: COLORS[lift],
+                pointBorderColor: 'rgba(15, 18, 24, 0.95)',
+                pointBorderWidth: 2,
                 spanGaps: true,
                 fill: false,
             };
@@ -1074,8 +1143,9 @@
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: text } },
+                    legend: { labels: { color: text, usePointStyle: true } },
                     tooltip: {
+                        ...brandedTooltip(),
                         callbacks: {
                             label: (ctx) => {
                                 if (ctx.parsed.y === null || ctx.parsed.y === undefined) return null;
@@ -1116,6 +1186,106 @@
                 });
             });
         }
+    })();
+
+
+    /* ---------------------------------------------------------
+       Count-up animation on dashboard summary numbers.
+
+       Targets the leading numeric text node inside each
+       .dash-card__value (the unit span next to it is left alone),
+       parses the formatted value, then animates from 0 → value
+       over ~900ms with an ease-out cubic when the card scrolls
+       into view. Number formatting (thousands separators, decimal
+       places) is preserved by detecting it from the original
+       string and re-applying it via toLocaleString.
+
+       Skipped under reduced-motion and on browsers without
+       IntersectionObserver. Placeholder cards rendering "—" stay
+       untouched since they don't parse as a number.
+       --------------------------------------------------------- */
+    (function initDashCountUp () {
+        if (!('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const valueNodes = document.querySelectorAll('.dash-card__value');
+        if (valueNodes.length === 0) return;
+
+        const DURATION = 900;
+        const targets  = new Map();   // valueNode → { textNode, end, decimals, final }
+
+        valueNodes.forEach((valueNode) => {
+            // First non-empty text node is the number; the unit span
+            // (and any other markup) is left as-is.
+            const textNode = [...valueNode.childNodes].find(
+                (n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim()
+            );
+            if (!textNode) return;
+
+            // Split the text node into leading whitespace + value +
+            // trailing whitespace so we can preserve the spacing
+            // between the number and the unit span when we rewrite
+            // the value during the animation.
+            const full = textNode.textContent;
+            const lead = (full.match(/^\s*/) || [''])[0];
+            const trail = (full.match(/\s*$/) || [''])[0];
+            const valueStr = full.slice(lead.length, full.length - trail.length);
+
+            const num = parseFloat(valueStr.replace(/,/g, ''));
+            if (!isFinite(num)) return;   // "—" placeholders fall out here
+
+            const decimals = valueStr.includes('.')
+                ? (valueStr.split('.')[1] || '').length
+                : 0;
+
+            const fmt = (v) => v.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals,
+            });
+
+            // Start at zero so the very first paint already shows the
+            // animation's starting state — no flash of the final value.
+            textNode.textContent = lead + fmt(0) + trail;
+
+            targets.set(valueNode, {
+                textNode, end: num, fmt, lead, trail, originalValueStr: valueStr,
+            });
+        });
+
+        if (targets.size === 0) return;
+
+        const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+
+        const animate = (t) => {
+            const start = performance.now();
+            const step  = (now) => {
+                const p   = Math.min((now - start) / DURATION, 1);
+                const val = t.end * easeOut(p);
+                t.textNode.textContent = t.lead + t.fmt(val) + t.trail;
+                if (p < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    // Snap back to the exact PHP-rendered string so
+                    // toLocaleString rounding can't drift away from
+                    // what number_format produced server-side.
+                    t.textNode.textContent = t.lead + t.originalValueStr + t.trail;
+                }
+            };
+            requestAnimationFrame(step);
+        };
+
+        const io = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                const t = targets.get(entry.target);
+                if (!t) continue;
+                targets.delete(entry.target);  // run once
+                io.unobserve(entry.target);
+                animate(t);
+            }
+        }, { threshold: 0.35 });
+
+        targets.forEach((_, valueNode) => io.observe(valueNode));
     })();
 
 
