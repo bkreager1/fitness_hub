@@ -230,8 +230,9 @@ if ($latest) {
         <?php if ($totalLoggedDays === 0): ?>
 
             <article class="tracker-card empty-state">
+                <?= empty_state_icon() ?>
                 <h2>No lifts logged yet</h2>
-                <p>Add your first bench, squat, or deadlift entry to start tracking progress.</p>
+                <p>Add your first bench, squat, or deadlift entry above to start tracking progress.</p>
             </article>
 
         <?php else: ?>
@@ -274,6 +275,7 @@ if ($latest) {
             <?php if (empty($history)): ?>
 
                 <article class="tracker-card empty-state">
+                    <?= empty_state_icon() ?>
                     <h2>No lifts in this range</h2>
                     <p>
                         You've logged lifts on

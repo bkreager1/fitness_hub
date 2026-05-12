@@ -546,6 +546,23 @@ main:focus { outline: none; }
 .auth-shell--login::before  { background-image: url('../images/loginbackground.png'); }
 .auth-shell--signup::before { background-image: url('../images/signupbackground.png'); }
 
+/* Ken Burns — slow scale + drift on the auth background photo so the
+   page feels alive even when the user is just typing a password. The
+   parent has overflow: hidden, so the scaled pseudo never reveals its
+   edges. 28s round-trip with ease-in-out alternate means there's no
+   pop at the loop point. Skipped under prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes authPhotoKenBurns {
+        from { transform: scale(1.00) translate(0, 0); }
+        to   { transform: scale(1.08) translate(-1.5%, -1%); }
+    }
+    .auth-shell--photo::before {
+        animation: authPhotoKenBurns 28s ease-in-out infinite alternate;
+        will-change: transform;
+        transform-origin: center center;
+    }
+}
+
 .auth-shell--photo > .auth-card {
     position: relative;
     z-index: 1;
@@ -1582,7 +1599,7 @@ main:focus { outline: none; }
 /* ----- Empty state card --------------------------------------------- */
 .empty-state {
     text-align: center;
-    padding: 2.5rem 1.5rem;
+    padding: 2.75rem 1.5rem 2.5rem;
 }
 .empty-state h2 {
     margin: 0 0 0.5rem;
@@ -1594,6 +1611,25 @@ main:focus { outline: none; }
     color: var(--text-dim);
     max-width: 32rem;
     margin-inline: auto;
+}
+/* Stroked SVG mark above the heading. Sits in a soft circular halo
+   that picks up just enough warm orange to feel branded without
+   shouting — the icon is the focal point but the halo gives it
+   air. currentColor on the stroke is set by .empty-state__icon
+   itself so the halo color can stay independent. */
+.empty-state__icon {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 1.1rem;
+    padding: 0.8rem;
+    color: var(--primary-hot);
+    background: radial-gradient(circle at center,
+        rgba(255, 122, 26, 0.14) 0%,
+        rgba(255, 122, 26, 0.04) 60%,
+        transparent 75%);
+    border-radius: 999px;
+    box-sizing: content-box;
 }
 
 /* ----- Chart canvas wrapper ----------------------------------------- */
@@ -2242,6 +2278,22 @@ main:focus { outline: none; }
     padding: 1.25rem;
 }
 .dash-chart-empty p { margin: 0; font-size: 0.95rem; }
+/* Compact icon variant for the dashboard chart empties. Smaller box,
+   same warm halo as the full empty-state icon so the visual language
+   carries across both surfaces. */
+.dash-chart-empty__icon {
+    display: block;
+    width: 38px;
+    height: 38px;
+    padding: 0.55rem;
+    color: var(--primary-hot);
+    background: radial-gradient(circle at center,
+        rgba(255, 122, 26, 0.14) 0%,
+        rgba(255, 122, 26, 0.04) 60%,
+        transparent 75%);
+    border-radius: 999px;
+    box-sizing: content-box;
+}
 @media (max-width: 520px) {
     .dash-chart-empty { height: 200px; }
 }

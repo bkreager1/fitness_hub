@@ -182,6 +182,24 @@ function validate_password_rules(string $password): ?string {
 // Render the eye-icon show/hide button that pairs with a password input.
 // $targetId must match the id of the <input type="password"> it toggles.
 // auth.js wires the click handler via event delegation.
+// Render a stroked "trend with end-dot" SVG used as the visual mark
+// inside empty-state cards (tracker pages + dashboard chart cells).
+// $variant: 'lg' = full tracker-card empty state (sized via
+// .empty-state__icon), 'sm' = compact dashboard chart empty
+// (.dash-chart-empty__icon). aria-hidden because the heading + body
+// copy already convey the meaning to assistive tech.
+function empty_state_icon(string $variant = 'lg'): string {
+    $cls = $variant === 'sm' ? 'dash-chart-empty__icon' : 'empty-state__icon';
+    return <<<HTML
+<svg class="{$cls}" viewBox="0 0 24 24" fill="none"
+     stroke="currentColor" stroke-width="1.5"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="3 17 8 12 13 15 21 5"/>
+    <circle cx="21" cy="5" r="1.6" fill="currentColor" stroke="none"/>
+</svg>
+HTML;
+}
+
 function password_toggle_button(string $targetId): string {
     $id = e($targetId);
     return <<<HTML

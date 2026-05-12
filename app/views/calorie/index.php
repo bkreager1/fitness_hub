@@ -577,8 +577,9 @@ $fmtDate = static function (string $iso): string {
         <?php if ($totalLoggedDays === 0): ?>
 
             <article class="tracker-card empty-state">
+                <?= empty_state_icon() ?>
                 <h2>No calorie entries yet</h2>
-                <p>Log your first meal to start seeing your intake trend.</p>
+                <p>Log your first meal above to start seeing your intake trend.</p>
             </article>
 
         <?php else: ?>
@@ -623,6 +624,7 @@ $fmtDate = static function (string $iso): string {
             <?php if (empty($intakeHistory)): ?>
 
                 <article class="tracker-card empty-state">
+                    <?= empty_state_icon() ?>
                     <h2>No meals in this range</h2>
                     <p>
                         You've logged meals on

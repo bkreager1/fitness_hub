@@ -195,8 +195,9 @@ $displayWeight = static function (float $kg, string $asUnit): string {
         <?php if ($totalLoggedDays === 0): ?>
 
             <article class="tracker-card empty-state">
+                <?= empty_state_icon() ?>
                 <h2>No weigh-ins yet</h2>
-                <p>Add your first weigh-in to start building your trend.</p>
+                <p>Add your first weigh-in above to start building your trend.</p>
             </article>
 
         <?php else: ?>
@@ -239,6 +240,7 @@ $displayWeight = static function (float $kg, string $asUnit): string {
             <?php if (empty($history)): ?>
 
                 <article class="tracker-card empty-state">
+                    <?= empty_state_icon() ?>
                     <h2>No weigh-ins in this range</h2>
                     <p>
                         You've logged

@@ -6,12 +6,33 @@
 // and a mobile hamburger toggle (wired in public/js/main.js).
 //
 // Optional view variables:
-//   $title  — <title> tag prefix
-//   $active — which nav link to highlight: 'home' | 'about' |
-//             'contact' | 'login' | 'register' | 'dashboard'
+//   $title       — <title> tag prefix
+//   $description — meta description + og:description override
+//                  (defaults to the site-wide elevator pitch)
+//   $ogImage     — relative path under /public to use as the social
+//                  preview image; defaults to the landing hero photo
+//   $active      — which nav link to highlight: 'home' | 'about' |
+//                  'contact' | 'login' | 'register' | 'dashboard'
 // ============================================================
 $pageTitle = $title  ?? SITE_NAME;
 $active    = $active ?? '';
+$pageDesc  = $description
+    ?? 'Track calories, weight, and lifts in one simple dashboard. '
+     . 'A fitness app built for Rock County.';
+
+// Build absolute URLs for Open Graph + Twitter Card tags. Social
+// platforms fetch og:url and og:image as absolute URLs, so we piece
+// together $_SERVER values rather than hard-coding a domain — the
+// same code works in XAMPP and on Hostinger once deployed.
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    ? 'https' : 'http';
+$origin = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+$ogUrl  = $origin . ($_SERVER['REQUEST_URI'] ?? '/');
+
+$ogImagePath = $ogImage ?? asset('images/Landinghero.jpg');
+$ogImageAbs  = strpos($ogImagePath, '://') === false
+    ? $origin . $ogImagePath
+    : $ogImagePath;
 
 // Tiny helper: returns the active class if $key matches.
 $navClass = static fn(string $key): string =>
@@ -23,7 +44,21 @@ $navClass = static fn(string $key): string =>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($pageTitle) ?> · <?= e(SITE_NAME) ?></title>
-    <meta name="description" content="Track calories, weight, and lifts. A fitness app built for Rock County.">
+    <meta name="description" content="<?= e($pageDesc) ?>">
+
+    <!-- Open Graph + Twitter Card — controls how links unfurl when
+         shared in Slack, iMessage, Twitter/X, Facebook, etc. -->
+    <meta property="og:type"        content="website">
+    <meta property="og:site_name"   content="<?= e(SITE_NAME) ?>">
+    <meta property="og:title"       content="<?= e($pageTitle) ?>">
+    <meta property="og:description" content="<?= e($pageDesc) ?>">
+    <meta property="og:url"         content="<?= e($ogUrl) ?>">
+    <meta property="og:image"       content="<?= e($ogImageAbs) ?>">
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="<?= e($pageTitle) ?>">
+    <meta name="twitter:description" content="<?= e($pageDesc) ?>">
+    <meta name="twitter:image"       content="<?= e($ogImageAbs) ?>">
+
     <link rel="icon" type="image/png" href="<?= asset('images/favicon.png') ?>">
     <link rel="apple-touch-icon" href="<?= asset('images/favicon.png') ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
