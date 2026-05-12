@@ -183,13 +183,19 @@ function validate_password_rules(string $password): ?string {
 // $targetId must match the id of the <input type="password"> it toggles.
 // auth.js wires the click handler via event delegation.
 // Render a stroked "trend with end-dot" SVG used as the visual mark
-// inside empty-state cards (tracker pages + dashboard chart cells).
-// $variant: 'lg' = full tracker-card empty state (sized via
-// .empty-state__icon), 'sm' = compact dashboard chart empty
-// (.dash-chart-empty__icon). aria-hidden because the heading + body
-// copy already convey the meaning to assistive tech.
+// inside empty-state cards.
+//   'lg'   — full tracker-card empty state (.empty-state__icon)
+//   'sm'   — dashboard chart empty cell (.dash-chart-empty__icon)
+//   'card' — compact mark for dashboard summary cards where the
+//            value cell is empty (replaces the bare "—" placeholder)
+// aria-hidden because the heading/body copy already conveys the
+// meaning to assistive tech.
 function empty_state_icon(string $variant = 'lg'): string {
-    $cls = $variant === 'sm' ? 'dash-chart-empty__icon' : 'empty-state__icon';
+    $cls = match ($variant) {
+        'sm'   => 'dash-chart-empty__icon',
+        'card' => 'dash-card__empty-icon',
+        default => 'empty-state__icon',
+    };
     return <<<HTML
 <svg class="{$cls}" viewBox="0 0 24 24" fill="none"
      stroke="currentColor" stroke-width="1.5"

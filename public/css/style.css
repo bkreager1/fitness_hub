@@ -648,6 +648,44 @@ main:focus { outline: none; }
     margin-top: 0.35rem;
 }
 
+/* Custom <select> — strips the browser default via appearance: none
+   and re-paints with the same look as text inputs (so a form mixing
+   the two reads as one cohesive control surface). The dropdown
+   chevron is an inline SVG data URI rendered as a background image
+   on the right. The <option> elements still use the browser's
+   native popup since CSS can't reliably style those across browsers;
+   we set a dark background on them so at least Chrome/Firefox/Edge
+   render the list on a dark surface instead of system white. */
+.field select {
+    width: 100%;
+    padding: 0.7rem 2.5rem 0.7rem 0.9rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%238c91a0' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 16px;
+    transition: border-color .12s ease, box-shadow .12s ease;
+}
+.field select:hover  { border-color: var(--border-hot); }
+.field select:focus {
+    outline: none;
+    border-color: var(--primary-hot);
+    box-shadow:
+        0 0 0 4px var(--primary-ring),
+        0 1px 2px rgba(0, 0, 0, 0.20) inset;
+}
+.field select option {
+    background: var(--bg-elev);
+    color: var(--text);
+}
+
 /* Password show/hide toggle (Phase 4 carryover) */
 .password-wrap   { position: relative; display: block; }
 .field .password-wrap input[type="password"],
@@ -690,6 +728,51 @@ main:focus { outline: none; }
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
+}
+
+/* Custom checkbox — strips the browser default via appearance: none
+   and paints a small rounded square that fills with a warm orange
+   gradient + a white check on :checked. The check is an inline SVG
+   data URI so no extra DOM is needed; the existing markup keeps
+   working as-is.
+
+   Scoped to the contexts where checkboxes actually appear today
+   (just .checkbox-row for the "Remember me" toggle on login) so the
+   styling doesn't bleed into surprise spots. Extend the selector
+   list if more checkbox surfaces show up. */
+.checkbox-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    background: var(--bg-input);
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    flex-shrink: 0;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.checkbox-row input[type="checkbox"]:hover {
+    border-color: var(--border-hot);
+}
+.checkbox-row input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    border-color: var(--primary);
+}
+.checkbox-row input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='3 8.5 6.5 12 13 4.5' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 78%;
+}
+.checkbox-row input[type="checkbox"]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--primary-ring);
 }
 
 
@@ -1733,6 +1816,19 @@ main:focus { outline: none; }
     border-bottom-color: var(--border);
 }
 .history-table tbody tr:last-child td { border-bottom: 0; }
+/* Subtle row striping for scannability. Two flavors:
+     - Plain history table (weight): every other tbody row picks up
+       a 1.5% white tint via :nth-child(even).
+     - Day-grouped table (calorie/strength): striping is by DAY, not
+       by individual row, so we let JS tag every-other day-row +
+       its sub-rows with .is-stripe (see initHistoryStriping in
+       main.js). The CSS just picks up the class.
+   Both rules sit BEFORE the hover rule so the hover tint wins on
+   equal specificity via source order. */
+.history-table:not(.history-table--days) tbody tr:nth-child(even),
+.history-table tbody tr.is-stripe {
+    background-color: rgba(255, 255, 255, 0.018);
+}
 /* Smooth bg fade on hover (was a hard snap before). */
 .history-table tbody tr {
     transition: background-color .15s ease;
@@ -2253,6 +2349,22 @@ main:focus { outline: none; }
     line-height: 1.1;
 }
 .dash-card__value--placeholder { color: var(--text-faint); }
+/* Compact mark that replaces the bare em-dash on summary cards
+   without data yet. Matches the empty-state icon vocabulary at a
+   size that fits inside the value cell without crowding the hint. */
+.dash-card__empty-icon {
+    display: block;
+    width: 32px;
+    height: 32px;
+    padding: 0.4rem;
+    color: var(--primary-hot);
+    background: radial-gradient(circle at center,
+        rgba(255, 122, 26, 0.14) 0%,
+        rgba(255, 122, 26, 0.04) 60%,
+        transparent 75%);
+    border-radius: 999px;
+    box-sizing: content-box;
+}
 .dash-card__unit {
     font-size: 0.95rem;
     font-weight: 500;

@@ -766,6 +766,30 @@
 
 
     /* ---------------------------------------------------------
+       6a. Tracker history — day-row striping.
+          For .history-table--days tables, plain CSS :nth-child
+          would stripe individual rows (mixing day-rows and the
+          meal/lift-rows nested under them). We want every-other
+          DAY to read as a stripe so the eye can track day groups
+          at a glance — so JS walks day-rows, picks every odd index,
+          and adds .is-stripe to every row sharing the same data-day
+          (the day-row itself plus its hidden meal/lift-rows).
+          Plain .history-table (weight) gets pure CSS striping.
+       --------------------------------------------------------- */
+    (function initHistoryStriping () {
+        document.querySelectorAll('.history-table--days').forEach((table) => {
+            table.querySelectorAll('.day-row').forEach((dayRow, idx) => {
+                if (idx % 2 === 0) return;
+                const day = dayRow.dataset.day;
+                if (!day) return;
+                table.querySelectorAll(`tr[data-day="${day}"]`)
+                     .forEach((r) => r.classList.add('is-stripe'));
+            });
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        6b. Tracker history — collapsible day rows.
           PHP renders the table fully expanded so no-JS users
           still see all their entries. On load we hide the

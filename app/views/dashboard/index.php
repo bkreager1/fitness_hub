@@ -86,7 +86,7 @@ $fmtDate = static function (string $iso): string {
                         <?= e($calorieCard['goal_label']) ?> target.
                     </div>
                 <?php else: ?>
-                    <div class="dash-card__value dash-card__value--placeholder">—</div>
+                    <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
                         Set your calorie targets to start tracking.
                     </div>
@@ -121,7 +121,7 @@ $fmtDate = static function (string $iso): string {
                         <?php endif; ?>
                     </div>
                 <?php else: ?>
-                    <div class="dash-card__value dash-card__value--placeholder">—</div>
+                    <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
                         Log your first weigh-in to start the trend.
                     </div>
@@ -146,7 +146,7 @@ $fmtDate = static function (string $iso): string {
                         <?php endforeach; ?>
                     </ul>
                 <?php else: ?>
-                    <div class="dash-card__value dash-card__value--placeholder">—</div>
+                    <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
                         Log your first big-three lift to start the chart.
                     </div>
