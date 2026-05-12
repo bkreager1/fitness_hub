@@ -166,6 +166,25 @@
 
 
     /* ---------------------------------------------------------
+       1d. Open the native date picker on any click inside
+       input[type="date"]. Chrome/Edge already do this natively;
+       Firefox + Safari require explicit showPicker(). We painted
+       a custom calendar icon via CSS background-image and hid the
+       webkit picker indicator — calling showPicker() on click
+       restores cross-browser parity. Wrapped in try/catch because
+       showPicker() throws if invoked outside a user gesture.
+       --------------------------------------------------------- */
+    (function initDatePickerOpen () {
+        document.addEventListener('click', (e) => {
+            const input = e.target.closest('input[type="date"]');
+            if (!input || input.disabled || input.readOnly) return;
+            if (typeof input.showPicker !== 'function') return;
+            try { input.showPicker(); } catch (_) { /* ignore */ }
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        2. Sticky-header scroll shadow + back-to-top button.
        Both reads of window.scrollY share a single rAF-throttled
        handler so we don't run two scroll listeners side-by-side.
