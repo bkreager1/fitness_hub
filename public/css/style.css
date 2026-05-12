@@ -238,7 +238,7 @@ main:focus { outline: none; }
 }
 .brand:hover { color: var(--text); }
 .brand:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 4px;
     border-radius: var(--radius-sm);
 }
@@ -276,22 +276,35 @@ main:focus { outline: none; }
     font-size: 0.95rem;
     padding: 0.5rem 0.85rem;
     border-radius: var(--radius-sm);
+    transition: color .15s ease, background-color .15s ease;
 }
-.nav-link:hover         { color: var(--text); background: rgba(255, 255, 255, 0.03); }
-.nav-link:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-    color: var(--text);
-}
-.nav-link.is-active     { color: var(--primary); }
-.nav-link.is-active::after {
+/* Animated underline — sits at the bottom of every nav link, scaled
+   horizontally to 0 by default and snapped to 1 on hover / focus /
+   active. Grows from the center via transform-origin so the swipe
+   reads as deliberate rather than a slide-in from the side. Inset
+   left/right matches the horizontal padding so the underline lives
+   under the text rather than spanning the full link box. */
+.nav-link::after {
     content: "";
     position: absolute;
     left: 0.85rem; right: 0.85rem; bottom: -2px;
     height: 2px;
     border-radius: 2px;
     background: var(--primary);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform .25s cubic-bezier(0.4, 0, 0.2, 1);
 }
+.nav-link:hover                { color: var(--text); background: rgba(255, 255, 255, 0.03); }
+.nav-link:hover::after,
+.nav-link.is-active::after,
+.nav-link:focus-visible::after { transform: scaleX(1); }
+.nav-link:focus-visible {
+    outline: 2px solid var(--primary-hot);
+    outline-offset: 3px;
+    color: var(--text);
+}
+.nav-link.is-active            { color: var(--primary); }
 
 .nav-cta {
     background: linear-gradient(135deg, var(--primary-deep), var(--primary));
@@ -313,7 +326,7 @@ main:focus { outline: none; }
     box-shadow: 0 4px 12px rgba(255, 122, 26, 0.25);
 }
 .nav-cta:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 3px;
 }
 
@@ -375,7 +388,7 @@ main:focus { outline: none; }
 }
 .footer-links a:hover { color: var(--primary); }
 .footer-links a:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 3px;
     border-radius: var(--radius-sm);
 }
@@ -412,7 +425,7 @@ main:focus { outline: none; }
     box-shadow: 0 4px 12px rgba(255, 122, 26, 0.25);
 }
 .btn:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 3px;
 }
 
@@ -599,8 +612,10 @@ main:focus { outline: none; }
 .field input::placeholder { color: var(--text-faint); }
 .field input:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-ring);
+    border-color: var(--primary-hot);
+    box-shadow:
+        0 0 0 4px var(--primary-ring),
+        0 1px 2px rgba(0, 0, 0, 0.20) inset;
 }
 
 /* Date inputs: opt into the browser's dark calendar popup (Chrome,
@@ -656,7 +671,7 @@ main:focus { outline: none; }
     transition: color .12s ease, background-color .12s ease;
 }
 .password-toggle:hover         { color: var(--text); background: rgba(255,255,255,.06); }
-.password-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.password-toggle:focus-visible { outline: 2px solid var(--primary-hot); outline-offset: 2px; }
 .password-toggle .eye          { width: 1.15rem; height: 1.15rem; }
 .password-toggle .eye-hide     { display: none; }
 .password-toggle[aria-pressed="true"] .eye-show { display: none; }
@@ -767,6 +782,39 @@ main:focus { outline: none; }
         radial-gradient(circle at 90% 0%,   rgba(96, 165, 250, 0.10) 0%, transparent 50%),
         linear-gradient(180deg, #131722 0%, var(--bg) 100%);
     border-bottom: 1px solid var(--border-soft);
+}
+
+/* Mesh-gradient blobs behind the landing hero (excluded from the
+   --compact tracker heroes so it only paints on /home). Two large
+   blurred radial gradients drift slowly via translate, layered over
+   the hero base gradient with mix-blend-mode: screen so they only
+   ever lighten the underlying pixels — the photo on the right stays
+   recognizable while the dark left half picks up an atmospheric
+   orange/blue glow. Held at low enough opacity to never compete
+   with text. */
+.hero--photo:not(.hero--compact)::after {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(circle at 18% 28%, rgba(255, 122, 26, 0.55) 0%, transparent 32%),
+        radial-gradient(circle at 78% 78%, rgba(96, 165, 250, 0.40) 0%, transparent 38%);
+    filter: blur(60px);
+    mix-blend-mode: screen;
+    opacity: 0.55;
+}
+@media (prefers-reduced-motion: no-preference) {
+    @keyframes heroMeshDrift {
+        0%   { transform: translate(0%, 0%); }
+        50%  { transform: translate(2.5%, -1.5%); }
+        100% { transform: translate(0%, 0%); }
+    }
+    .hero--photo:not(.hero--compact)::after {
+        animation: heroMeshDrift 24s ease-in-out infinite;
+        will-change: transform;
+    }
 }
 
 /* Hero with a faded background photo. Reusable across pages — the
@@ -933,7 +981,7 @@ main:focus { outline: none; }
     color: #fff;
 }
 .unit-toggle button:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 2px;
 }
 
@@ -1140,7 +1188,9 @@ main:focus { outline: none; }
         pointer-events: auto;
     }
     .nav-link        { padding: 0.7rem 0.85rem; font-size: 1rem; }
-    .nav-link.is-active::after { display: none; }
+    /* No underline on the stacked mobile menu — links read as a list,
+       not a row, so the underline visual would feel out of place. */
+    .nav-link::after { display: none; }
     .nav-cta         { text-align: center; margin-top: 0.35rem; }
     .nav-hello       { padding: 0.5rem 0.85rem; }
 }
@@ -1351,8 +1401,10 @@ main:focus { outline: none; }
 .field textarea::placeholder { color: var(--text-faint); }
 .field textarea:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-ring);
+    border-color: var(--primary-hot);
+    box-shadow:
+        0 0 0 4px var(--primary-ring),
+        0 1px 2px rgba(0, 0, 0, 0.20) inset;
 }
 
 /* ----- Inline field error (sits directly under its input) ----- */
@@ -1370,7 +1422,7 @@ main:focus { outline: none; }
 .field input[aria-invalid="true"]:focus,
 .field textarea[aria-invalid="true"]:focus {
     border-color: var(--danger);
-    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.20);
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.22);
 }
 
 /* ----- Inline flash variant (renders inside a card, not the page) ----- */
@@ -1587,7 +1639,7 @@ main:focus { outline: none; }
 .back-link:hover { color: var(--text); background: rgba(255,255,255,.04); }
 .back-link:hover .back-link__arrow { transform: translateX(-3px); }
 .back-link:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 2px;
 }
 .back-link__arrow {
@@ -1714,7 +1766,7 @@ main:focus { outline: none; }
 .btn-link-danger:hover  { background: var(--danger-bg); }
 .btn-link-danger:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.30);
+    box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.30);
 }
 
 /* ----- Inline link button (table edit) ------------------------------ */
@@ -1819,7 +1871,7 @@ main:focus { outline: none; }
 }
 .link-inline:hover { color: var(--primary-hot); }
 .link-inline:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
 }
@@ -1873,7 +1925,7 @@ main:focus { outline: none; }
 }
 .day-toggle:hover { color: var(--primary); }
 .day-toggle:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 2px;
 }
 .day-toggle__chevron {
@@ -2628,7 +2680,7 @@ img.avatar { object-fit: cover; }
     border-color: transparent;
 }
 .back-to-top:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: 2px solid var(--primary-hot);
     outline-offset: 3px;
 }
 
