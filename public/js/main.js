@@ -1117,4 +1117,69 @@
             });
         }
     })();
+
+
+    /* ---------------------------------------------------------
+       Reveal-on-scroll for cards/sections below the fold.
+
+       Pairs with the .reveal / .is-visible CSS pair at the bottom
+       of style.css. IntersectionObserver flips items to visible
+       as they enter the viewport; a per-group index seeds a tiny
+       stagger so siblings cascade rather than popping in unison.
+
+       Two early bails: no IntersectionObserver (very old browsers)
+       and prefers-reduced-motion (no animation should play at all).
+       We also skip items already above the fold at script time —
+       those are already being animated by .site-main's page-entry
+       rule, so layering a second fade on top would feel doubled.
+       --------------------------------------------------------- */
+    (function initRevealOnScroll () {
+        if (!('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        // [selector, per-index stagger in ms]. Order matters: a WeakSet
+        // dedupes overlapping selectors so an element only gets one
+        // reveal-group's stagger applied.
+        const groups = [
+            ['.features > .feature-card',     70],
+            ['.dash-summary > .dash-card',    60],
+            ['.dash-charts > .tracker-card',  90],
+            ['.section-head',                  0],
+            ['.how-grid > *',                 80],
+            ['.contact-grid > *',             80],
+            ['.quote',                         0],
+        ];
+
+        const io = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    io.unobserve(entry.target);
+                }
+            }
+        }, { rootMargin: '0px 0px -6% 0px', threshold: 0.08 });
+
+        // Anything sitting above this point at page load is already
+        // visible to the user — page-entry animates it. Reveal only
+        // earns its keep for things the user has to scroll to find.
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const aboveFoldCutoff = vh * 0.92;
+
+        const seen = new WeakSet();
+        groups.forEach(([sel, stagger]) => {
+            document.querySelectorAll(sel).forEach((el, idx) => {
+                if (seen.has(el)) return;
+                seen.add(el);
+
+                if (el.getBoundingClientRect().top < aboveFoldCutoff) return;
+
+                el.classList.add('reveal');
+                if (stagger) {
+                    const delay = Math.min(idx * stagger, 280);
+                    el.style.setProperty('--reveal-delay', delay + 'ms');
+                }
+                io.observe(el);
+            });
+        });
+    })();
 })();

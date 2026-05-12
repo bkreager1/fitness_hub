@@ -2591,3 +2591,97 @@ img.avatar { object-fit: cover; }
 @media (max-width: 520px) {
     .back-to-top { right: 1rem; bottom: 1rem; width: 42px; height: 42px; }
 }
+
+
+/* ===================================================================
+   Depth & motion polish
+
+   Three layered effects that lift the dark theme without changing
+   the design language:
+     A. Sitewide film grain — a fixed, low-opacity SVG noise overlay
+        that textures every page. Pure CSS via a data-URI <feTurbulence>
+        so there's no extra HTTP request.
+     B. Glassmorphism — translucent backgrounds + backdrop-blur on the
+        two cards that sit on top of a photo (the home BMI card and
+        the auth-page card). Gated behind @supports so older browsers
+        keep the existing solid-card style.
+     C. Scroll reveals — JS-controlled .reveal / .is-visible pair
+        consumed by initRevealOnScroll() in main.js. CSS only defines
+        the from/to states.
+   =================================================================== */
+
+/* ----- A. Sitewide film grain ------------------------------------- */
+
+/* feTurbulence SVG inlined as a data URI. baseFrequency=0.85 gives a
+   fine grain at the 220×220 tile size; mix-blend-mode: overlay means
+   the noise only nudges underlying pixels lighter or darker rather
+   than painting a solid texture on top. 4.5% opacity keeps it
+   subliminal — you'd never notice it on a screenshot but the page
+   feels less plasticky in motion. pointer-events:none lets clicks
+   pass through, and z-index: 200 sits just above the skip-link (100)
+   so the grain renders over everything (including back-to-top at 50). */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 220px 220px;
+}
+
+
+/* ----- B. Glassmorphism on cards over photo backgrounds ----------- */
+
+/* Gated behind @supports so a browser without backdrop-filter still
+   sees the original solid card (defined earlier in the file). The
+   translucent background lets the photo bleed through subtly, and the
+   blur softens it into atmosphere rather than texture. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+
+    /* Home page BMI card on the hero photo */
+    .hero--photo .bmi-card {
+        background: linear-gradient(135deg,
+            rgba(27, 32, 48, 0.72) 0%,
+            rgba(22, 26, 36, 0.62) 100%);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Auth-page card on the login/signup photo. Keeps the warm orange
+       halo defined in section 8 — only the body fill + blur change. */
+    .auth-shell--photo > .auth-card {
+        background: linear-gradient(135deg,
+            rgba(27, 32, 48, 0.74) 0%,
+            rgba(22, 26, 36, 0.64) 100%);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+}
+
+
+/* ----- C. Scroll-triggered reveal animations ---------------------- */
+
+/* Wrapped in (prefers-reduced-motion: no-preference) so reduced-motion
+   users never see content start at opacity:0 — the global rule that
+   shortens animation-duration would otherwise leave them with a
+   pre-animation frame still visible. main.js skips the IntersectionObserver
+   setup for the same reason; this CSS rule is the belt-and-braces. */
+@media (prefers-reduced-motion: no-preference) {
+    .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+            opacity .55s ease-out,
+            transform .55s ease-out;
+        transition-delay: var(--reveal-delay, 0ms);
+        will-change: opacity, transform;
+    }
+    .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
