@@ -634,16 +634,17 @@ $hasAnyChart =
     <div class="container">
         <div class="section-head">
             <h2>Progress over time</h2>
-            <p>Trends across each tracker. Click into a tracker for the full chart and filters.</p>
+            <p>Trends across each tracker. Click any chart to open its tracker — full chart, range filter, and log form.</p>
         </div>
 
         <div class="dash-charts">
 
-            <article class="tracker-card">
-                <header class="tracker-card__head">
-                    <h3>Calorie intake</h3>
-                </header>
-                <?php if (!empty($intakeChartData)): ?>
+            <?php if (!empty($intakeChartData)): ?>
+                <a class="tracker-card tracker-card--linked" href="<?= url('calorie') ?>"
+                   aria-label="Open the calorie tracker">
+                    <header class="tracker-card__head">
+                        <h3>Calorie intake</h3>
+                    </header>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="intakeChart"
                                 role="img"
@@ -653,20 +654,26 @@ $hasAnyChart =
                                 data-active-goal="<?= e($activeGoal) ?>">
                         </canvas>
                     </div>
-                <?php else: ?>
+                </a>
+            <?php else: ?>
+                <article class="tracker-card">
+                    <header class="tracker-card__head">
+                        <h3>Calorie intake</h3>
+                    </header>
                     <div class="dash-chart-empty">
                         <?= empty_state_icon('sm') ?>
                         <p>No calorie entries yet. Log your first meal to start seeing your intake trend.</p>
                         <a href="<?= url('calorie') ?>" class="btn btn-secondary btn-inline">Log calories</a>
                     </div>
-                <?php endif; ?>
-            </article>
+                </article>
+            <?php endif; ?>
 
-            <article class="tracker-card">
-                <header class="tracker-card__head">
-                    <h3>Weight</h3>
-                </header>
-                <?php if (!empty($weightChartData)): ?>
+            <?php if (!empty($weightChartData)): ?>
+                <a class="tracker-card tracker-card--linked" href="<?= url('weight') ?>"
+                   aria-label="Open the weight tracker">
+                    <header class="tracker-card__head">
+                        <h3>Weight</h3>
+                    </header>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="weightChart"
                                 role="img"
@@ -675,20 +682,26 @@ $hasAnyChart =
                                 data-default-unit="<?= e($weightChartUnit) ?>">
                         </canvas>
                     </div>
-                <?php else: ?>
+                </a>
+            <?php else: ?>
+                <article class="tracker-card">
+                    <header class="tracker-card__head">
+                        <h3>Weight</h3>
+                    </header>
                     <div class="dash-chart-empty">
                         <?= empty_state_icon('sm') ?>
                         <p>No weigh-ins yet. Add your first weigh-in to start building your trend.</p>
                         <a href="<?= url('weight') ?>" class="btn btn-secondary btn-inline">Log a weigh-in</a>
                     </div>
-                <?php endif; ?>
-            </article>
+                </article>
+            <?php endif; ?>
 
-            <article class="tracker-card">
-                <header class="tracker-card__head">
-                    <h3>Big three (est. 1RM)</h3>
-                </header>
-                <?php if (!empty($strengthChartData)): ?>
+            <?php if (!empty($strengthChartData)): ?>
+                <a class="tracker-card tracker-card--linked" href="<?= url('strength') ?>"
+                   aria-label="Open the strength tracker">
+                    <header class="tracker-card__head">
+                        <h3>Big three (est. 1RM)</h3>
+                    </header>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="strengthChart"
                                 role="img"
@@ -697,20 +710,26 @@ $hasAnyChart =
                                 data-default-unit="<?= e($strengthChartUnit) ?>">
                         </canvas>
                     </div>
-                <?php else: ?>
+                </a>
+            <?php else: ?>
+                <article class="tracker-card">
+                    <header class="tracker-card__head">
+                        <h3>Big three (est. 1RM)</h3>
+                    </header>
                     <div class="dash-chart-empty">
                         <?= empty_state_icon('sm') ?>
                         <p>No lifts logged yet. Add your first bench, squat, or deadlift entry to start tracking progress.</p>
                         <a href="<?= url('strength') ?>" class="btn btn-secondary btn-inline">Log a lift</a>
                     </div>
-                <?php endif; ?>
-            </article>
+                </article>
+            <?php endif; ?>
 
-            <article class="tracker-card">
-                <header class="tracker-card__head">
-                    <h3>Cardio (daily minutes)</h3>
-                </header>
-                <?php if (!empty($cardioChartData)): ?>
+            <?php if (!empty($cardioChartData)): ?>
+                <a class="tracker-card tracker-card--linked" href="<?= url('cardio') ?>"
+                   aria-label="Open the cardio tracker">
+                    <header class="tracker-card__head">
+                        <h3>Cardio (daily minutes)</h3>
+                    </header>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="cardioChart"
                                 role="img"
@@ -718,14 +737,19 @@ $hasAnyChart =
                                 data-rows='<?= e(json_encode($cardioChartData, JSON_THROW_ON_ERROR)) ?>'>
                         </canvas>
                     </div>
-                <?php else: ?>
+                </a>
+            <?php else: ?>
+                <article class="tracker-card">
+                    <header class="tracker-card__head">
+                        <h3>Cardio (daily minutes)</h3>
+                    </header>
                     <div class="dash-chart-empty">
                         <?= empty_state_icon('sm') ?>
                         <p>No cardio logged yet. Add your first walk, run, or ride to start tracking minutes.</p>
                         <a href="<?= url('cardio') ?>" class="btn btn-secondary btn-inline">Log a session</a>
                     </div>
-                <?php endif; ?>
-            </article>
+                </article>
+            <?php endif; ?>
 
         </div>
     </div>
