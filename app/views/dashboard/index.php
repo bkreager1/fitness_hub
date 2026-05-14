@@ -118,11 +118,15 @@ if (!empty($cardioCard['target'])) {
 
 <!-- ===================== Stat strip ===================== -->
 <?php
+// Workouts/week reuses $thisWeek (computed for the This-week card) so
+// the strip and the bar inside the card never disagree about the count.
+$workoutsDone   = (int) ($thisWeek['workouts_done']   ?? 0);
+$workoutsTarget = isset($thisWeek['workouts_target']) ? (int) $thisWeek['workouts_target'] : 0;
+
 $hasAnyActivity =
     $statStrip['streak'] > 0
     || $statStrip['meals_week'] > 0
-    || $statStrip['lifts_week'] > 0
-    || ($statStrip['cardio_week'] ?? 0) > 0
+    || $workoutsDone > 0
     || $statStrip['weight_delta'] !== null;
 ?>
 <?php if ($hasAnyActivity): ?>
@@ -139,6 +143,7 @@ $hasAnyActivity =
                     </svg>
                 </span>
                 <div class="dash-stat__body">
+                    <span class="dash-stat__label">Streak</span>
                     <span class="dash-stat__value">
                         <?php if ($statStrip['streak'] > 0): ?>
                             <?= e((string) $statStrip['streak']) ?>
@@ -146,9 +151,6 @@ $hasAnyActivity =
                         <?php else: ?>
                             <span class="dash-stat__placeholder">—</span>
                         <?php endif; ?>
-                    </span>
-                    <span class="dash-stat__label">
-                        <?= $statStrip['streak'] > 0 ? 'logging streak' : 'no streak yet' ?>
                     </span>
                 </div>
             </li>
@@ -164,6 +166,7 @@ $hasAnyActivity =
                     </svg>
                 </span>
                 <div class="dash-stat__body">
+                    <span class="dash-stat__label">Meals/week</span>
                     <span class="dash-stat__value">
                         <?php if ($statStrip['meals_week'] > 0): ?>
                             <?= e((string) $statStrip['meals_week']) ?>
@@ -172,44 +175,6 @@ $hasAnyActivity =
                             <span class="dash-stat__placeholder">—</span>
                         <?php endif; ?>
                     </span>
-                    <span class="dash-stat__label">logged this week</span>
-                </div>
-            </li>
-
-            <li class="dash-stat">
-                <span class="dash-stat__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"/>
-                        <path d="M6 6l2 14h8l2-14"/>
-                        <path d="M9 10v6M15 10v6M12 10v6"/>
-                    </svg>
-                </span>
-                <div class="dash-stat__body">
-                    <?php if ($statStrip['weight_delta'] !== null):
-                        $wd    = (float) $statStrip['weight_delta'];
-                        $wu    = $statStrip['weight_unit'] ?? '';
-                        $wdays = (int) ($statStrip['weight_days'] ?? 0);
-                    ?>
-                        <span class="dash-stat__value">
-                            <?php if ($wd < 0): ?>
-                                <span class="text-good">↓ <?= e(number_format(abs($wd), 1)) ?></span>
-                            <?php elseif ($wd > 0): ?>
-                                <span class="text-warn">↑ <?= e(number_format($wd, 1)) ?></span>
-                            <?php else: ?>
-                                <span>0.0</span>
-                            <?php endif; ?>
-                            <span class="dash-stat__unit"><?= e($wu) ?></span>
-                        </span>
-                        <span class="dash-stat__label">
-                            over the last <?= e((string) max(1, $wdays)) ?> day<?= $wdays === 1 ? '' : 's' ?>
-                        </span>
-                    <?php else: ?>
-                        <span class="dash-stat__value">
-                            <span class="dash-stat__placeholder">—</span>
-                        </span>
-                        <span class="dash-stat__label">log a weigh-in to track</span>
-                    <?php endif; ?>
                 </div>
             </li>
 
@@ -225,15 +190,52 @@ $hasAnyActivity =
                     </svg>
                 </span>
                 <div class="dash-stat__body">
+                    <span class="dash-stat__label">Workouts/week</span>
                     <span class="dash-stat__value">
-                        <?php if ($statStrip['lifts_week'] > 0): ?>
-                            <?= e((string) $statStrip['lifts_week']) ?>
-                            <span class="dash-stat__unit">lift<?= $statStrip['lifts_week'] === 1 ? '' : 's' ?></span>
+                        <?php if ($workoutsDone > 0 || $workoutsTarget > 0): ?>
+                            <?= e((string) $workoutsDone) ?>
+                            <?php if ($workoutsTarget > 0): ?>
+                                <span class="dash-stat__unit">/ <?= e((string) $workoutsTarget) ?> days</span>
+                            <?php else: ?>
+                                <span class="dash-stat__unit">day<?= $workoutsDone === 1 ? '' : 's' ?></span>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span class="dash-stat__placeholder">—</span>
                         <?php endif; ?>
                     </span>
-                    <span class="dash-stat__label">logged this week</span>
+                </div>
+            </li>
+
+            <li class="dash-stat">
+                <span class="dash-stat__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M6 6l2 14h8l2-14"/>
+                        <path d="M9 10v6M15 10v6M12 10v6"/>
+                    </svg>
+                </span>
+                <div class="dash-stat__body">
+                    <span class="dash-stat__label">Weight Δ</span>
+                    <?php if ($statStrip['weight_delta'] !== null):
+                        $wd = (float) $statStrip['weight_delta'];
+                        $wu = $statStrip['weight_unit'] ?? '';
+                    ?>
+                        <span class="dash-stat__value">
+                            <?php if ($wd < 0): ?>
+                                <span class="text-good">−<?= e(number_format(abs($wd), 1)) ?></span>
+                            <?php elseif ($wd > 0): ?>
+                                <span class="text-warn">+<?= e(number_format($wd, 1)) ?></span>
+                            <?php else: ?>
+                                <span>0.0</span>
+                            <?php endif; ?>
+                            <span class="dash-stat__unit"><?= e($wu) ?></span>
+                        </span>
+                    <?php else: ?>
+                        <span class="dash-stat__value">
+                            <span class="dash-stat__placeholder">—</span>
+                        </span>
+                    <?php endif; ?>
                 </div>
             </li>
 
@@ -604,14 +606,6 @@ $hasAnyActivity =
                             <div class="cardio-bar__fill"
                                  style="width: <?= e((string) $cardioCard['pct']) ?>%"></div>
                         </div>
-                        <div class="dash-card__hint">
-                            <?= e((string) $cardioCard['minutes_week']) ?> min this week
-                            <?php if ($cardioCard['distance_week'] !== null): ?>
-                                · <?= e(rtrim(rtrim(number_format($cardioCard['distance_week'], 1), '0'), '.')) ?>
-                                <?= e($cardioCard['distance_unit']) ?>
-                            <?php endif; ?>
-                            · <?= e((string) $cardioCard['pct']) ?>%
-                        </div>
                     <?php else: ?>
                         <div class="dash-card__value">
                             <?= e((string) $cardioCard['minutes_week']) ?>
@@ -619,12 +613,42 @@ $hasAnyActivity =
                         </div>
                         <div class="dash-card__hint">
                             <?= e((string) $cardioCard['sessions_week']) ?> session<?= $cardioCard['sessions_week'] === 1 ? '' : 's' ?>
-                            <?php if ($cardioCard['distance_week'] !== null): ?>
-                                · <?= e(rtrim(rtrim(number_format($cardioCard['distance_week'], 1), '0'), '.')) ?>
-                                <?= e($cardioCard['distance_unit']) ?>
-                            <?php endif; ?>
                             this week.
                         </div>
+                    <?php endif; ?>
+
+                    <?php if ($cardioCard['target'] !== null): ?>
+                        <!-- Time / distance / progress stacked vertically so
+                             the card body fills out without the metrics getting
+                             crammed into a single ·-separated hint line. -->
+                        <dl class="cardio-stats">
+                            <div class="cardio-stats__row">
+                                <dt>Time</dt>
+                                <dd><?= e((string) $cardioCard['minutes_week']) ?>
+                                    <span class="cardio-stats__unit">min</span></dd>
+                            </div>
+                            <?php if ($cardioCard['distance_week'] !== null): ?>
+                                <div class="cardio-stats__row">
+                                    <dt>Distance</dt>
+                                    <dd><?= e(rtrim(rtrim(number_format($cardioCard['distance_week'], 1), '0'), '.')) ?>
+                                        <span class="cardio-stats__unit"><?= e($cardioCard['distance_unit']) ?></span></dd>
+                                </div>
+                            <?php endif; ?>
+                            <div class="cardio-stats__row">
+                                <dt>Progress</dt>
+                                <dd><?= e((string) $cardioCard['pct']) ?><span class="cardio-stats__unit">%</span></dd>
+                            </div>
+                        </dl>
+                    <?php elseif ($cardioCard['distance_week'] !== null): ?>
+                        <!-- No target set, but distance was recorded — still
+                             surface it so the data the user logged shows up. -->
+                        <dl class="cardio-stats">
+                            <div class="cardio-stats__row">
+                                <dt>Distance</dt>
+                                <dd><?= e(rtrim(rtrim(number_format($cardioCard['distance_week'], 1), '0'), '.')) ?>
+                                    <span class="cardio-stats__unit"><?= e($cardioCard['distance_unit']) ?></span></dd>
+                            </div>
+                        </dl>
                     <?php endif; ?>
 
                     <?php if (!empty($cardioCard['latest'])):

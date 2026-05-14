@@ -2530,7 +2530,22 @@ main:focus { outline: none; }
 @media (max-width: 600px) {
     .dash-charts { grid-template-columns: 1fr; }
 }
-.dash-charts .tracker-card { margin-bottom: 0; }
+.dash-charts .tracker-card {
+    margin-bottom: 0;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+/* Visual-only lift on hover. The card itself isn't a link (so Chart.js
+   interactions stay alive) — the "Open tracker →" link in the header
+   handles navigation. */
+.dash-charts .tracker-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-hot);
+    box-shadow: var(--shadow);
+}
+@media (prefers-reduced-motion: reduce) {
+    .dash-charts .tracker-card { transition: none; }
+    .dash-charts .tracker-card:hover { transform: none; }
+}
 .dash-charts .tracker-card__head { margin-bottom: 1rem; }
 .dash-charts .tracker-card__head h3 {
     margin: 0;
@@ -2632,6 +2647,16 @@ a.feature-card:focus-visible {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.dash-stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-hot);
+    box-shadow: var(--shadow);
+}
+@media (prefers-reduced-motion: reduce) {
+    .dash-stat { transition: none; }
+    .dash-stat:hover { transform: none; }
 }
 .dash-stat__icon {
     display: grid;
@@ -2650,23 +2675,30 @@ a.feature-card:focus-visible {
     gap: 0.1rem;
     min-width: 0;
 }
+/* Label sits ABOVE the value (small uppercase eyebrow) and the value
+   reads as the headline number. Markup order in the view puts label
+   first so the visual stack matches without needing flex-direction
+   reverse. */
+.dash-stat__label {
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    line-height: 1.1;
+}
 .dash-stat__value {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--text);
     font-variant-numeric: tabular-nums;
     line-height: 1.15;
 }
 .dash-stat__unit {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 500;
     color: var(--text-dim);
     margin-left: 0.15rem;
-}
-.dash-stat__label {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    letter-spacing: 0.01em;
 }
 .dash-stat__placeholder {
     color: var(--text-faint);
@@ -3268,6 +3300,44 @@ a.feature-card:focus-visible {
 }
 @media (prefers-reduced-motion: reduce) {
     .cardio-bar__fill { transition: none; }
+}
+
+/* ----- Cardio card stat rows ---------------------------------------
+   Time / Distance / Progress stacked vertically below the progress
+   bar. Label-left, value-right with a faint divider between rows
+   so the column reads as a clean key/value list. */
+.cardio-stats {
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+.cardio-stats__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.45rem 0;
+    border-bottom: 1px dashed var(--border-soft);
+    font-size: 0.9rem;
+}
+.cardio-stats__row:last-child { border-bottom: none; }
+.cardio-stats dt {
+    color: var(--text-dim);
+    font-weight: 500;
+    margin: 0;
+}
+.cardio-stats dd {
+    margin: 0;
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.cardio-stats__unit {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-left: 0.15rem;
 }
 
 
