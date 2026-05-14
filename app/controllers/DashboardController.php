@@ -166,6 +166,24 @@ class DashboardController extends Controller {
                     'remaining_display' => $remainingDisp,
                 ];
             }
+
+            // Sparkline data — last ~14 weigh-ins, oldest-first, in the
+            // user's display unit. The view renders this as a small SVG
+            // polyline so the empty space below the weight value shows
+            // direction visually instead of just the textual "↓ 0.6 kg".
+            // Only computed when there are ≥2 entries (a single point is
+            // not a trend).
+            if (count($weightHistory) >= 2) {
+                $sparkSlice = array_slice($weightHistory, 0, 14);   // newest 14
+                $sparkChrono = array_reverse($sparkSlice);           // oldest-first
+                $unit = $latestWeight['unit'];
+                $weightCard['sparkline'] = array_map(
+                    static fn(array $r) => $unit === 'kg'
+                        ? round((float) $r['weight_kg'], 1)
+                        : round((float) $r['weight_kg'] * self::LB_PER_KG, 1),
+                    $sparkChrono
+                );
+            }
         }
 
         // ----- Strength summary ------------------------------------

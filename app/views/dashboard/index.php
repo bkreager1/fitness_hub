@@ -366,6 +366,54 @@ $hasAnyActivity =
                         <?php endif; ?>
                     </div>
 
+                    <?php if (!empty($weightCard['sparkline']) && count($weightCard['sparkline']) >= 2):
+                        // Tiny SVG sparkline — last ~14 weigh-ins, oldest →
+                        // newest, in the user's display unit. Plot in a fixed
+                        // viewBox (100w × 28h) and normalize the y-axis to the
+                        // data range so even small wobbles read as a visible
+                        // line. Direction class drives the stroke color
+                        // (green = went down, warn = went up, dim = flat).
+                        $pts = $weightCard['sparkline'];
+                        $min = min($pts);
+                        $max = max($pts);
+                        $range = $max - $min;
+                        $n = count($pts);
+
+                        // Direction: latest vs oldest in this slice.
+                        $sparkDelta = $pts[$n - 1] - $pts[0];
+                        $sparkDir = abs($sparkDelta) < 0.05 ? 'flat'
+                                  : ($sparkDelta < 0 ? 'down' : 'up');
+
+                        $svgPoints = [];
+                        foreach ($pts as $i => $v) {
+                            $x = $n > 1 ? round(($i / ($n - 1)) * 100, 2) : 50;
+                            // y is inverted (SVG 0 = top). Use a 3px top/bottom
+                            // padding so the stroke doesn't clip at the edges.
+                            $yNorm = $range > 0 ? ($v - $min) / $range : 0.5;
+                            $y = round(3 + (1 - $yNorm) * 22, 2);  // 3..25
+                            $svgPoints[] = $x . ',' . $y;
+                        }
+                        $lastIdx = $n - 1;
+                        [$endX, $endY] = explode(',', $svgPoints[$lastIdx]);
+                    ?>
+                        <div class="weight-spark weight-spark--<?= e($sparkDir) ?>"
+                             aria-hidden="true">
+                            <svg viewBox="0 0 100 28" preserveAspectRatio="none"
+                                 class="weight-spark__svg">
+                                <polyline class="weight-spark__line"
+                                          fill="none" stroke="currentColor"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          vector-effect="non-scaling-stroke"
+                                          points="<?= e(implode(' ', $svgPoints)) ?>"/>
+                                <circle class="weight-spark__dot"
+                                        cx="<?= e($endX) ?>" cy="<?= e($endY) ?>" r="2.4"
+                                        fill="currentColor"/>
+                            </svg>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($weightCard['goal'])):
                         $wg = $weightCard['goal']; ?>
                         <div class="goal-bar" aria-label="Weight goal progress">
@@ -549,16 +597,23 @@ $hasAnyActivity =
                             <?= e((string) $cardioCard['sessions_week']) ?>
                             <span class="dash-card__unit">/ <?= e((string) $cardioCard['target']) ?> sessions</span>
                         </div>
-                        <div class="goal-bar goal-bar--compact" aria-label="Cardio sessions this week vs target">
-                            <div class="goal-bar__track">
-                                <div class="goal-bar__fill"
-                                     style="width: <?= e((string) $cardioCard['pct']) ?>%"></div>
-                            </div>
-                            <span class="goal-bar__sub">
-                                <?= e((string) $cardioCard['minutes_week']) ?> min this week
-                                <span class="goal-bar__pct goal-bar__pct--inline">·
-                                    <?= e((string) $cardioCard['pct']) ?>%</span>
-                            </span>
+                        <!-- Segmented bar: one cell per target session, filled
+                             cells = sessions logged. Caps the filled count at
+                             the target so a user past their goal doesn't see
+                             phantom segments. -->
+                        <?php
+                            $tgt    = (int) $cardioCard['target'];
+                            $filled = max(0, min($tgt, (int) $cardioCard['sessions_week']));
+                        ?>
+                        <div class="session-segments" aria-hidden="true">
+                            <?php for ($i = 0; $i < $tgt; $i++): ?>
+                                <span class="session-segments__seg<?= $i < $filled ? ' is-filled' : '' ?>"></span>
+                            <?php endfor; ?>
+                        </div>
+                        <div class="dash-card__hint">
+                            <?= e((string) $cardioCard['minutes_week']) ?> min this week
+                            <span class="goal-bar__pct goal-bar__pct--inline">·
+                                <?= e((string) $cardioCard['pct']) ?>%</span>
                         </div>
                     <?php else: ?>
                         <div class="dash-card__value">

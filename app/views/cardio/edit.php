@@ -49,7 +49,12 @@ $fmtDate = static function (string $iso): string {
 <section class="hero hero--compact">
     <div class="container">
         <span class="eyebrow">Cardio tracker</span>
-        <h1>Edit cardio log</h1>
+        <div class="hero-heading-row">
+            <h1>Edit cardio log</h1>
+            <img class="hero-icon"
+                 src="<?= asset('images/cardio.png') ?>"
+                 alt="" width="96" height="96">
+        </div>
         <p class="hero-lede">
             Originally logged on <?= e($fmtDate($row['logged_date'])) ?>.
             Update what you need, then save.

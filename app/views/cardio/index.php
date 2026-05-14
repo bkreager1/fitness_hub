@@ -67,7 +67,12 @@ $latestLine = $latest
 <section class="hero hero--compact">
     <div class="container">
         <span class="eyebrow">Cardio tracker</span>
-        <h1>Walks, runs, rides — log every session.</h1>
+        <div class="hero-heading-row">
+            <h1>Walks, runs, rides — log every session.</h1>
+            <img class="hero-icon"
+                 src="<?= asset('images/cardio.png') ?>"
+                 alt="" width="96" height="96">
+        </div>
         <p class="hero-lede">
             Pick a type, drop in your duration, and (optionally) note
             intensity or distance. The dashboard rolls these up into your

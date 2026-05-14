@@ -3251,6 +3251,53 @@ a.feature-card:focus-visible {
 }
 
 
+/* ----- Weight sparkline (dashboard weight card) --------------------
+   Tiny inline SVG line + end-dot that fills the empty space below
+   the weight value. Stroke color is driven by the recent direction
+   so the trend reads at a glance: green when weight is dropping,
+   warn when rising, dim when flat. Uses currentColor on the
+   polyline + dot so the color cascades from the parent. */
+.weight-spark {
+    margin: 0.5rem 0 0.25rem;
+    height: 32px;
+    color: var(--text-dim);
+}
+.weight-spark--down  { color: #34d399; }
+.weight-spark--up    { color: #fb923c; }
+.weight-spark--flat  { color: var(--text-faint); }
+.weight-spark__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+
+/* ----- Session-segments bar (cardio card) --------------------------
+   Like .goal-bar, but split into N equal cells — one per target
+   session. Filled cells use the brand gradient; empty cells are the
+   muted card-2 surface. Reads as "you've done X of Y" at a glance,
+   echoing the mockup's segmented look. */
+.session-segments {
+    display: flex;
+    gap: 4px;
+    margin: 0.4rem 0 0.5rem;
+}
+.session-segments__seg {
+    flex: 1 1 0;
+    height: 10px;
+    background: var(--bg-card-2);
+    border-radius: 4px;
+    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.session-segments__seg.is-filled {
+    background: linear-gradient(90deg, var(--primary-deep), var(--primary));
+}
+@media (prefers-reduced-motion: reduce) {
+    .session-segments__seg { transition: none; }
+}
+
+
 /* ----- "This week" card — workouts bar + recent activity ----------- */
 .weekly-bar {
     display: flex;
