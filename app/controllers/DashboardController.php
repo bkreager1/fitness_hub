@@ -276,12 +276,17 @@ class DashboardController extends Controller {
         // ----- Cardio summary --------------------------------------
         // Card surfaces this week's progress against the user's optional
         // weekly_cardio_target plus a "last session" preview line. The
-        // window is the rolling 7 days (today inclusive) so a Monday
-        // streak reads the same whether it's Tuesday or Sunday today.
-        $sevenAgoDate = (new DateTime('today'))->modify('-6 days')->format('Y-m-d');
+        // window is the current ISO calendar week — Monday 00:00 through
+        // today — so the bars + counts reset every Monday morning.
+        // (We pick Monday-start to match how most users mentally
+        // partition a training week.)
+        $dayOfWeek = (int) (new DateTime('today'))->format('N'); // 1=Mon .. 7=Sun
+        $weekStart = (new DateTime('today'))
+            ->modify('-' . ($dayOfWeek - 1) . ' days')
+            ->format('Y-m-d');
 
-        $cardioWeekCount   = CardioLog::countForUserSince($userId, $sevenAgoDate);
-        $cardioWeekMinutes = CardioLog::totalMinutesForUserSince($userId, $sevenAgoDate);
+        $cardioWeekCount   = CardioLog::countForUserSince($userId, $weekStart);
+        $cardioWeekMinutes = CardioLog::totalMinutesForUserSince($userId, $weekStart);
         $latestCardio      = CardioLog::latestForUser($userId);
 
         $cardioTarget = isset($user['weekly_cardio_target'])
@@ -295,7 +300,7 @@ class DashboardController extends Controller {
         // no session this week recorded a distance.
         $cardioDistanceUnit = $latestCardio['distance_unit'] ?? 'mi';
         $cardioDistanceWeek = CardioLog::totalDistanceForUserSince(
-            $userId, $sevenAgoDate, $cardioDistanceUnit
+            $userId, $weekStart, $cardioDistanceUnit
         );
 
         $cardioCard = [
@@ -318,7 +323,7 @@ class DashboardController extends Controller {
         // ----- "This week" card ------------------------------------
         // Two concerns living in one card:
         //   1. Workouts-this-week bar — distinct dates with ANY training
-        //      activity (strength OR cardio) in the rolling 7-day window,
+        //      activity (strength OR cardio) in the current ISO week,
         //      compared against the user's optional weekly_workout_target.
         //   2. Recent activity feed — latest N entries across all four
         //      trackers, normalized into a uniform shape for the view.
@@ -327,11 +332,11 @@ class DashboardController extends Controller {
                 static fn(array $r): string => $r['logged_date'],
                 array_filter(
                     $strengthHistoryAll,
-                    static fn(array $r): bool => $r['logged_date'] >= $sevenAgoDate
+                    static fn(array $r): bool => $r['logged_date'] >= $weekStart
                 )
             ))
             : [];
-        $cardioDates = CardioLog::distinctDatesForUserSince($userId, $sevenAgoDate);
+        $cardioDates = CardioLog::distinctDatesForUserSince($userId, $weekStart);
         $workoutDates = array_unique(array_merge($strengthDates, $cardioDates));
         $workoutsDone = count($workoutDates);
 
@@ -352,11 +357,11 @@ class DashboardController extends Controller {
         // Four small "momentum" stats. Computed in one block so the
         // view just renders them. Each stat returns null when there's
         // nothing meaningful yet, and the view shows a muted dash.
-        // $sevenAgoDate was set above next to the cardio block.
+        // Counts use $weekStart (Monday of the current week) so they
+        // reset Monday 00:00 along with the rest of the weekly bars.
         $statStrip = [
             'streak'        => $this->computeLoggingStreak($userId),
-            'meals_week'    => CalorieIntake::countForUserSince($userId, $sevenAgoDate),
-            'lifts_week'    => StrengthLog::countForUserSince($userId, $sevenAgoDate),
+            'meals_week'    => CalorieIntake::countForUserSince($userId, $weekStart),
             'cardio_week'   => $cardioWeekCount,
             'weight_delta'  => $weightCard['trend_diff'] ?? null,
             'weight_unit'   => $weightCard['unit'] ?? null,
