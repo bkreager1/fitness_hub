@@ -91,6 +91,13 @@ try {
         'POST strength/update' => (new StrengthController())->update(),
         'POST strength/delete' => (new StrengthController())->delete(),
 
+        // ----- Cardio tracker -----
+        'GET cardio'         => (new CardioController())->index(),
+        'POST cardio'        => (new CardioController())->save(),
+        'GET cardio/edit'    => (new CardioController())->edit(),
+        'POST cardio/update' => (new CardioController())->update(),
+        'POST cardio/delete' => (new CardioController())->delete(),
+
         // ----- Profile -----
         'GET profile'               => (new ProfileController())->index(),
         'POST profile'              => (new ProfileController())->update(),

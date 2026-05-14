@@ -1302,6 +1302,125 @@
 
 
     /* ---------------------------------------------------------
+       Dashboard strength card — 1RM ↔ All-time inset toggle.
+
+       Each lift row's right-hand number lives in a span with
+       data-current + data-alltime attributes (raw decimals). The
+       toggle's two buttons have data-mode="current"|"alltime".
+       Click swaps the rendered text, formatted with thousands
+       separators to match the server-rendered initial value.
+       --------------------------------------------------------- */
+    (function initStrengthDashToggle () {
+        const card = document.getElementById('dashStrengthCard');
+        if (!card) return;
+        const toggle = card.querySelector('.strength-toggle');
+        if (!toggle) return;
+
+        const fmt = (v) => Number(v).toLocaleString('en-US', {
+            maximumFractionDigits: 0,
+        });
+
+        toggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-mode]');
+            if (!btn || btn.classList.contains('is-active')) return;
+            const mode = btn.dataset.mode;
+
+            toggle.querySelectorAll('button').forEach((b) => {
+                const on = b === btn;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+
+            card.querySelectorAll('.strength-list__num').forEach((n) => {
+                const raw = mode === 'alltime'
+                    ? n.dataset.alltime
+                    : n.dataset.current;
+                if (raw !== undefined) n.textContent = fmt(raw);
+            });
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
+       Cardio tracker — daily minutes bar chart.
+
+       Rolls up rows into per-day totals (a morning walk + evening
+       run on the same date stack into one bar), then renders a
+       single orange-gradient bar series. Same visual language as
+       the calorie intake chart so the dashboard reads consistently.
+       --------------------------------------------------------- */
+    (function initCardioChart () {
+        const canvas = document.getElementById('cardioChart');
+        if (!canvas) return;
+        canvas.closest('.chart-wrap--loading')?.classList.remove('chart-wrap--loading');
+        if (typeof Chart === 'undefined') return;
+
+        let rows;
+        try {
+            rows = JSON.parse(canvas.dataset.rows || '[]');
+        } catch (e) {
+            return;
+        }
+        if (!Array.isArray(rows) || rows.length === 0) return;
+
+        // Roll up to one bar per date (multiple sessions stack).
+        const byDate = {};
+        rows.forEach((r) => {
+            byDate[r.date] = (byDate[r.date] || 0) + (r.duration_min || 0);
+        });
+        const dates  = Object.keys(byDate).sort();
+        const labels = dates.map((d) => {
+            const dt = new Date(d + 'T00:00:00');
+            return isNaN(dt) ? d
+                : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        const data = dates.map((d) => byDate[d]);
+
+        const css  = getComputedStyle(document.documentElement);
+        const text = (css.getPropertyValue('--text-dim') || '#a4a8b5').trim();
+        const grid = 'rgba(148, 163, 184, 0.10)';
+
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Minutes',
+                    data,
+                    backgroundColor: (ctx) =>
+                        makeChartGradient(ctx.chart, 'rgba(255, 122, 26, ALPHA)'),
+                    borderColor: '#ff7a1a',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        ...brandedTooltip(),
+                        callbacks: {
+                            label: (ctx) => `${ctx.parsed.y.toLocaleString()} min`,
+                        },
+                    },
+                },
+                scales: {
+                    x: { ticks: { color: text }, grid: { color: grid } },
+                    y: {
+                        ticks: { color: text, callback: (v) => v.toLocaleString() },
+                        grid:  { color: grid },
+                        beginAtZero: true,
+                    },
+                },
+            },
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        Count-up animation on dashboard summary numbers.
 
        Targets the leading numeric text node inside each

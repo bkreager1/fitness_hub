@@ -1,34 +1,46 @@
 <?php
 // ============================================================
 // app/views/dashboard/index.php
-// Phase 7 — Dashboard hub.
-// Three "today at a glance" summary cards (calories / weight /
-// lifts), then three quick-action cards that route into each
-// tracker. The summary cards are also clickable as shortcuts.
+// Dashboard hub — redesigned for the cardio + weekly-cadence pass.
+//
+// Layout (desktop ≥1100px):
+//   ┌─ Hero greeting ───────────────────────────────────────────┐
+//   ┌─ Stat strip (streak / meals / lifts / weight Δ) ──────────┐
+//   ┌─ Today's snapshot grid ───────────────────────────────────┐
+//   │  Calories | Weight  | Strength                            │
+//   │  ──────── This week ──── | Cardio                         │
+//   ┌─ Goals & progress strip ─────────────────────────────────-┐
+//   ┌─ Progress over time (3 trend charts + cardio) ────────────┐
+//   ┌─ Quick-action strip ──────────────────────────────────────┐
 //
 // Variables expected from DashboardController::index():
-//   $today         ISO date "today"
-//   $displayName   user's name
-//   $calorieCard   ['has_targets', 'has_today', 'today', 'target',
-//                   'goal_label', 'diff'?]
-//   $weightCard    ['has_logs', 'weight'?, 'unit'?, 'date'?,
-//                   'trend_diff'?, 'trend_days'?]
-//   $strengthCard  ['has_logs', 'lifts' (per lift_type row|null),
-//                   'labels' (lift_type → friendly)]
+//   $today, $displayName, $user
+//   $calorieCard, $weightCard, $strengthCard, $cardioCard
+//   $thisWeek                 ← workouts_done/target/pct + recent[]
+//   $statStrip
+//   $intakeChartData / Targets, $weightChartData / Unit,
+//   $strengthChartData / Unit, $cardioChartData, $activeGoal
 // ============================================================
 
-$todayPretty = date('l, F j', strtotime($today));   // "Tuesday, April 28"
+$todayPretty = date('l, F j', strtotime($today));
 
-// Inline helper: format a strength row's "weight × reps" line.
 $liftLine = static function (?array $row): string {
     if (!$row) return '—';
     $w = (float) $row['weight'];
-    // Strip trailing zeros: 225.00 → "225", 102.50 → "102.5"
     $weightStr = rtrim(rtrim((string) $w, '0'), '.');
     return sprintf('%s %s × %s', $weightStr, $row['unit'], $row['reps']);
 };
 
 $fmtDate = static function (string $iso): string {
+    $ts = strtotime($iso);
+    return $ts ? date('M j', $ts) : $iso;
+};
+
+// "2h ago" / "today" / "yesterday" / "Mon" for the recent-activity feed.
+$relativeDay = static function (string $iso) use ($today): string {
+    if ($iso === $today) return 'today';
+    $yesterday = date('Y-m-d', strtotime('-1 day'));
+    if ($iso === $yesterday) return 'yesterday';
     $ts = strtotime($iso);
     return $ts ? date('M j', $ts) : $iso;
 };
@@ -51,12 +63,11 @@ $fmtDate = static function (string $iso): string {
 
 <!-- ===================== Stat strip ===================== -->
 <?php
-// Hide the strip entirely on brand-new accounts (no logs anywhere) so
-// it doesn't read as a wall of "0 / —" the moment they sign up.
 $hasAnyActivity =
     $statStrip['streak'] > 0
     || $statStrip['meals_week'] > 0
     || $statStrip['lifts_week'] > 0
+    || ($statStrip['cardio_week'] ?? 0) > 0
     || $statStrip['weight_delta'] !== null;
 ?>
 <?php if ($hasAnyActivity): ?>
@@ -64,7 +75,6 @@ $hasAnyActivity =
     <div class="container">
         <ul class="dash-stat-strip">
 
-            <!-- Logging streak -->
             <li class="dash-stat <?= $statStrip['streak'] > 0 ? 'dash-stat--hot' : '' ?>">
                 <span class="dash-stat__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -88,7 +98,6 @@ $hasAnyActivity =
                 </div>
             </li>
 
-            <!-- Meals this week -->
             <li class="dash-stat">
                 <span class="dash-stat__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -112,7 +121,6 @@ $hasAnyActivity =
                 </div>
             </li>
 
-            <!-- Weight delta -->
             <li class="dash-stat">
                 <span class="dash-stat__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -150,7 +158,6 @@ $hasAnyActivity =
                 </div>
             </li>
 
-            <!-- Lifts this week -->
             <li class="dash-stat">
                 <span class="dash-stat__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -181,29 +188,26 @@ $hasAnyActivity =
 <?php endif; ?>
 
 
-<!-- ===================== Today at a glance ===================== -->
+<!-- ===================== Today's snapshot grid ===================== -->
 <section class="section">
     <div class="container">
+        <div class="section-head">
+            <h2>Today's snapshot</h2>
+            <p>Quick read on where you're at right now. Click any card to dive in.</p>
+        </div>
 
-        <div class="dash-summary">
+        <div class="dash-grid">
 
-            <!-- Calorie summary -->
-            <a class="dash-card" href="<?= url('calorie') ?>">
+            <!-- ===== Calories ===== -->
+            <a class="dash-card dash-grid__calories" href="<?= url('calorie') ?>">
                 <span class="dash-card__eyebrow">Calories</span>
 
                 <?php if ($calorieCard['has_targets']):
-                    // Ring fill — clamped to 0..100 even if the user blew past
-                    // the target (overfill is communicated via the "X over"
-                    // hint underneath, not by drawing more than a full ring).
                     $todayCal  = $calorieCard['has_today'] ? (int) $calorieCard['today'] : 0;
                     $targetCal = (int) $calorieCard['target'];
                     $pct       = $targetCal > 0
                         ? max(0, min(100, round(($todayCal / $targetCal) * 100)))
                         : 0;
-                    // Stroke math: r=32, circumference ≈ 201.06. Offset is the
-                    // un-filled remainder, so 0% → full offset (no fill), 100%
-                    // → 0 offset (full ring). Drawn rotated -90deg so the
-                    // start of the arc is at 12 o'clock.
                     $circ   = 201.06;
                     $offset = $circ * (1 - $pct / 100);
                 ?>
@@ -279,8 +283,8 @@ $hasAnyActivity =
                 <?php endif; ?>
             </a>
 
-            <!-- Weight summary -->
-            <a class="dash-card" href="<?= url('weight') ?>">
+            <!-- ===== Weight ===== -->
+            <a class="dash-card dash-grid__weight" href="<?= url('weight') ?>">
                 <span class="dash-card__eyebrow">Weight</span>
 
                 <?php if ($weightCard['has_logs']): ?>
@@ -336,27 +340,58 @@ $hasAnyActivity =
                 <?php endif; ?>
             </a>
 
-            <!-- Strength summary -->
-            <a class="dash-card" href="<?= url('strength') ?>">
-                <span class="dash-card__eyebrow">Big three</span>
+            <!-- ===== Strength (with 1RM ↔ All-time inset toggle) ===== -->
+            <article class="dash-card dash-grid__strength" id="dashStrengthCard">
+                <header class="dash-card__head">
+                    <span class="dash-card__eyebrow">Strength</span>
+                    <a class="dash-card__view-all" href="<?= url('strength') ?>">View all</a>
+                </header>
 
                 <?php if ($strengthCard['has_logs']): ?>
-                    <ul class="dash-card__list">
+                    <!-- Inset toggle: swaps the right-hand number on each
+                         lift row between "current 1RM" (today's latest
+                         entry's est. 1RM) and "all-time best" 1RM. The
+                         goal bar's % stays tied to all-time (that's the
+                         honest answer to "how close am I to target"). -->
+                    <div class="strength-toggle" role="tablist"
+                         aria-label="Strength figure to display">
+                        <button type="button" class="is-active"
+                                role="tab" aria-selected="true"
+                                data-mode="current">1RM</button>
+                        <button type="button"
+                                role="tab" aria-selected="false"
+                                data-mode="alltime">All-time</button>
+                    </div>
+
+                    <ul class="strength-list">
                         <?php foreach (['bench', 'squat', 'deadlift'] as $key):
-                            $sg = $strengthCard['goals'][$key] ?? null; ?>
-                            <li class="<?= $sg ? 'has-goal' : '' ?>">
-                                <div class="dash-card__list-row">
-                                    <span class="dash-card__list-label">
-                                        <?= e($strengthCard['labels'][$key] ?? ucfirst($key)) ?>
-                                    </span>
-                                    <span class="dash-card__list-value">
-                                        <?php if (!empty($strengthCard['is_pr'][$key])): ?>
+                            $sg     = $strengthCard['goals'][$key]   ?? null;
+                            $disp   = $strengthCard['display'][$key] ?? null;
+                            $isPr   = !empty($strengthCard['is_pr'][$key]);
+                            $label  = $strengthCard['labels'][$key] ?? ucfirst($key);
+                        ?>
+                            <li class="strength-list__row">
+                                <div class="strength-list__head">
+                                    <span class="strength-list__lift">
+                                        <?= e($label) ?>
+                                        <?php if ($isPr): ?>
                                             <span class="dash-pr-badge"
                                                   title="Personal record (estimated 1-rep max)"
                                                   aria-label="Personal record">PR</span>
                                         <?php endif; ?>
-                                        <?= e($liftLine($strengthCard['lifts'][$key] ?? null)) ?>
                                     </span>
+                                    <?php if ($disp): ?>
+                                        <span class="strength-list__value">
+                                            <span data-current="<?= e((string) $disp['current_orm']) ?>"
+                                                  data-alltime="<?= e((string) $disp['alltime_orm']) ?>"
+                                                  class="strength-list__num">
+                                                <?= e(number_format($disp['current_orm'], 0)) ?>
+                                            </span>
+                                            <span class="strength-list__unit"><?= e($disp['unit']) ?></span>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="strength-list__value text-faint">—</span>
+                                    <?php endif; ?>
                                 </div>
                                 <?php if ($sg): ?>
                                     <div class="goal-bar goal-bar--compact"
@@ -366,9 +401,7 @@ $hasAnyActivity =
                                                  style="width: <?= e((string) $sg['pct']) ?>%"></div>
                                         </div>
                                         <span class="goal-bar__sub">
-                                            <?= e(number_format($sg['current_display'], 0)) ?>
-                                            /
-                                            <?= e(number_format($sg['target_display'], 0)) ?>
+                                            target <?= e(number_format($sg['target_display'], 0)) ?>
                                             <?= e($sg['unit']) ?>
                                             <span class="goal-bar__pct goal-bar__pct--inline">·
                                                 <?= e((string) $sg['pct']) ?>%</span>
@@ -381,29 +414,232 @@ $hasAnyActivity =
                 <?php else: ?>
                     <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
-                        Log your first big-three lift to start the chart.
+                        Log your first big-three lift to start tracking PRs.
+                    </div>
+                <?php endif; ?>
+            </article>
+
+            <!-- ===== This week (workouts bar + recent activity) ===== -->
+            <article class="dash-card dash-grid__thisweek">
+                <header class="dash-card__head">
+                    <span class="dash-card__eyebrow">This week</span>
+                </header>
+
+                <?php if (!empty($thisWeek['workouts_target'])): ?>
+                    <div class="weekly-bar" aria-label="Workouts this week vs target">
+                        <div class="weekly-bar__meta">
+                            <span class="weekly-bar__label">Workouts this week</span>
+                            <span class="weekly-bar__value">
+                                <strong><?= e((string) $thisWeek['workouts_done']) ?></strong>
+                                <span>/ <?= e((string) $thisWeek['workouts_target']) ?> days</span>
+                            </span>
+                        </div>
+                        <div class="weekly-bar__track">
+                            <div class="weekly-bar__fill"
+                                 style="width: <?= e((string) $thisWeek['workouts_pct']) ?>%"></div>
+                        </div>
+                    </div>
+                <?php elseif ($thisWeek['workouts_done'] > 0): ?>
+                    <div class="weekly-bar weekly-bar--no-target">
+                        <div class="weekly-bar__meta">
+                            <span class="weekly-bar__label">Workouts this week</span>
+                            <span class="weekly-bar__value">
+                                <strong><?= e((string) $thisWeek['workouts_done']) ?></strong>
+                                <span>day<?= $thisWeek['workouts_done'] === 1 ? '' : 's' ?></span>
+                            </span>
+                        </div>
+                        <p class="weekly-bar__hint">
+                            Set a weekly workout target in
+                            <a href="<?= url('profile') ?>">your profile</a>
+                            to track it here.
+                        </p>
+                    </div>
+                <?php endif; ?>
+
+                <div class="recent-activity">
+                    <h3 class="recent-activity__title">Recent activity</h3>
+                    <?php if (!empty($thisWeek['recent'])): ?>
+                        <ul class="recent-activity__list">
+                            <?php foreach ($thisWeek['recent'] as $item): ?>
+                                <li class="recent-activity__item">
+                                    <span class="recent-activity__dot recent-activity__dot--<?= e($item['type']) ?>"
+                                          aria-hidden="true"></span>
+                                    <a href="<?= e($item['href']) ?>"
+                                       class="recent-activity__link">
+                                        <span class="recent-activity__summary">
+                                            <?= e($item['summary']) ?>
+                                        </span>
+                                        <span class="recent-activity__when">
+                                            <?= e($relativeDay($item['date'])) ?>
+                                        </span>
+                                    </a>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <p class="recent-activity__empty">
+                            Log something to see your latest activity here.
+                        </p>
+                    <?php endif; ?>
+                </div>
+            </article>
+
+            <!-- ===== Cardio ===== -->
+            <a class="dash-card dash-grid__cardio" href="<?= url('cardio') ?>">
+                <span class="dash-card__eyebrow">Cardio</span>
+
+                <?php if ($cardioCard['has_logs']): ?>
+                    <?php if ($cardioCard['target'] !== null): ?>
+                        <div class="dash-card__value">
+                            <?= e((string) $cardioCard['sessions_week']) ?>
+                            <span class="dash-card__unit">/ <?= e((string) $cardioCard['target']) ?> sessions</span>
+                        </div>
+                        <div class="goal-bar goal-bar--compact" aria-label="Cardio sessions this week vs target">
+                            <div class="goal-bar__track">
+                                <div class="goal-bar__fill"
+                                     style="width: <?= e((string) $cardioCard['pct']) ?>%"></div>
+                            </div>
+                            <span class="goal-bar__sub">
+                                <?= e((string) $cardioCard['minutes_week']) ?> min this week
+                                <span class="goal-bar__pct goal-bar__pct--inline">·
+                                    <?= e((string) $cardioCard['pct']) ?>%</span>
+                            </span>
+                        </div>
+                    <?php else: ?>
+                        <div class="dash-card__value">
+                            <?= e((string) $cardioCard['minutes_week']) ?>
+                            <span class="dash-card__unit">min this week</span>
+                        </div>
+                        <div class="dash-card__hint">
+                            <?= e((string) $cardioCard['sessions_week']) ?> session<?= $cardioCard['sessions_week'] === 1 ? '' : 's' ?>
+                            · set a weekly target in
+                            <span class="dash-card__inline-link">your profile</span>
+                            to track progress.
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($cardioCard['latest'])):
+                        $l = $cardioCard['latest'];
+                        $type = $cardioCard['type_labels'][$l['cardio_type']] ?? $l['cardio_type'];
+                        $line = $type . ' · ' . ((int) $l['duration_min']) . ' min';
+                        if (!empty($l['intensity'])) {
+                            $line .= ' · ' . ($cardioCard['intensity_labels'][$l['intensity']] ?? $l['intensity']);
+                        }
+                    ?>
+                        <div class="dash-card__hint dash-card__hint--last">
+                            <span class="dash-card__hint-label">Last session</span>
+                            <?= e($line) ?>
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
+                    <div class="dash-card__hint">
+                        Log your first walk, run, or ride to start tracking.
                     </div>
                 <?php endif; ?>
             </a>
 
         </div>
-
     </div>
 </section>
 
 
-<!-- ===================== Trend charts ===================== -->
+<!-- ===================== Goals & progress strip ===================== -->
+<?php
+// Build a flat list of progress bars from data already computed above.
+// Each row needs: label (with icon), pct, suffix (e.g. "17.5 kg to go").
+// Hidden entirely if none of the goal columns are set.
+$goalRows = [];
+
+if (!empty($weightCard['goal'])) {
+    $wg = $weightCard['goal'];
+    $goalRows[] = [
+        'icon'   => '⚖',
+        'label'  => 'Reach '
+                  . number_format($wg['target_display'], 1) . ' '
+                  . $weightCard['unit'],
+        'pct'    => (int) $wg['pct'],
+        'suffix' => $wg['direction'] === 'hit'
+            ? 'goal reached'
+            : number_format($wg['remaining_display'], 1) . ' '
+              . $weightCard['unit'] . ' to go',
+    ];
+}
+foreach (['bench', 'squat', 'deadlift'] as $lift) {
+    $sg = $strengthCard['goals'][$lift] ?? null;
+    if (!$sg) continue;
+    $label = $strengthCard['labels'][$lift] ?? ucfirst($lift);
+    $remaining = max(0, $sg['target_display'] - $sg['current_display']);
+    $goalRows[] = [
+        'icon'   => '🏋',
+        'label'  => $label . ' to '
+                  . number_format($sg['target_display'], 0) . ' '
+                  . $sg['unit'],
+        'pct'    => (int) $sg['pct'],
+        'suffix' => $remaining > 0
+            ? number_format($remaining, 0) . ' ' . $sg['unit'] . ' to go'
+            : 'goal reached',
+    ];
+}
+if (!empty($thisWeek['workouts_target'])) {
+    $done = (int) $thisWeek['workouts_done'];
+    $tgt  = (int) $thisWeek['workouts_target'];
+    $goalRows[] = [
+        'icon'   => '📅',
+        'label'  => $tgt . ' workouts / week',
+        'pct'    => (int) $thisWeek['workouts_pct'],
+        'suffix' => $done . ' of ' . $tgt . ' this week',
+    ];
+}
+if (!empty($cardioCard['target'])) {
+    $goalRows[] = [
+        'icon'   => '🏃',
+        'label'  => $cardioCard['target'] . ' cardio / week',
+        'pct'    => (int) $cardioCard['pct'],
+        'suffix' => $cardioCard['sessions_week'] . ' of ' . $cardioCard['target'] . ' this week',
+    ];
+}
+?>
+<?php if (!empty($goalRows)): ?>
+<section class="section section--tight">
+    <div class="container">
+        <div class="section-head section-head--inline">
+            <h2>Goals &amp; progress</h2>
+            <a class="section-head__link" href="<?= url('profile') ?>">Edit goals</a>
+        </div>
+
+        <ul class="goals-strip">
+            <?php foreach ($goalRows as $g): ?>
+                <li class="goals-strip__row">
+                    <span class="goals-strip__icon" aria-hidden="true"><?= e($g['icon']) ?></span>
+                    <span class="goals-strip__label"><?= e($g['label']) ?></span>
+                    <div class="goals-strip__track">
+                        <div class="goals-strip__fill"
+                             style="width: <?= e((string) $g['pct']) ?>%"></div>
+                    </div>
+                    <span class="goals-strip__pct"><?= e((string) $g['pct']) ?>%</span>
+                    <span class="goals-strip__suffix"><?= e($g['suffix']) ?></span>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+</section>
+<?php endif; ?>
+
+
+<!-- ===================== Progress over time ===================== -->
 <?php
 $hasAnyChart =
     !empty($intakeChartData)
     || !empty($weightChartData)
-    || !empty($strengthChartData);
+    || !empty($strengthChartData)
+    || !empty($cardioChartData);
 ?>
-<section class="section">
+<section class="section section--alt">
     <div class="container">
         <div class="section-head">
-            <h2>Your trends</h2>
-            <p>Quick look at how the numbers are moving. Click into a tracker for the full chart and controls.</p>
+            <h2>Progress over time</h2>
+            <p>Trends across each tracker. Click into a tracker for the full chart and filters.</p>
         </div>
 
         <div class="dash-charts">
@@ -414,9 +650,6 @@ $hasAnyChart =
                 </header>
                 <?php if (!empty($intakeChartData)): ?>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
-                        <!-- Canvas id matches the existing initIntakeChart()
-                             IIFE in main.js, which already handles target
-                             overlay lines + active-goal highlight. -->
                         <canvas id="intakeChart"
                                 role="img"
                                 aria-label="Recent daily calorie intake bar chart, <?= count($intakeChartData) ?> day<?= count($intakeChartData) === 1 ? '' : 's' ?>. Open the calorie tracker for full data."
@@ -478,12 +711,32 @@ $hasAnyChart =
                 <?php endif; ?>
             </article>
 
+            <article class="tracker-card">
+                <header class="tracker-card__head">
+                    <h3>Cardio (daily minutes)</h3>
+                </header>
+                <?php if (!empty($cardioChartData)): ?>
+                    <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
+                        <canvas id="cardioChart"
+                                role="img"
+                                aria-label="Recent daily cardio minutes bar chart. Open the cardio tracker for full data."
+                                data-rows='<?= e(json_encode($cardioChartData, JSON_THROW_ON_ERROR)) ?>'>
+                        </canvas>
+                    </div>
+                <?php else: ?>
+                    <div class="dash-chart-empty">
+                        <?= empty_state_icon('sm') ?>
+                        <p>No cardio logged yet. Add your first walk, run, or ride to start tracking minutes.</p>
+                        <a href="<?= url('cardio') ?>" class="btn btn-secondary btn-inline">Log a session</a>
+                    </div>
+                <?php endif; ?>
+            </article>
+
         </div>
     </div>
 </section>
 
 <?php if ($hasAnyChart): ?>
-<!-- Chart.js — only fetched when at least one trend chart will render. -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
         defer></script>
 <?php endif; ?>
@@ -546,6 +799,30 @@ $hasAnyChart =
                     <span class="action-strip__body">
                         <span class="action-strip__title">Log a lift</span>
                         <span class="action-strip__caption">Bench, squat, or deadlift</span>
+                    </span>
+                    <span class="action-strip__chev" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 6 15 12 9 18"/>
+                        </svg>
+                    </span>
+                </a>
+            </li>
+
+            <li>
+                <a class="action-strip__item" href="<?= url('cardio') ?>"
+                   aria-label="Log a cardio session">
+                    <span class="action-strip__icon action-strip__icon--svg" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
+                            <path d="M5 22l3-8 4 3 2-5 5 2"/>
+                            <path d="M14 7c1 1 2 2 4 2"/>
+                        </svg>
+                    </span>
+                    <span class="action-strip__body">
+                        <span class="action-strip__title">Log cardio</span>
+                        <span class="action-strip__caption">Walks, runs, rides, more</span>
                     </span>
                     <span class="action-strip__chev" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"

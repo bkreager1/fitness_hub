@@ -1638,6 +1638,24 @@ main:focus { outline: none; }
     .field--wide { grid-column: 1 / -1; }
 }
 
+/* ----- Distance + unit row (cardio tracker) -------------------------- */
+/* Pairs a number input with a small unit <select> so the two move
+   together. Uses the same input/select styling as the rest of the
+   form — just lays them out side-by-side and caps the unit's width. */
+.distance-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+.distance-row__input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.distance-row__unit {
+    flex: 0 0 auto;
+    width: 5.5rem;
+}
+
 /* ----- Non-input "label" used for radio groups ----------------------- */
 .field-label {
     display: block;
@@ -3048,6 +3066,369 @@ a.feature-card:focus-visible {
 
 
 /* ===================================================================
+   Dashboard — asymmetric grid (post-cardio redesign)
+   ===================================================================
+   3 cols at desktop, with this-week spanning 2 cols and a tall (or
+   regular) strength card on the right paired with a smaller cardio
+   card below it. Falls back gracefully on narrower viewports.
+*/
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, auto);
+    gap: 1.25rem;
+}
+
+/* Place items: row 1 is Calories | Weight | Strength,
+   row 2 is "This week" (spans cols 1+2) | Cardio. */
+.dash-grid__calories { grid-column: 1; grid-row: 1; }
+.dash-grid__weight   { grid-column: 2; grid-row: 1; }
+.dash-grid__strength { grid-column: 3; grid-row: 1; }
+.dash-grid__thisweek { grid-column: 1 / span 2; grid-row: 2; }
+.dash-grid__cardio   { grid-column: 3; grid-row: 2; }
+
+/* Two cols at tablet: Calories | Weight, then Strength | Cardio,
+   then "This week" full-width below. Keeps every card visible and
+   none of them squished. */
+@media (max-width: 1099px) {
+    .dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dash-grid__calories { grid-column: 1; grid-row: 1; }
+    .dash-grid__weight   { grid-column: 2; grid-row: 1; }
+    .dash-grid__strength { grid-column: 1; grid-row: 2; }
+    .dash-grid__cardio   { grid-column: 2; grid-row: 2; }
+    .dash-grid__thisweek { grid-column: 1 / -1; grid-row: 3; }
+}
+
+/* Single column on phones — natural priority order: today's calories
+   first, then strength, weight, cardio, this-week summary. */
+@media (max-width: 640px) {
+    .dash-grid { grid-template-columns: 1fr; }
+    .dash-grid__calories { grid-column: 1; grid-row: auto; }
+    .dash-grid__weight   { grid-column: 1; grid-row: auto; }
+    .dash-grid__strength { grid-column: 1; grid-row: auto; }
+    .dash-grid__cardio   { grid-column: 1; grid-row: auto; }
+    .dash-grid__thisweek { grid-column: 1; grid-row: auto; }
+}
+
+
+/* ----- Card head row (eyebrow + optional "view all" link) ----------- */
+.dash-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.dash-card__view-all {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: color .15s ease;
+}
+.dash-card__view-all:hover { color: var(--primary-hot); }
+
+/* "Last session" caption variant used in the cardio card. */
+.dash-card__hint--last {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--border-soft);
+}
+.dash-card__hint-label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin-bottom: 0.15rem;
+    font-weight: 700;
+}
+.dash-card__inline-link {
+    color: var(--primary-hot);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+
+/* ----- Strength card — inset toggle + lift list -------------------- */
+.strength-toggle {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 3px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    margin-bottom: 0.85rem;
+}
+.strength-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.strength-toggle button.is-active {
+    background: linear-gradient(135deg, var(--primary-deep), var(--primary));
+    color: #fff;
+}
+.strength-toggle button:focus-visible {
+    outline: 2px solid var(--primary-hot);
+    outline-offset: 2px;
+}
+
+.strength-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.strength-list__row { display: flex; flex-direction: column; gap: 0.35rem; }
+.strength-list__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.strength-list__lift {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.strength-list__value {
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.strength-list__num { font-size: 1.05rem; }
+.strength-list__unit {
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-left: 0.15rem;
+}
+
+
+/* ----- "This week" card — workouts bar + recent activity ----------- */
+.weekly-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--border-soft);
+    margin-bottom: 1rem;
+}
+.weekly-bar__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+.weekly-bar__label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+.weekly-bar__value {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    font-size: 0.95rem;
+}
+.weekly-bar__value strong { font-size: 1.2rem; font-weight: 800; margin-right: 0.15rem; }
+.weekly-bar__value span { color: var(--text-dim); font-weight: 500; }
+.weekly-bar__track {
+    height: 8px;
+    background: var(--bg-card-2);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.weekly-bar__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-deep), var(--primary));
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.weekly-bar__hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.78rem;
+    color: var(--text-faint);
+}
+.weekly-bar__hint a {
+    color: var(--primary-hot);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.recent-activity__title {
+    margin: 0 0 0.5rem;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    font-weight: 700;
+}
+.recent-activity__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+.recent-activity__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.recent-activity__dot {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--text-faint);
+}
+.recent-activity__dot--strength { background: #fb923c; }
+.recent-activity__dot--cardio   { background: #60a5fa; }
+.recent-activity__dot--weight   { background: #34d399; }
+.recent-activity__dot--calorie  { background: #f472b6; }
+.recent-activity__link {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    min-width: 0;
+    transition: color .15s ease;
+}
+.recent-activity__link:hover { color: var(--primary-hot); }
+.recent-activity__summary {
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.recent-activity__when {
+    flex-shrink: 0;
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+}
+.recent-activity__empty {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+}
+
+
+/* ----- Goals & progress strip (sitewide, dashboard) ----------------- */
+.goals-strip {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+.goals-strip__row {
+    display: grid;
+    grid-template-columns: 28px minmax(170px, 1.3fr) minmax(0, 2fr) auto auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 0.9rem;
+}
+.goals-strip__row:last-child { border-bottom: none; }
+.goals-strip__icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--primary-soft);
+    color: var(--primary-hot);
+    font-size: 0.9rem;
+}
+.goals-strip__label {
+    color: var(--text);
+    font-weight: 600;
+}
+.goals-strip__track {
+    height: 8px;
+    background: var(--bg-card-2);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.goals-strip__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-deep), var(--primary));
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.goals-strip__pct {
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.goals-strip__suffix {
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+.section-head__link {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color .15s ease;
+}
+.section-head__link:hover { color: var(--primary-hot); }
+
+@media (max-width: 720px) {
+    .goals-strip__row {
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "icon label pct"
+            "icon track track"
+            "icon suffix suffix";
+        row-gap: 0.4rem;
+    }
+    .goals-strip__icon  { grid-area: icon; align-self: start; }
+    .goals-strip__label { grid-area: label; }
+    .goals-strip__pct   { grid-area: pct; justify-self: end; }
+    .goals-strip__track { grid-area: track; }
+    .goals-strip__suffix{ grid-area: suffix; text-align: left; }
+}
+
+
+/* ----- Quick-action strip: SVG icon variant (cardio tile) ----------- */
+.action-strip__icon--svg {
+    display: grid;
+    place-items: center;
+    background: var(--primary-soft);
+    color: var(--primary-hot);
+    border-radius: 12px;
+}
+.action-strip__icon--svg svg { width: 26px; height: 26px; }
+
+
+/* ===================================================================
    Phase 8 — Profile + avatar
    =================================================================== */
 
@@ -3163,6 +3544,23 @@ img.avatar { object-fit: cover; }
     color: var(--text);
     font-weight: 600;
 }
+
+/* ----- Goals form sub-heading --------------------------------------- */
+/* Splits the goals form into two visual sections — weight/lift targets
+   first, then weekly cadence below. Small uppercase eyebrow paired
+   with a faint top divider so it reads as a section break, not a
+   second card. */
+.goals-subhead {
+    margin: 1.5rem 0 0.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--text-dim);
+}
+.goals-subhead__hint { margin: 0 0 1rem; }
 
 /* ----- Profile photo card layout ------------------------------------ */
 .profile-photo-row {

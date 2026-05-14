@@ -72,24 +72,31 @@ class User {
         $stmt->execute([$goal, $id]);
     }
 
-    // Update the four nullable goal columns (target weight + target
-    // bench/squat/deadlift). All values are canonical kg or null.
-    // Caller validates ranges and converts from the user's display
-    // unit (lbs) before calling.
+    // Update the goal columns:
+    //   - target_weight_kg + target_bench/squat/deadlift_kg
+    //     (canonical kg, nullable — caller validates ranges + converts
+    //     from the user's display unit)
+    //   - weekly_workout_target + weekly_cardio_target
+    //     (whole-number days/sessions per week, nullable — caller
+    //     validates 1..7 range)
     public static function updateGoals(int $id, array $goals): void {
         $stmt = db()->prepare(
             'UPDATE users
-             SET target_weight_kg   = ?,
-                 target_bench_kg    = ?,
-                 target_squat_kg    = ?,
-                 target_deadlift_kg = ?
+             SET target_weight_kg      = ?,
+                 target_bench_kg       = ?,
+                 target_squat_kg       = ?,
+                 target_deadlift_kg    = ?,
+                 weekly_workout_target = ?,
+                 weekly_cardio_target  = ?
              WHERE id = ?'
         );
         $stmt->execute([
-            $goals['target_weight_kg']   ?? null,
-            $goals['target_bench_kg']    ?? null,
-            $goals['target_squat_kg']    ?? null,
-            $goals['target_deadlift_kg'] ?? null,
+            $goals['target_weight_kg']      ?? null,
+            $goals['target_bench_kg']       ?? null,
+            $goals['target_squat_kg']       ?? null,
+            $goals['target_deadlift_kg']    ?? null,
+            $goals['weekly_workout_target'] ?? null,
+            $goals['weekly_cardio_target']  ?? null,
             $id,
         ]);
     }

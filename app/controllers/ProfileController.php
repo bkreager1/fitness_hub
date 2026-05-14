@@ -142,6 +142,36 @@ class ProfileController extends Controller {
             $goalsKg[$meta['column']] = round($kg, 2);
         }
 
+        // Weekly cadence targets — whole numbers 1..7. Same blank-clears
+        // behavior as the weight goals: empty input persists as NULL,
+        // which hides the corresponding dashboard progress bar.
+        $weeklyFields = [
+            'weekly_workout_target' => 'Weekly workout target',
+            'weekly_cardio_target'  => 'Weekly cardio target',
+        ];
+        foreach ($weeklyFields as $name => $label) {
+            $raw = trim($_POST[$name] ?? '');
+            $oldVals[$name] = $raw;
+
+            if ($raw === '') {
+                $goalsKg[$name] = null;
+                continue;
+            }
+
+            if (!ctype_digit($raw)) {
+                $errors[$name] = $label . ' must be a whole number.';
+                continue;
+            }
+
+            $n = (int) $raw;
+            if ($n < 1 || $n > 7) {
+                $errors[$name] = $label . ' must be between 1 and 7.';
+                continue;
+            }
+
+            $goalsKg[$name] = $n;
+        }
+
         save_old($oldVals);
 
         if ($errors) {

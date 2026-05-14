@@ -12,6 +12,8 @@
     $errGBench      = field_error('target_bench');
     $errGSquat      = field_error('target_squat');
     $errGDeadlift   = field_error('target_deadlift');
+    $errGWorkouts   = field_error('weekly_workout_target');
+    $errGCardio     = field_error('weekly_cardio_target');
 
     // Goals: target weight + 3 target lifts. Stored canonically in kg,
     // displayed in the unit the user picks (default lbs for now —
@@ -33,6 +35,12 @@
     $gBenchVal    = old('target_bench',    $kgToDisplay($user['target_bench_kg']    ?? null, $goalsUnit));
     $gSquatVal    = old('target_squat',    $kgToDisplay($user['target_squat_kg']    ?? null, $goalsUnit));
     $gDeadliftVal = old('target_deadlift', $kgToDisplay($user['target_deadlift_kg'] ?? null, $goalsUnit));
+
+    // Weekly cadence targets — plain integers, not converted.
+    $weeklyWorkoutVal = old('weekly_workout_target',
+        $user['weekly_workout_target'] !== null ? (string) $user['weekly_workout_target'] : '');
+    $weeklyCardioVal  = old('weekly_cardio_target',
+        $user['weekly_cardio_target']  !== null ? (string) $user['weekly_cardio_target']  : '');
 
     $hasAvatar = !empty($user['profile_image_path']);
     $avatarSrc = $hasAvatar
@@ -268,6 +276,45 @@
                                <?= $errGDeadlift ? 'aria-invalid="true" aria-describedby="target_deadlift-error"' : '' ?>>
                         <?php if ($errGDeadlift): ?>
                             <p id="target_deadlift-error" class="field-error"><?= e($errGDeadlift) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                </div>
+
+                <h3 class="goals-subhead">Weekly cadence</h3>
+                <p class="field-hint goals-subhead__hint">
+                    Set how many days per week you aim to train, and (separately)
+                    how many cardio sessions. Leave blank to skip — the dashboard
+                    hides the corresponding bar without a target.
+                </p>
+
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label for="weekly_workout_target">
+                            Workouts per week <span class="field-hint-inline">(1–7)</span>
+                        </label>
+                        <input type="number" id="weekly_workout_target" name="weekly_workout_target"
+                               inputmode="numeric" step="1" min="1" max="7"
+                               value="<?= e($weeklyWorkoutVal) ?>"
+                               placeholder="4"
+                               <?= $errGWorkouts ? 'aria-invalid="true" aria-describedby="weekly_workout_target-error"' : '' ?>>
+                        <?php if ($errGWorkouts): ?>
+                            <p id="weekly_workout_target-error" class="field-error"><?= e($errGWorkouts) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="weekly_cardio_target">
+                            Cardio sessions per week <span class="field-hint-inline">(1–7)</span>
+                        </label>
+                        <input type="number" id="weekly_cardio_target" name="weekly_cardio_target"
+                               inputmode="numeric" step="1" min="1" max="7"
+                               value="<?= e($weeklyCardioVal) ?>"
+                               placeholder="3"
+                               <?= $errGCardio ? 'aria-invalid="true" aria-describedby="weekly_cardio_target-error"' : '' ?>>
+                        <?php if ($errGCardio): ?>
+                            <p id="weekly_cardio_target-error" class="field-error"><?= e($errGCardio) ?></p>
                         <?php endif; ?>
                     </div>
 

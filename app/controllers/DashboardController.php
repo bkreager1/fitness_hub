@@ -199,6 +199,28 @@ class DashboardController extends Controller {
             }
         }
 
+        // Current 1RM (latest entry's Epley est) vs all-time best 1RM,
+        // both in the display unit of the latest row. Feeds the strength
+        // card's "1RM | All-time" inset toggle — the bar's right-hand
+        // number swaps between current and best, the goal bar's % stays
+        // tied to all-time best (that's "where you are" toward target).
+        $strengthDisplay = ['bench' => null, 'squat' => null, 'deadlift' => null];
+        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+            $latest = $latestPerLift[$lift] ?? null;
+            if (!$latest) continue;
+            $unit       = $latest['unit'];
+            $toDisp     = static fn(float $kg) => $unit === 'kg'
+                ? round($kg, 1)
+                : round($kg * self::LB_PER_KG, 1);
+            $latestKg   = StrengthLog::toKg((float) $latest['weight'], $latest['unit']);
+            $latest1rm  = $latestKg * (1.0 + ((int) $latest['reps']) / 30.0);
+            $strengthDisplay[$lift] = [
+                'unit'         => $unit,
+                'current_orm'  => $toDisp($latest1rm),
+                'alltime_orm'  => $toDisp($bestEst1rmKg[$lift] ?? 0.0),
+            ];
+        }
+
         // Strength goal progress per lift (Tier 1 — uses
         // user.target_{bench,squat,deadlift}_kg). For each lift we
         // compare the user's best-ever est-1RM (already computed
@@ -234,17 +256,80 @@ class DashboardController extends Controller {
             'labels'   => StrengthLog::LIFT_LABELS,
             'is_pr'    => $isPr,
             'goals'    => $strengthGoals,
+            'display'  => $strengthDisplay, // current_orm + alltime_orm per lift
+        ];
+
+        // ----- Cardio summary --------------------------------------
+        // Card surfaces this week's progress against the user's optional
+        // weekly_cardio_target plus a "last session" preview line. The
+        // window is the rolling 7 days (today inclusive) so a Monday
+        // streak reads the same whether it's Tuesday or Sunday today.
+        $sevenAgoDate = (new DateTime('today'))->modify('-6 days')->format('Y-m-d');
+
+        $cardioWeekCount   = CardioLog::countForUserSince($userId, $sevenAgoDate);
+        $cardioWeekMinutes = CardioLog::totalMinutesForUserSince($userId, $sevenAgoDate);
+        $latestCardio      = CardioLog::latestForUser($userId);
+
+        $cardioTarget = isset($user['weekly_cardio_target'])
+            ? (int) $user['weekly_cardio_target']
+            : 0;
+
+        $cardioCard = [
+            'has_logs'      => $latestCardio !== null,
+            'sessions_week' => $cardioWeekCount,
+            'minutes_week'  => $cardioWeekMinutes,
+            'target'        => $cardioTarget > 0 ? $cardioTarget : null,
+            'pct'           => $cardioTarget > 0
+                ? (int) round(max(0, min(100, ($cardioWeekCount / $cardioTarget) * 100)))
+                : null,
+            'latest'        => $latestCardio,
+            'type_labels'      => CardioLog::TYPE_LABELS,
+            'intensity_labels' => CardioLog::INTENSITY_LABELS,
+        ];
+
+        // ----- "This week" card ------------------------------------
+        // Two concerns living in one card:
+        //   1. Workouts-this-week bar — distinct dates with ANY training
+        //      activity (strength OR cardio) in the rolling 7-day window,
+        //      compared against the user's optional weekly_workout_target.
+        //   2. Recent activity feed — latest N entries across all four
+        //      trackers, normalized into a uniform shape for the view.
+        $strengthDates = StrengthLog::countLoggedDaysForUser($userId) > 0
+            ? array_unique(array_map(
+                static fn(array $r): string => $r['logged_date'],
+                array_filter(
+                    $strengthHistoryAll,
+                    static fn(array $r): bool => $r['logged_date'] >= $sevenAgoDate
+                )
+            ))
+            : [];
+        $cardioDates = CardioLog::distinctDatesForUserSince($userId, $sevenAgoDate);
+        $workoutDates = array_unique(array_merge($strengthDates, $cardioDates));
+        $workoutsDone = count($workoutDates);
+
+        $workoutTarget = isset($user['weekly_workout_target'])
+            ? (int) $user['weekly_workout_target']
+            : 0;
+
+        $thisWeek = [
+            'workouts_done'   => $workoutsDone,
+            'workouts_target' => $workoutTarget > 0 ? $workoutTarget : null,
+            'workouts_pct'    => $workoutTarget > 0
+                ? (int) round(max(0, min(100, ($workoutsDone / $workoutTarget) * 100)))
+                : null,
+            'recent'          => $this->buildRecentActivity($userId, 5),
         ];
 
         // ----- Stat strip (under greeting) -------------------------
         // Four small "momentum" stats. Computed in one block so the
         // view just renders them. Each stat returns null when there's
         // nothing meaningful yet, and the view shows a muted dash.
-        $sevenAgoDate = (new DateTime('today'))->modify('-6 days')->format('Y-m-d');
+        // $sevenAgoDate was set above next to the cardio block.
         $statStrip = [
             'streak'        => $this->computeLoggingStreak($userId),
             'meals_week'    => CalorieIntake::countForUserSince($userId, $sevenAgoDate),
             'lifts_week'    => StrengthLog::countForUserSince($userId, $sevenAgoDate),
+            'cardio_week'   => $cardioWeekCount,
             'weight_delta'  => $weightCard['trend_diff'] ?? null,
             'weight_unit'   => $weightCard['unit'] ?? null,
             'weight_days'   => $weightCard['trend_days'] ?? null,
@@ -290,6 +375,19 @@ class DashboardController extends Controller {
         $latestStrength = StrengthLog::latestForUser($userId);
         $strengthChartUnit = $latestStrength['unit'] ?? 'lbs';
 
+        // Cardio trend chart — same daily-totals shape as the cardio
+        // page's chart, lets the existing initCardioChart() IIFE in
+        // main.js paint it identically here on the dashboard.
+        $cardioHistoryAll  = CardioLog::forUser($userId);
+        $cardioChartData   = array_map(
+            static fn(array $r): array => [
+                'date'         => $r['logged_date'],
+                'cardio_type'  => $r['cardio_type'],
+                'duration_min' => (int) $r['duration_min'],
+            ],
+            array_reverse($cardioHistoryAll)
+        );
+
         $this->view('dashboard/index', [
             'title'              => 'Dashboard',
             'active'             => 'dashboard',
@@ -298,7 +396,10 @@ class DashboardController extends Controller {
             'calorieCard'        => $calorieCard,
             'weightCard'         => $weightCard,
             'strengthCard'       => $strengthCard,
+            'cardioCard'         => $cardioCard,
+            'thisWeek'           => $thisWeek,
             'statStrip'          => $statStrip,
+            'user'               => $user,
 
             // Chart payloads — empty arrays mean "don't render".
             'intakeChartData'    => $intakeChartData,
@@ -308,7 +409,105 @@ class DashboardController extends Controller {
             'weightChartUnit'    => $weightChartUnit,
             'strengthChartData'  => $strengthChartData,
             'strengthChartUnit'  => $strengthChartUnit,
+            'cardioChartData'    => $cardioChartData,
         ]);
+    }
+
+    // Latest N entries across all four trackers, normalized into a
+    // uniform { type, date, summary, href } shape for the dashboard's
+    // recent-activity feed. Pulls 5×$limit from each table (because we
+    // merge then truncate, and a single tracker could dominate) so the
+    // final list still reflects mixed activity even with bursts in one.
+    private function buildRecentActivity(int $userId, int $limit): array {
+        $perTracker = max(1, $limit);
+
+        $items = [];
+
+        // Strength — newest-first via the existing forUser() (no since
+        // limit), then slice. forUser sorts DESC so the slice is
+        // already the most recent.
+        foreach (array_slice(StrengthLog::forUser($userId), 0, $perTracker) as $r) {
+            $w = rtrim(rtrim((string) $r['weight'], '0'), '.');
+            $items[] = [
+                'type'    => 'strength',
+                'date'    => $r['logged_date'],
+                'id'      => (int) $r['id'],
+                'summary' => sprintf(
+                    '%s %s %s × %s',
+                    StrengthLog::LIFT_LABELS[$r['lift_type']] ?? $r['lift_type'],
+                    $w,
+                    $r['unit'],
+                    $r['reps']
+                ),
+                'href' => url('strength'),
+            ];
+        }
+
+        // Cardio
+        foreach (array_slice(CardioLog::forUser($userId), 0, $perTracker) as $r) {
+            $label = CardioLog::TYPE_LABELS[$r['cardio_type']] ?? ucfirst($r['cardio_type']);
+            $summary = $label . ' · ' . ((int) $r['duration_min']) . ' min';
+            if (!empty($r['intensity'])) {
+                $summary .= ' · ' . (CardioLog::INTENSITY_LABELS[$r['intensity']] ?? $r['intensity']);
+            }
+            $items[] = [
+                'type'    => 'cardio',
+                'date'    => $r['logged_date'],
+                'id'      => (int) $r['id'],
+                'summary' => $summary,
+                'href'    => url('cardio'),
+            ];
+        }
+
+        // Weight
+        foreach (array_slice(WeightLog::forUser($userId), 0, $perTracker) as $r) {
+            $w = rtrim(rtrim((string) round((float) $r['weight_kg'] * (
+                $r['unit'] === 'kg' ? 1 : self::LB_PER_KG
+            ), 1), '0'), '.');
+            $items[] = [
+                'type'    => 'weight',
+                'date'    => $r['logged_date'],
+                'id'      => (int) $r['id'],
+                'summary' => 'Weigh-in ' . $w . ' ' . $r['unit'],
+                'href'    => url('weight'),
+            ];
+        }
+
+        // Calorie meals — pull recent across all dates via a quick
+        // direct query (the existing per-day-totals API doesn't return
+        // individual meal rows in date order).
+        $stmt = db()->prepare(
+            'SELECT id, label, calories, logged_date
+               FROM calorie_intake_logs
+              WHERE user_id = ?
+              ORDER BY logged_date DESC, id DESC
+              LIMIT ?'
+        );
+        $stmt->bindValue(1, $userId, PDO::PARAM_INT);
+        $stmt->bindValue(2, $perTracker, PDO::PARAM_INT);
+        $stmt->execute();
+        foreach ($stmt->fetchAll() as $r) {
+            $name = $r['label'] !== null && $r['label'] !== ''
+                ? $r['label']
+                : 'Meal';
+            $items[] = [
+                'type'    => 'calorie',
+                'date'    => $r['logged_date'],
+                'id'      => (int) $r['id'],
+                'summary' => $name . ' ' . number_format((int) $r['calories']) . ' cal',
+                'href'    => url('calorie'),
+            ];
+        }
+
+        // Sort newest-first; tie-break on id within the same date so
+        // two same-day entries from different trackers stay grouped.
+        usort($items, static function (array $a, array $b): int {
+            $c = strcmp($b['date'], $a['date']);
+            if ($c !== 0) return $c;
+            return $b['id'] <=> $a['id'];
+        });
+
+        return array_slice($items, 0, $limit);
     }
 
     // "Streak" = consecutive days, ending today or yesterday, on which
@@ -326,11 +525,13 @@ class DashboardController extends Controller {
                 SELECT DISTINCT logged_date FROM weight_logs         WHERE user_id = ?
                 UNION
                 SELECT DISTINCT logged_date FROM strength_logs       WHERE user_id = ?
+                UNION
+                SELECT DISTINCT logged_date FROM cardio_logs         WHERE user_id = ?
              ) d
              ORDER BY logged_date DESC
              LIMIT 366'
         );
-        $stmt->execute([$userId, $userId, $userId]);
+        $stmt->execute([$userId, $userId, $userId, $userId]);
         $dates = array_column($stmt->fetchAll(), 'logged_date');
         if (!$dates) return 0;
 
