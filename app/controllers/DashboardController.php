@@ -52,6 +52,24 @@ class DashboardController extends Controller {
             $calorieCard['diff'] = $calorieCard['today'] - $calorieCard['target'];
         }
 
+        // Meals logged today (count of intake rows) — surfaced on the
+        // dashboard card so the calorie panel isn't empty below the
+        // ring/macros when the user has only logged a meal or two.
+        $calorieCard['meals_today'] = count(CalorieIntake::forUserOnDate($userId, $today));
+
+        // 7-day rolling daily average — only meaningful when there are
+        // at least 2 distinct days of data. Uses the existing
+        // dailyTotalsForUser query and averages over the most recent
+        // 7 unique days (skipping any days with no entries).
+        $dailyTotals7 = array_slice(CalorieIntake::dailyTotalsForUser($userId), 0, 7);
+        if (count($dailyTotals7) >= 2) {
+            $sum = 0;
+            foreach ($dailyTotals7 as $r) {
+                $sum += (int) $r['calories'];
+            }
+            $calorieCard['avg_7d'] = (int) round($sum / count($dailyTotals7));
+        }
+
         // ----- Today's macros (Tier 2) -----------------------------
         // Sum protein/carbs/fat across today's meals, plus auto-compute
         // a per-macro target from the active calorie target using
@@ -115,6 +133,23 @@ class DashboardController extends Controller {
                 );
                 $weightCard['trend_days'] = (new DateTime($latestWeight['logged_date']))
                     ->diff(new DateTime($prev['logged_date']))->days;
+            }
+
+            // Lifetime change — latest vs the very first weigh-in ever
+            // logged. Shown on the dashboard weight card so the user
+            // sees the long-arc progress alongside the recent-trend
+            // line. Only meaningful with ≥2 entries.
+            if (count($weightHistory) >= 2) {
+                $oldestRow = end($weightHistory);   // newest-first → last is oldest
+                $oldestKg  = (float) $oldestRow['weight_kg'];
+                $oldestInLatestUnit = $latestWeight['unit'] === 'kg'
+                    ? round($oldestKg, 1)
+                    : round($oldestKg * self::LB_PER_KG, 1);
+                $weightCard['lifetime_diff'] = round(
+                    $weightCard['weight'] - $oldestInLatestUnit, 1
+                );
+                $weightCard['lifetime_days'] = (new DateTime($latestWeight['logged_date']))
+                    ->diff(new DateTime($oldestRow['logged_date']))->days;
             }
 
             // Weight goal progress (Tier 1 — uses user.target_weight_kg).

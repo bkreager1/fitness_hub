@@ -2496,6 +2496,25 @@ main:focus { outline: none; }
     line-height: 1.4;
 }
 
+/* Compact inline stat row — used on the Calories and Weight cards
+   to surface a couple of supporting numbers ("3 meals today",
+   "Lifetime ↓ 6 lbs over 75d") and stop the cards from looking
+   empty when their primary content is short. Children separated by
+   a subtle middot via flex gap; wraps on narrow widths. */
+.dash-card__stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+.dash-card__stats strong {
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Strength card uses a 3-row list instead of a single value. */
 .dash-card__list {
     list-style: none;
@@ -3263,14 +3282,14 @@ a.feature-card:focus-visible {
 
 
 /* ----- Weight sparkline (dashboard weight card) --------------------
-   Tiny inline SVG line + end-dot that fills the empty space below
-   the weight value. Stroke color is driven by the recent direction
-   so the trend reads at a glance: green when weight is dropping,
-   warn when rising, dim when flat. Uses currentColor on the
-   polyline + dot so the color cascades from the parent. */
+   Inline SVG line + end-dot that fills the empty space below the
+   weight value. Stroke color is driven by the recent direction so
+   the trend reads at a glance: green when weight is dropping, warn
+   when rising, dim when flat. Uses currentColor on the polyline +
+   dot so the color cascades from the parent. */
 .weight-spark {
-    margin: 0.5rem 0 0.25rem;
-    height: 32px;
+    margin: 0.65rem 0 0.4rem;
+    height: 52px;
     color: var(--text-dim);
 }
 .weight-spark--down  { color: #34d399; }

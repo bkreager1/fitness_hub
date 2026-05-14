@@ -306,6 +306,23 @@ $hasAnyActivity =
                         <?php endif; ?>
                     </div>
 
+                    <?php if (($calorieCard['meals_today'] ?? 0) > 0 || isset($calorieCard['avg_7d'])): ?>
+                        <div class="dash-card__stats">
+                            <?php if (($calorieCard['meals_today'] ?? 0) > 0): ?>
+                                <span>
+                                    <strong><?= e((string) $calorieCard['meals_today']) ?></strong>
+                                    meal<?= $calorieCard['meals_today'] === 1 ? '' : 's' ?> today
+                                </span>
+                            <?php endif; ?>
+                            <?php if (isset($calorieCard['avg_7d'])): ?>
+                                <span>
+                                    <strong><?= e(number_format((int) $calorieCard['avg_7d'])) ?></strong>
+                                    cal avg/day
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($calorieCard['has_macros']) && !empty($calorieCard['macros'])):
                         $macros = $calorieCard['macros']; ?>
                         <div class="macro-bars" aria-label="Today's macros vs target">
@@ -433,6 +450,27 @@ $hasAnyActivity =
                                 <div class="goal-bar__fill"
                                      style="width: <?= e((string) $wg['pct']) ?>%"></div>
                             </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($weightCard['lifetime_diff'])):
+                        $ld    = (float) $weightCard['lifetime_diff'];
+                        $ldays = (int) ($weightCard['lifetime_days'] ?? 0);
+                    ?>
+                        <div class="dash-card__stats">
+                            <span>
+                                Lifetime
+                                <?php if ($ld < 0): ?>
+                                    <strong class="text-good">↓ <?= e(number_format(abs($ld), 1)) ?>
+                                    <?= e($weightCard['unit']) ?></strong>
+                                <?php elseif ($ld > 0): ?>
+                                    <strong class="text-warn">↑ <?= e(number_format($ld, 1)) ?>
+                                    <?= e($weightCard['unit']) ?></strong>
+                                <?php else: ?>
+                                    <strong>flat</strong>
+                                <?php endif; ?>
+                                over <?= e((string) $ldays) ?>d
+                            </span>
                         </div>
                     <?php endif; ?>
                 <?php else: ?>
