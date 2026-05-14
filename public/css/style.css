@@ -2532,31 +2532,6 @@ main:focus { outline: none; }
 }
 .dash-charts .tracker-card { margin-bottom: 0; }
 .dash-charts .tracker-card__head { margin-bottom: 1rem; }
-
-/* Linked variant — when the chart card is wrapped in <a>, strip the
-   default underline + colors and add the same lift-on-hover treatment
-   .dash-card uses so the affordance reads as "click anywhere on this
-   card to open its tracker." */
-a.tracker-card--linked {
-    display: block;
-    color: inherit;
-    text-decoration: none;
-    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-a.tracker-card--linked:hover {
-    transform: translateY(-3px);
-    border-color: var(--border-hot);
-    box-shadow: var(--shadow);
-}
-a.tracker-card--linked:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--primary-ring);
-}
-@media (prefers-reduced-motion: reduce) {
-    a.tracker-card--linked { transition: none; }
-    a.tracker-card--linked:hover { transform: none; }
-}
-
 .dash-charts .tracker-card__head h3 {
     margin: 0;
     font-size: 1rem;

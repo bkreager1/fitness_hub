@@ -147,6 +147,41 @@ class CardioLog {
         return (int) $stmt->fetchColumn();
     }
 
+    // Total distance covered on or after $sinceDate, converted into a
+    // single $targetUnit ('mi' or 'km'). Rows without distance/unit are
+    // skipped (distance is optional per session). Mixed mi+km history
+    // is handled by converting each row before summing.
+    // Returns 0.0 when no rows had a distance recorded.
+    public static function totalDistanceForUserSince(
+        int $userId,
+        string $sinceDate,
+        string $targetUnit
+    ): float {
+        $stmt = db()->prepare(
+            'SELECT distance, distance_unit FROM cardio_logs
+             WHERE user_id = ?
+               AND logged_date >= ?
+               AND distance IS NOT NULL
+               AND distance_unit IS NOT NULL'
+        );
+        $stmt->execute([$userId, $sinceDate]);
+
+        $MI_PER_KM = 0.621371192;
+        $total = 0.0;
+        foreach ($stmt->fetchAll() as $r) {
+            $d = (float) $r['distance'];
+            $u = $r['distance_unit'];
+            if ($u === $targetUnit) {
+                $total += $d;
+            } elseif ($targetUnit === 'mi') {
+                $total += $d * $MI_PER_KM;          // km → mi
+            } else {
+                $total += $d / $MI_PER_KM;          // mi → km
+            }
+        }
+        return $total;
+    }
+
     // Distinct cardio-logged dates on or after $sinceDate. Used together
     // with strength-logged dates to compute "workouts this week" — the
     // weekly_workout_target progress bar counts any training day.

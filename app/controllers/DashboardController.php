@@ -292,10 +292,24 @@ class DashboardController extends Controller {
             ? (int) $user['weekly_cardio_target']
             : 0;
 
+        // Weekly distance — sum across all this week's sessions that
+        // recorded a distance, converted into a single display unit.
+        // Prefer the latest session's unit so the card reads in the same
+        // unit the user most recently logged. Skipped (left null) when
+        // no session this week recorded a distance.
+        $cardioDistanceUnit = $latestCardio['distance_unit'] ?? 'mi';
+        $cardioDistanceWeek = CardioLog::totalDistanceForUserSince(
+            $userId, $sevenAgoDate, $cardioDistanceUnit
+        );
+
         $cardioCard = [
             'has_logs'      => $latestCardio !== null,
             'sessions_week' => $cardioWeekCount,
             'minutes_week'  => $cardioWeekMinutes,
+            'distance_week' => $cardioDistanceWeek > 0
+                ? round($cardioDistanceWeek, 1)
+                : null,
+            'distance_unit' => $cardioDistanceUnit,
             'target'        => $cardioTarget > 0 ? $cardioTarget : null,
             'pct'           => $cardioTarget > 0
                 ? (int) round(max(0, min(100, ($cardioWeekCount / $cardioTarget) * 100)))
