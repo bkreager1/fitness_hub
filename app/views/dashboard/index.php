@@ -166,11 +166,11 @@ $hasAnyActivity =
                     </svg>
                 </span>
                 <div class="dash-stat__body">
-                    <span class="dash-stat__label">Meals/week</span>
+                    <span class="dash-stat__label">Meals</span>
                     <span class="dash-stat__value">
                         <?php if ($statStrip['meals_week'] > 0): ?>
                             <?= e((string) $statStrip['meals_week']) ?>
-                            <span class="dash-stat__unit">meal<?= $statStrip['meals_week'] === 1 ? '' : 's' ?></span>
+                            <span class="dash-stat__unit">log<?= $statStrip['meals_week'] === 1 ? '' : 's' ?></span>
                         <?php else: ?>
                             <span class="dash-stat__placeholder">—</span>
                         <?php endif; ?>
@@ -190,14 +190,12 @@ $hasAnyActivity =
                     </svg>
                 </span>
                 <div class="dash-stat__body">
-                    <span class="dash-stat__label">Workouts/week</span>
+                    <span class="dash-stat__label">Workouts</span>
                     <span class="dash-stat__value">
                         <?php if ($workoutsDone > 0 || $workoutsTarget > 0): ?>
                             <?= e((string) $workoutsDone) ?>
                             <?php if ($workoutsTarget > 0): ?>
-                                <span class="dash-stat__unit">/ <?= e((string) $workoutsTarget) ?> days</span>
-                            <?php else: ?>
-                                <span class="dash-stat__unit">day<?= $workoutsDone === 1 ? '' : 's' ?></span>
+                                <span class="dash-stat__unit">/ <?= e((string) $workoutsTarget) ?></span>
                             <?php endif; ?>
                         <?php else: ?>
                             <span class="dash-stat__placeholder">—</span>

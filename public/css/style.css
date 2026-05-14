@@ -2714,9 +2714,10 @@ a.feature-card:focus-visible {
         rgba(255, 148, 71, 0.10));
     color: var(--primary);
 }
-.dash-stat--hot {
-    border-color: var(--border-hot);
-}
+/* No border-color tint here — that conflicts with .dash-stat:hover
+   (same --border-hot) and made the active streak pill look like it
+   was being hovered at all times. The icon's warm gradient is enough
+   to signal "streak is alive." */
 
 /* ----- Calorie progress ring (dashboard summary card) --------------
    Replaces the bare "1840 / 2400" text with a small SVG donut + the
