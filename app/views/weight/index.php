@@ -282,7 +282,7 @@ $displayWeight = static function (float $kg, string $asUnit): string {
                         </button>
                     </div>
                 </header>
-                <div class="chart-wrap">
+                <div class="chart-wrap chart-wrap--loading">
                     <canvas id="weightChart"
                             role="img"
                             aria-label="Weight trend line chart, <?= count($chartData) ?> data point<?= count($chartData) === 1 ? '' : 's' ?> across <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."

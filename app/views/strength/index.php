@@ -330,7 +330,7 @@ if ($latest) {
                         </button>
                     </div>
                 </header>
-                <div class="chart-wrap">
+                <div class="chart-wrap chart-wrap--loading">
                     <canvas id="strengthChart"
                             role="img"
                             aria-label="Estimated 1-rep max line chart for bench, squat, and deadlift over <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."

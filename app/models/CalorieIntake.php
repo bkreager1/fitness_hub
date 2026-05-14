@@ -125,6 +125,17 @@ class CalorieIntake {
         return (int) $stmt->fetchColumn();
     }
 
+    // Count of meal rows logged on or after $sinceDate. Used by the
+    // dashboard stat strip ("X meals this week").
+    public static function countForUserSince(int $userId, string $sinceDate): int {
+        $stmt = db()->prepare(
+            'SELECT COUNT(*) FROM calorie_intake_logs
+             WHERE user_id = ? AND logged_date >= ?'
+        );
+        $stmt->execute([$userId, $sinceDate]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent entry — used by dashboard summary later if needed.
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(

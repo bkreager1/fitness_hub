@@ -673,7 +673,7 @@ $fmtDate = static function (string $iso): string {
                             : 'Bars are your daily intake. Set targets above to overlay your goal lines.' ?>
                     </span>
                 </header>
-                <div class="chart-wrap">
+                <div class="chart-wrap chart-wrap--loading">
                     <canvas id="intakeChart"
                             role="img"
                             aria-label="Daily calorie intake bar chart for <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."

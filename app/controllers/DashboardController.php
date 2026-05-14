@@ -91,10 +91,53 @@ class DashboardController extends Controller {
         // ----- Strength summary ------------------------------------
         $latestPerLift = StrengthLog::latestPerLiftForUser($userId);
 
+        // PR flags: a "PR" badge appears next to a lift on the
+        // strength card when its latest logged entry equals the best
+        // estimated 1RM (Epley) we've ever seen for that lift type.
+        // Computed in PHP over the full strength history (already
+        // fetched below for the chart) so we don't issue an extra
+        // query. Falls back to all-false when the user has no history.
+        $strengthHistoryAll = StrengthLog::forUser($userId);
+        $bestEst1rmKg = ['bench' => 0.0, 'squat' => 0.0, 'deadlift' => 0.0];
+        foreach ($strengthHistoryAll as $row) {
+            $kg     = StrengthLog::toKg((float) $row['weight'], $row['unit']);
+            $reps   = (int) $row['reps'];
+            $est1rm = $kg * (1.0 + $reps / 30.0);
+            if ($est1rm > ($bestEst1rmKg[$row['lift_type']] ?? 0.0)) {
+                $bestEst1rmKg[$row['lift_type']] = $est1rm;
+            }
+        }
+        $isPr = ['bench' => false, 'squat' => false, 'deadlift' => false];
+        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+            $latest = $latestPerLift[$lift] ?? null;
+            if (!$latest) continue;
+            $kg     = StrengthLog::toKg((float) $latest['weight'], $latest['unit']);
+            $est1rm = $kg * (1.0 + ((int) $latest['reps']) / 30.0);
+            // Tiny epsilon to absorb float-conversion noise.
+            if (abs($est1rm - $bestEst1rmKg[$lift]) < 0.01 && $est1rm > 0) {
+                $isPr[$lift] = true;
+            }
+        }
+
         $strengthCard = [
             'has_logs' => (bool) array_filter($latestPerLift),
             'lifts'    => $latestPerLift,   // ['bench' => row|null, ...]
             'labels'   => StrengthLog::LIFT_LABELS,
+            'is_pr'    => $isPr,
+        ];
+
+        // ----- Stat strip (under greeting) -------------------------
+        // Four small "momentum" stats. Computed in one block so the
+        // view just renders them. Each stat returns null when there's
+        // nothing meaningful yet, and the view shows a muted dash.
+        $sevenAgoDate = (new DateTime('today'))->modify('-6 days')->format('Y-m-d');
+        $statStrip = [
+            'streak'        => $this->computeLoggingStreak($userId),
+            'meals_week'    => CalorieIntake::countForUserSince($userId, $sevenAgoDate),
+            'lifts_week'    => StrengthLog::countForUserSince($userId, $sevenAgoDate),
+            'weight_delta'  => $weightCard['trend_diff'] ?? null,
+            'weight_unit'   => $weightCard['unit'] ?? null,
+            'weight_days'   => $weightCard['trend_days'] ?? null,
         ];
 
         // ----- Chart data (oldest-first, shaped for the existing
@@ -124,7 +167,7 @@ class DashboardController extends Controller {
         );
         $weightChartUnit = $latestWeight['unit'] ?? 'lbs';
 
-        $strengthHistory = StrengthLog::forUser($userId);
+        // Reuse $strengthHistoryAll (already fetched for PR computation).
         $strengthChartData = array_map(
             static fn(array $r): array => [
                 'date'      => $r['logged_date'],
@@ -132,7 +175,7 @@ class DashboardController extends Controller {
                 'weight_kg' => StrengthLog::toKg((float) $r['weight'], $r['unit']),
                 'reps'      => (int) $r['reps'],
             ],
-            array_reverse($strengthHistory)
+            array_reverse($strengthHistoryAll)
         );
         $latestStrength = StrengthLog::latestForUser($userId);
         $strengthChartUnit = $latestStrength['unit'] ?? 'lbs';
@@ -145,6 +188,7 @@ class DashboardController extends Controller {
             'calorieCard'        => $calorieCard,
             'weightCard'         => $weightCard,
             'strengthCard'       => $strengthCard,
+            'statStrip'          => $statStrip,
 
             // Chart payloads — empty arrays mean "don't render".
             'intakeChartData'    => $intakeChartData,
@@ -155,5 +199,53 @@ class DashboardController extends Controller {
             'strengthChartData'  => $strengthChartData,
             'strengthChartUnit'  => $strengthChartUnit,
         ]);
+    }
+
+    // "Streak" = consecutive days, ending today or yesterday, on which
+    // the user logged anything in any tracker. Yesterday qualifies as
+    // the trailing edge so the streak doesn't drop to 0 before the
+    // user has had a chance to log today.
+    //
+    // Single UNION query across all three log tables, then walk the
+    // newest-first distinct-date list counting consecutive days.
+    private function computeLoggingStreak(int $userId): int {
+        $stmt = db()->prepare(
+            'SELECT logged_date FROM (
+                SELECT DISTINCT logged_date FROM calorie_intake_logs WHERE user_id = ?
+                UNION
+                SELECT DISTINCT logged_date FROM weight_logs         WHERE user_id = ?
+                UNION
+                SELECT DISTINCT logged_date FROM strength_logs       WHERE user_id = ?
+             ) d
+             ORDER BY logged_date DESC
+             LIMIT 366'
+        );
+        $stmt->execute([$userId, $userId, $userId]);
+        $dates = array_column($stmt->fetchAll(), 'logged_date');
+        if (!$dates) return 0;
+
+        $today     = new DateTime('today');
+        $yesterday = (clone $today)->modify('-1 day');
+        $first     = new DateTime($dates[0]);
+
+        // Streak only counts if the most recent log is today or yesterday.
+        if ($first->format('Y-m-d') !== $today->format('Y-m-d')
+            && $first->format('Y-m-d') !== $yesterday->format('Y-m-d')) {
+            return 0;
+        }
+
+        $streak = 1;
+        $prev   = $first;
+        for ($i = 1, $n = count($dates); $i < $n; $i++) {
+            $curr     = new DateTime($dates[$i]);
+            $dayDiff  = (int) $prev->diff($curr)->days;
+            if ($dayDiff === 1) {
+                $streak++;
+                $prev = $curr;
+            } else {
+                break;
+            }
+        }
+        return $streak;
     }
 }

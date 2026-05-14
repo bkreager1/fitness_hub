@@ -680,6 +680,10 @@
     (function initIntakeChart () {
         const canvas = document.getElementById('intakeChart');
         if (!canvas) return;
+        // Tear down the loading skeleton on the parent .chart-wrap. Done
+        // up front so even early bails (no Chart, bad JSON) reveal the
+        // canvas underneath instead of leaving the shimmer running.
+        canvas.closest('.chart-wrap--loading')?.classList.remove('chart-wrap--loading');
         if (typeof Chart === 'undefined') return;   // CDN failed to load
 
         let rows, targets;
@@ -937,6 +941,7 @@
     (function initWeightChart () {
         const canvas = document.getElementById('weightChart');
         if (!canvas) return;
+        canvas.closest('.chart-wrap--loading')?.classList.remove('chart-wrap--loading');
         if (typeof Chart === 'undefined') return;
 
         let rows;
@@ -1095,6 +1100,7 @@
     (function initStrengthChart () {
         const canvas = document.getElementById('strengthChart');
         if (!canvas) return;
+        canvas.closest('.chart-wrap--loading')?.classList.remove('chart-wrap--loading');
         if (typeof Chart === 'undefined') return;
 
         let rows;

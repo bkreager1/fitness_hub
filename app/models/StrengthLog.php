@@ -105,6 +105,17 @@ class StrengthLog {
         return (int) $stmt->fetchColumn();
     }
 
+    // Count of lift rows on or after $sinceDate. Used by the dashboard
+    // stat strip ("X lifts this week").
+    public static function countForUserSince(int $userId, string $sinceDate): int {
+        $stmt = db()->prepare(
+            'SELECT COUNT(*) FROM strength_logs
+             WHERE user_id = ? AND logged_date >= ?'
+        );
+        $stmt->execute([$userId, $sinceDate]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent lift overall (any type) — used by dashboard later.
     public static function latestForUser(int $userId): ?array {
         $stmt = db()->prepare(
