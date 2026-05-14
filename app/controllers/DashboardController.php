@@ -99,26 +99,22 @@ class DashboardController extends Controller {
             $weightCard['unit'] = $latestWeight['unit'];
             $weightCard['date'] = $latestWeight['logged_date'];
 
-            // 7-day trend: walk the (newest-first) history and find the
-            // oldest entry within the last 7 days. Compare its weight
-            // (in the latest's unit) to the latest. Skip the trend if
-            // there's nothing to compare.
-            $sevenAgo  = (new DateTime('today'))->modify('-7 days')->format('Y-m-d');
-            $weekStart = null;
-            foreach ($weightHistory as $row) {
-                if ($row['logged_date'] < $sevenAgo) break;
-                $weekStart = $row;
-            }
-            if ($weekStart && (int) $weekStart['id'] !== (int) $latestWeight['id']) {
-                $startKg = (float) $weekStart['weight_kg'];
-                $startInLatestUnit = $latestWeight['unit'] === 'kg'
-                    ? round($startKg, 1)
-                    : round($startKg * self::LB_PER_KG, 1);
+            // Trend = latest weigh-in vs the entry right before it. Always
+            // meaningful when there are 2+ entries, regardless of the
+            // gap between them. The days subtitle shows the actual gap
+            // so a wide span doesn't read as misleading. ($weightHistory
+            // is newest-first; index 0 is latest, 1 is the prior.)
+            if (isset($weightHistory[1])) {
+                $prev = $weightHistory[1];
+                $prevKg = (float) $prev['weight_kg'];
+                $prevInLatestUnit = $latestWeight['unit'] === 'kg'
+                    ? round($prevKg, 1)
+                    : round($prevKg * self::LB_PER_KG, 1);
                 $weightCard['trend_diff'] = round(
-                    $weightCard['weight'] - $startInLatestUnit, 1
+                    $weightCard['weight'] - $prevInLatestUnit, 1
                 );
                 $weightCard['trend_days'] = (new DateTime($latestWeight['logged_date']))
-                    ->diff(new DateTime($weekStart['logged_date']))->days;
+                    ->diff(new DateTime($prev['logged_date']))->days;
             }
 
             // Weight goal progress (Tier 1 — uses user.target_weight_kg).
