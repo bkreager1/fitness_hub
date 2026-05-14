@@ -2839,6 +2839,94 @@ a.feature-card:focus-visible {
     .action-strip__item:hover .action-strip__chev { transform: none; }
 }
 
+/* ----- Goal-progress bars (dashboard cards) ------------------------
+   Used on:
+     · Weight summary card  — full-width bar with "X lb to target" meta
+       above and a percent chip on the right.
+     · Strength summary card — compact variant inside each lift's row,
+       paired with a small "120 / 150 kg · 80%" caption below.
+   The track is a soft dark fill; the bar uses the orange brand
+   gradient and animates from 0 → its final width on mount so the
+   numbers feel earned. Gated by reduced-motion. */
+.goal-bar {
+    margin-top: 0.75rem;
+}
+.goal-bar__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+    font-size: 0.78rem;
+}
+.goal-bar__label {
+    color: var(--text-dim);
+    line-height: 1.2;
+}
+.goal-bar__pct {
+    color: var(--text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.goal-bar__pct--inline {
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-left: 0.1rem;
+}
+.goal-bar__track {
+    position: relative;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.goal-bar__fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-deep), var(--primary), var(--primary-hot));
+    border-radius: 999px;
+    box-shadow: 0 0 8px rgba(255, 122, 26, 0.45);
+    animation: goalBarRise .9s cubic-bezier(0.4, 0, 0.2, 1) both;
+    transform-origin: left center;
+}
+@keyframes goalBarRise {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .goal-bar__fill { animation: none; }
+}
+
+/* Compact variant (strength card per-lift row). Tighter spacing,
+   thinner track, sub-caption below replaces the meta row above. */
+.goal-bar--compact {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+.goal-bar--compact .goal-bar__track {
+    height: 4px;
+}
+.goal-bar__sub {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+/* When a strength row has a goal, the row body splits into the
+   regular label/value line plus the compact bar stacked below it.
+   The flex/baseline alignment used by the goal-less variant doesn't
+   apply here — the `.dash-card__list-row` carries the original look. */
+.dash-card__list li.has-goal {
+    display: block;
+}
+.dash-card__list-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
 
 /* ===================================================================
    Phase 8 — Profile + avatar

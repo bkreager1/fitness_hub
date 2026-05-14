@@ -71,4 +71,26 @@ class User {
         $stmt = db()->prepare('UPDATE users SET current_goal = ? WHERE id = ?');
         $stmt->execute([$goal, $id]);
     }
+
+    // Update the four nullable goal columns (target weight + target
+    // bench/squat/deadlift). All values are canonical kg or null.
+    // Caller validates ranges and converts from the user's display
+    // unit (lbs) before calling.
+    public static function updateGoals(int $id, array $goals): void {
+        $stmt = db()->prepare(
+            'UPDATE users
+             SET target_weight_kg   = ?,
+                 target_bench_kg    = ?,
+                 target_squat_kg    = ?,
+                 target_deadlift_kg = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([
+            $goals['target_weight_kg']   ?? null,
+            $goals['target_bench_kg']    ?? null,
+            $goals['target_squat_kg']    ?? null,
+            $goals['target_deadlift_kg'] ?? null,
+            $id,
+        ]);
+    }
 }

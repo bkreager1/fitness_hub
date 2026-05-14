@@ -8,6 +8,31 @@
     $errNewPw       = field_error('new_password');
     $errConfirmPw   = field_error('new_password_confirm');
     $errAvatar      = field_error('avatar');
+    $errGWeight     = field_error('target_weight');
+    $errGBench      = field_error('target_bench');
+    $errGSquat      = field_error('target_squat');
+    $errGDeadlift   = field_error('target_deadlift');
+
+    // Goals: target weight + 3 target lifts. Stored canonically in kg,
+    // displayed in the unit the user picks (default lbs for now —
+    // most of the strength UI uses lbs as the default too).
+    $goalsUnit = old('goals_unit') !== '' ? old('goals_unit') : 'lbs';
+
+    // Convert a canonical kg value to the display unit, rounded to 1
+    // decimal. Returns "" so it slots into a value="" attribute cleanly
+    // when the user hasn't set the goal yet.
+    $kgToDisplay = static function (?float $kg, string $unit): string {
+        if ($kg === null) return '';
+        $val = $unit === 'kg' ? $kg : $kg * 2.2046226218;
+        return rtrim(rtrim(number_format($val, 1, '.', ''), '0'), '.');
+    };
+
+    // "old('field')" wins on a validation-failure redraw, otherwise we
+    // show the persisted goal converted into the current display unit.
+    $gWeightVal   = old('target_weight',   $kgToDisplay($user['target_weight_kg']   ?? null, $goalsUnit));
+    $gBenchVal    = old('target_bench',    $kgToDisplay($user['target_bench_kg']    ?? null, $goalsUnit));
+    $gSquatVal    = old('target_squat',    $kgToDisplay($user['target_squat_kg']    ?? null, $goalsUnit));
+    $gDeadliftVal = old('target_deadlift', $kgToDisplay($user['target_deadlift_kg'] ?? null, $goalsUnit));
 
     $hasAvatar = !empty($user['profile_image_path']);
     $avatarSrc = $hasAvatar
@@ -150,6 +175,108 @@
                 <button type="submit" class="btn btn-inline">Save changes</button>
             </form>
         </div>
+
+        <!-- ============ GOALS ============ -->
+        <?php if ($flashMsg = flash('goals_success')): ?>
+            <div class="flash flash-success flash--centered" role="status">
+                <?= e($flashMsg) ?>
+            </div>
+        <?php endif; ?>
+        <div class="tracker-card">
+            <header class="tracker-card__head">
+                <div>
+                    <h2>Goals</h2>
+                    <span class="field-hint">
+                        Set a target weight and PR goals for each big-three
+                        lift. Leave any field blank to clear that goal —
+                        the dashboard hides progress bars without a target.
+                    </span>
+                </div>
+                <div class="unit-toggle" id="goalsUnitToggle"
+                     role="tablist" aria-label="Units">
+                    <button type="button" data-unit="lbs"
+                            class="<?= $goalsUnit === 'lbs' ? 'is-active' : '' ?>"
+                            role="tab"
+                            aria-selected="<?= $goalsUnit === 'lbs' ? 'true' : 'false' ?>">
+                        lbs
+                    </button>
+                    <button type="button" data-unit="kg"
+                            class="<?= $goalsUnit === 'kg' ? 'is-active' : '' ?>"
+                            role="tab"
+                            aria-selected="<?= $goalsUnit === 'kg' ? 'true' : 'false' ?>">
+                        kg
+                    </button>
+                </div>
+            </header>
+
+            <form method="post" action="<?= url('profile/goals') ?>" novalidate>
+                <?= csrf_field() ?>
+                <input type="hidden" name="goals_unit" id="goalsUnit" value="<?= e($goalsUnit) ?>">
+
+                <div class="form-grid">
+
+                    <div class="field">
+                        <label for="target_weight">
+                            Target weight <span class="goals-unit-label">(<?= e($goalsUnit) ?>)</span>
+                        </label>
+                        <input type="number" id="target_weight" name="target_weight"
+                               inputmode="decimal" step="0.1" min="0"
+                               value="<?= e($gWeightVal) ?>"
+                               placeholder="<?= $goalsUnit === 'lbs' ? '165' : '75' ?>"
+                               <?= $errGWeight ? 'aria-invalid="true" aria-describedby="target_weight-error"' : '' ?>>
+                        <?php if ($errGWeight): ?>
+                            <p id="target_weight-error" class="field-error"><?= e($errGWeight) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="target_bench">
+                            Bench press <span class="goals-unit-label">(<?= e($goalsUnit) ?>)</span>
+                        </label>
+                        <input type="number" id="target_bench" name="target_bench"
+                               inputmode="decimal" step="0.1" min="0"
+                               value="<?= e($gBenchVal) ?>"
+                               placeholder="<?= $goalsUnit === 'lbs' ? '225' : '102' ?>"
+                               <?= $errGBench ? 'aria-invalid="true" aria-describedby="target_bench-error"' : '' ?>>
+                        <?php if ($errGBench): ?>
+                            <p id="target_bench-error" class="field-error"><?= e($errGBench) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="target_squat">
+                            Squat <span class="goals-unit-label">(<?= e($goalsUnit) ?>)</span>
+                        </label>
+                        <input type="number" id="target_squat" name="target_squat"
+                               inputmode="decimal" step="0.1" min="0"
+                               value="<?= e($gSquatVal) ?>"
+                               placeholder="<?= $goalsUnit === 'lbs' ? '315' : '142' ?>"
+                               <?= $errGSquat ? 'aria-invalid="true" aria-describedby="target_squat-error"' : '' ?>>
+                        <?php if ($errGSquat): ?>
+                            <p id="target_squat-error" class="field-error"><?= e($errGSquat) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="target_deadlift">
+                            Deadlift <span class="goals-unit-label">(<?= e($goalsUnit) ?>)</span>
+                        </label>
+                        <input type="number" id="target_deadlift" name="target_deadlift"
+                               inputmode="decimal" step="0.1" min="0"
+                               value="<?= e($gDeadliftVal) ?>"
+                               placeholder="<?= $goalsUnit === 'lbs' ? '405' : '184' ?>"
+                               <?= $errGDeadlift ? 'aria-invalid="true" aria-describedby="target_deadlift-error"' : '' ?>>
+                        <?php if ($errGDeadlift): ?>
+                            <p id="target_deadlift-error" class="field-error"><?= e($errGDeadlift) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-inline">Save goals</button>
+            </form>
+        </div>
+
 
         <!-- ============ CHANGE PASSWORD ============ -->
         <div class="tracker-card">

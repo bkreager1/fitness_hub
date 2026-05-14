@@ -933,6 +933,69 @@
 
 
     /* ---------------------------------------------------------
+       7b. Profile → Goals form unit toggle (lbs ↔ kg).
+           Mirrors the weight-form toggle but converts four inputs
+           (target weight + bench / squat / deadlift) at once, and
+           updates the per-field "(unit)" label spans.
+       --------------------------------------------------------- */
+    (function initGoalsForm () {
+        const toggle    = document.getElementById('goalsUnitToggle');
+        const unitInput = document.getElementById('goalsUnit');
+        if (!toggle || !unitInput) return;
+
+        const LB_PER_KG = 2.2046226218;
+        const FIELDS = ['target_weight', 'target_bench', 'target_squat', 'target_deadlift'];
+        const PLACEHOLDERS = {
+            target_weight:   { lbs: '165', kg: '75'  },
+            target_bench:    { lbs: '225', kg: '102' },
+            target_squat:    { lbs: '315', kg: '142' },
+            target_deadlift: { lbs: '405', kg: '184' },
+        };
+
+        function applyUnitUI (unit) {
+            unitInput.value = unit;
+
+            FIELDS.forEach((name) => {
+                const input = document.getElementById(name);
+                if (input) input.placeholder = PLACEHOLDERS[name][unit];
+            });
+
+            document.querySelectorAll('.goals-unit-label').forEach((el) => {
+                el.textContent = `(${unit})`;
+            });
+
+            toggle.querySelectorAll('button').forEach((b) => {
+                const on = b.dataset.unit === unit;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        }
+
+        toggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-unit]');
+            if (!btn) return;
+            const newUnit = btn.dataset.unit;
+            const oldUnit = unitInput.value;
+            if (newUnit === oldUnit) return;
+
+            FIELDS.forEach((name) => {
+                const input = document.getElementById(name);
+                if (!input) return;
+                const v = parseFloat(input.value);
+                if (!isNaN(v) && v > 0) {
+                    const converted = (oldUnit === 'lbs' && newUnit === 'kg')
+                        ? v / LB_PER_KG
+                        : v * LB_PER_KG;
+                    input.value = converted.toFixed(1);
+                }
+            });
+
+            applyUnitUI(newUnit);
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        8. Weight chart (Chart.js).
           Single-line trend chart. lbs/kg toggle re-renders the
           Y values from canonical kg without round-tripping the

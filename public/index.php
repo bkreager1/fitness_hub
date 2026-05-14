@@ -95,6 +95,7 @@ try {
         'GET profile'               => (new ProfileController())->index(),
         'POST profile'              => (new ProfileController())->update(),
         'POST profile/password'     => (new ProfileController())->password(),
+        'POST profile/goals'        => (new ProfileController())->goals(),
         'POST profile/image'        => (new ProfileController())->uploadImage(),
         'POST profile/image/delete' => (new ProfileController())->deleteImage(),
 

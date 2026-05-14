@@ -281,6 +281,28 @@ $hasAnyActivity =
                             <?php endif; ?>
                         <?php endif; ?>
                     </div>
+
+                    <?php if (!empty($weightCard['goal'])):
+                        $wg = $weightCard['goal']; ?>
+                        <div class="goal-bar" aria-label="Weight goal progress">
+                            <div class="goal-bar__meta">
+                                <span class="goal-bar__label">
+                                    <?php if ($wg['direction'] === 'hit'): ?>
+                                        Goal reached!
+                                    <?php else: ?>
+                                        <?= e(number_format($wg['remaining_display'], 1)) ?>
+                                        <?= e($weightCard['unit']) ?> to
+                                        <?= e(number_format($wg['target_display'], 1)) ?>
+                                    <?php endif; ?>
+                                </span>
+                                <span class="goal-bar__pct"><?= e((string) $wg['pct']) ?>%</span>
+                            </div>
+                            <div class="goal-bar__track">
+                                <div class="goal-bar__fill"
+                                     style="width: <?= e((string) $wg['pct']) ?>%"></div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
@@ -295,19 +317,39 @@ $hasAnyActivity =
 
                 <?php if ($strengthCard['has_logs']): ?>
                     <ul class="dash-card__list">
-                        <?php foreach (['bench', 'squat', 'deadlift'] as $key): ?>
-                            <li>
-                                <span class="dash-card__list-label">
-                                    <?= e($strengthCard['labels'][$key] ?? ucfirst($key)) ?>
-                                </span>
-                                <span class="dash-card__list-value">
-                                    <?php if (!empty($strengthCard['is_pr'][$key])): ?>
-                                        <span class="dash-pr-badge"
-                                              title="Personal record (estimated 1-rep max)"
-                                              aria-label="Personal record">PR</span>
-                                    <?php endif; ?>
-                                    <?= e($liftLine($strengthCard['lifts'][$key] ?? null)) ?>
-                                </span>
+                        <?php foreach (['bench', 'squat', 'deadlift'] as $key):
+                            $sg = $strengthCard['goals'][$key] ?? null; ?>
+                            <li class="<?= $sg ? 'has-goal' : '' ?>">
+                                <div class="dash-card__list-row">
+                                    <span class="dash-card__list-label">
+                                        <?= e($strengthCard['labels'][$key] ?? ucfirst($key)) ?>
+                                    </span>
+                                    <span class="dash-card__list-value">
+                                        <?php if (!empty($strengthCard['is_pr'][$key])): ?>
+                                            <span class="dash-pr-badge"
+                                                  title="Personal record (estimated 1-rep max)"
+                                                  aria-label="Personal record">PR</span>
+                                        <?php endif; ?>
+                                        <?= e($liftLine($strengthCard['lifts'][$key] ?? null)) ?>
+                                    </span>
+                                </div>
+                                <?php if ($sg): ?>
+                                    <div class="goal-bar goal-bar--compact"
+                                         aria-label="<?= e(ucfirst($key)) ?> goal progress">
+                                        <div class="goal-bar__track">
+                                            <div class="goal-bar__fill"
+                                                 style="width: <?= e((string) $sg['pct']) ?>%"></div>
+                                        </div>
+                                        <span class="goal-bar__sub">
+                                            <?= e(number_format($sg['current_display'], 0)) ?>
+                                            /
+                                            <?= e(number_format($sg['target_display'], 0)) ?>
+                                            <?= e($sg['unit']) ?>
+                                            <span class="goal-bar__pct goal-bar__pct--inline">·
+                                                <?= e((string) $sg['pct']) ?>%</span>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>

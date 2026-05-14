@@ -85,6 +85,77 @@ class ProfileController extends Controller {
         $this->redirect('profile');
     }
 
+    // ============ UPDATE GOALS ============
+    // Target weight + target bench/squat/deadlift. All four fields
+    // are optional — submitting blank values clears the goal so the
+    // dashboard hides the corresponding progress bar.
+    //
+    // Display unit comes from the user's preferred unit on the form
+    // (lbs or kg). We convert to canonical kg before persisting so
+    // every weight in the DB lives on the same scale.
+    public function goals(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId = (int) current_user_id();
+        $unit   = ($_POST['goals_unit'] ?? 'lbs') === 'kg' ? 'kg' : 'lbs';
+
+        // Field map: form name → DB column. Same shape for all four so
+        // the validation loop stays compact.
+        $fields = [
+            'target_weight'   => ['column' => 'target_weight_kg',   'label' => 'Target weight'],
+            'target_bench'    => ['column' => 'target_bench_kg',    'label' => 'Target bench'],
+            'target_squat'    => ['column' => 'target_squat_kg',    'label' => 'Target squat'],
+            'target_deadlift' => ['column' => 'target_deadlift_kg', 'label' => 'Target deadlift'],
+        ];
+
+        $errors  = [];
+        $goalsKg = [];
+        $oldVals = ['goals_unit' => $unit];
+
+        foreach ($fields as $name => $meta) {
+            $raw = trim($_POST[$name] ?? '');
+            $oldVals[$name] = $raw;
+
+            if ($raw === '') {
+                $goalsKg[$meta['column']] = null;
+                continue;
+            }
+
+            if (!is_numeric($raw)) {
+                $errors[$name] = $meta['label'] . ' must be a number.';
+                continue;
+            }
+
+            $val = (float) $raw;
+            // Sensible bounds in the display unit before conversion.
+            $min = $unit === 'lbs' ? 1   : 0.5;
+            $max = $unit === 'lbs' ? 2000 : 900;
+            if ($val < $min || $val > $max) {
+                $errors[$name] = $meta['label'] . ' is outside the allowed range.';
+                continue;
+            }
+
+            // Convert to canonical kg. Round to 2 decimals to match the
+            // DECIMAL(_, 2) column precision.
+            $kg = $unit === 'kg' ? $val : $val / 2.2046226218;
+            $goalsKg[$meta['column']] = round($kg, 2);
+        }
+
+        save_old($oldVals);
+
+        if ($errors) {
+            set_errors($errors);
+            $this->redirect('profile');
+            return;
+        }
+
+        User::updateGoals($userId, $goalsKg);
+
+        flash('goals_success', 'Goals updated.');
+        $this->redirect('profile');
+    }
+
     // ============ CHANGE PASSWORD ============
 
     public function password(): void {

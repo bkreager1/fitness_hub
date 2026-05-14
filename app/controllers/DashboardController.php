@@ -86,6 +86,52 @@ class DashboardController extends Controller {
                 $weightCard['trend_days'] = (new DateTime($latestWeight['logged_date']))
                     ->diff(new DateTime($weekStart['logged_date']))->days;
             }
+
+            // Weight goal progress (Tier 1 — uses user.target_weight_kg).
+            // Progress is measured from the user's first-ever weigh-in
+            // ("start") toward the target. Works for both cut (start >
+            // target) and bulk (start < target).
+            //
+            // Edge cases:
+            //   - No target set            → skip entirely.
+            //   - Only one weigh-in        → no "start" yet, just show
+            //                                target + remaining without %.
+            //   - Already past the target  → pct clamps to 100, label
+            //                                flips to "goal reached".
+            $targetWeightKg = isset($user['target_weight_kg'])
+                ? (float) $user['target_weight_kg']
+                : null;
+            if ($targetWeightKg !== null && $targetWeightKg > 0) {
+                $unit         = $latestWeight['unit'];
+                $latestKg     = (float) $latestWeight['weight_kg'];
+                $targetDisp   = $unit === 'kg' ? $targetWeightKg : $targetWeightKg * self::LB_PER_KG;
+                $remainingKg  = $latestKg - $targetWeightKg;   // signed
+                $remainingDisp = $unit === 'kg'
+                    ? round(abs($remainingKg), 1)
+                    : round(abs($remainingKg) * self::LB_PER_KG, 1);
+
+                $oldest       = end($weightHistory) ?: $latestWeight;
+                $startKg      = (float) $oldest['weight_kg'];
+                $rangeKg      = $startKg - $targetWeightKg;     // signed
+                $progressKg   = $startKg - $latestKg;           // signed
+
+                if (abs($remainingKg) < 0.05) {
+                    $pct = 100; $direction = 'hit';
+                } elseif (abs($rangeKg) < 0.05) {
+                    // Start == target (already there at goal-set time).
+                    $pct = 100; $direction = 'hit';
+                } else {
+                    $pct = (int) round(max(0, min(100, ($progressKg / $rangeKg) * 100)));
+                    $direction = $rangeKg > 0 ? 'cut' : 'bulk';
+                }
+
+                $weightCard['goal'] = [
+                    'pct'             => $pct,
+                    'direction'       => $direction,        // cut | bulk | hit
+                    'target_display'  => round($targetDisp, 1),
+                    'remaining_display' => $remainingDisp,
+                ];
+            }
         }
 
         // ----- Strength summary ------------------------------------
@@ -119,11 +165,41 @@ class DashboardController extends Controller {
             }
         }
 
+        // Strength goal progress per lift (Tier 1 — uses
+        // user.target_{bench,squat,deadlift}_kg). For each lift we
+        // compare the user's best-ever est-1RM (already computed
+        // above) to their target. Bar fills as a % of target,
+        // clamped to 100. Display unit = the unit the latest entry
+        // for that lift was logged in (falls back to lbs).
+        $strengthGoals = ['bench' => null, 'squat' => null, 'deadlift' => null];
+        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+            $col = 'target_' . $lift . '_kg';
+            $targetKg = isset($user[$col]) ? (float) $user[$col] : 0.0;
+            if ($targetKg <= 0) continue;
+
+            $currentKg = $bestEst1rmKg[$lift] ?? 0.0;
+            // Display in the unit the latest entry for THIS lift was
+            // logged in. Falls back to lbs if the user has never logged
+            // this particular lift (target set but no entries yet).
+            $unit = $latestPerLift[$lift]['unit'] ?? 'lbs';
+            $toDisplay = static fn(float $kg) => $unit === 'kg'
+                ? round($kg, 1)
+                : round($kg * self::LB_PER_KG, 1);
+
+            $strengthGoals[$lift] = [
+                'pct'             => (int) round(max(0, min(100, ($currentKg / $targetKg) * 100))),
+                'target_display'  => $toDisplay($targetKg),
+                'current_display' => $toDisplay($currentKg),
+                'unit'            => $unit,
+            ];
+        }
+
         $strengthCard = [
             'has_logs' => (bool) array_filter($latestPerLift),
             'lifts'    => $latestPerLift,   // ['bench' => row|null, ...]
             'labels'   => StrengthLog::LIFT_LABELS,
             'is_pr'    => $isPr,
+            'goals'    => $strengthGoals,
         ];
 
         // ----- Stat strip (under greeting) -------------------------
