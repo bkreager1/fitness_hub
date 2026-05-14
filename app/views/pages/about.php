@@ -8,11 +8,11 @@
         <h1>Fitness, without the noise.</h1>
         <p class="hero-lede">
             Rock County Fitness Hub is a simple, no-fluff app for tracking
-            the three things that actually move the needle: what you eat,
-            what you weigh, and what you can lift. It was built for
-            beginners, but it is useful for anyone who wants a clean place
-            to stay consistent without the noise, pressure, or confusing
-            fitness advice.
+            the things that actually move the needle: what you eat, what
+            you weigh, what you can lift, and how much you move. It was
+            built for beginners, but it is useful for anyone who wants a
+            clean place to stay consistent without the noise, pressure,
+            or confusing fitness advice.
         </p>
     </div>
 </section>
@@ -23,7 +23,7 @@
     <div class="container">
         <div class="section-head">
             <h2>What's inside</h2>
-            <p>Three simple trackers, one clean dashboard. That's it.</p>
+            <p>Four simple trackers, one clean dashboard. That's it.</p>
         </div>
 
         <div class="features">
@@ -57,6 +57,16 @@
                 <p>Track bench press, squat, and deadlift with weight and
                    reps. The chart estimates your one-rep max so progress
                    is easier to compare across different rep ranges.</p>
+            </article>
+
+            <article class="feature-card">
+                <img class="feature-image"
+                     src="<?= asset('images/cardio.png') ?>"
+                     alt="" width="88" height="88">
+                <h3>Cardio</h3>
+                <p>Walk, run, bike, row — log duration plus optional
+                   intensity and distance. Set a weekly session goal and
+                   the dashboard tracks your progress toward it.</p>
             </article>
 
         </div>

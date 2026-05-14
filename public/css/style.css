@@ -3080,16 +3080,17 @@ a.feature-card:focus-visible {
 }
 
 /* Place items: row 1 is Calories | Weight | Strength,
-   row 2 is "This week" (spans cols 1+2) | Cardio. */
+   row 2 is "This week" (spans cols 1+2) | Cardio,
+   row 3 is Goals & progress (spans all 3 cols). */
 .dash-grid__calories { grid-column: 1; grid-row: 1; }
 .dash-grid__weight   { grid-column: 2; grid-row: 1; }
 .dash-grid__strength { grid-column: 3; grid-row: 1; }
 .dash-grid__thisweek { grid-column: 1 / span 2; grid-row: 2; }
 .dash-grid__cardio   { grid-column: 3; grid-row: 2; }
+.dash-grid__goals    { grid-column: 1 / -1; grid-row: 3; }
 
 /* Two cols at tablet: Calories | Weight, then Strength | Cardio,
-   then "This week" full-width below. Keeps every card visible and
-   none of them squished. */
+   then "This week" full-width, then Goals full-width below. */
 @media (max-width: 1099px) {
     .dash-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dash-grid__calories { grid-column: 1; grid-row: 1; }
@@ -3097,10 +3098,10 @@ a.feature-card:focus-visible {
     .dash-grid__strength { grid-column: 1; grid-row: 2; }
     .dash-grid__cardio   { grid-column: 2; grid-row: 2; }
     .dash-grid__thisweek { grid-column: 1 / -1; grid-row: 3; }
+    .dash-grid__goals    { grid-column: 1 / -1; grid-row: 4; }
 }
 
-/* Single column on phones — natural priority order: today's calories
-   first, then strength, weight, cardio, this-week summary. */
+/* Single column on phones — natural priority order. */
 @media (max-width: 640px) {
     .dash-grid { grid-template-columns: 1fr; }
     .dash-grid__calories { grid-column: 1; grid-row: auto; }
@@ -3108,6 +3109,7 @@ a.feature-card:focus-visible {
     .dash-grid__strength { grid-column: 1; grid-row: auto; }
     .dash-grid__cardio   { grid-column: 1; grid-row: auto; }
     .dash-grid__thisweek { grid-column: 1; grid-row: auto; }
+    .dash-grid__goals    { grid-column: 1; grid-row: auto; }
 }
 
 
@@ -3333,7 +3335,11 @@ a.feature-card:focus-visible {
 }
 
 
-/* ----- Goals & progress strip (sitewide, dashboard) ----------------- */
+/* ----- Goals & progress strip (sitewide, dashboard) -----------------
+   Standalone form: gets its own card-style wrapper (used outside the
+   dashboard grid). Nested form (.goals-strip--nested): drops the
+   wrapper so it sits flush inside the parent .dash-card without a
+   double border. */
 .goals-strip {
     list-style: none;
     margin: 0;
@@ -3342,6 +3348,13 @@ a.feature-card:focus-visible {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+}
+.goals-strip--nested {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    /* Tighter side-padding inside the rows since the parent card
+       already has its own padding. */
 }
 .goals-strip__row {
     display: grid;
@@ -3352,6 +3365,11 @@ a.feature-card:focus-visible {
     border-bottom: 1px solid var(--border-soft);
     font-size: 0.9rem;
 }
+.goals-strip--nested .goals-strip__row {
+    padding-left: 0;
+    padding-right: 0;
+}
+.goals-strip--nested .goals-strip__row:first-child { padding-top: 0.5rem; }
 .goals-strip__row:last-child { border-bottom: none; }
 .goals-strip__icon {
     display: grid;
@@ -3415,17 +3433,6 @@ a.feature-card:focus-visible {
     .goals-strip__track { grid-area: track; }
     .goals-strip__suffix{ grid-area: suffix; text-align: left; }
 }
-
-
-/* ----- Quick-action strip: SVG icon variant (cardio tile) ----------- */
-.action-strip__icon--svg {
-    display: grid;
-    place-items: center;
-    background: var(--primary-soft);
-    color: var(--primary-hot);
-    border-radius: 12px;
-}
-.action-strip__icon--svg svg { width: 26px; height: 26px; }
 
 
 /* ===================================================================

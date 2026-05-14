@@ -12,9 +12,10 @@
                 <span class="accent">One day at a time.</span>
             </h1>
             <p class="hero-lede">
-                Track your calories, weight, and lifts in one simple dashboard.
-                No gimmicks, no confusing spreadsheets — just the numbers that
-                help you stay consistent and see real progress.
+                Track your calories, weight, lifts, and cardio in one
+                simple dashboard. No gimmicks, no confusing spreadsheets —
+                just the numbers that help you stay consistent and see
+                real progress.
             </p>
             <div class="hero-cta">
                 <?php if (is_logged_in()): ?>
@@ -107,7 +108,7 @@
 <section class="section">
     <div class="container">
         <div class="section-head">
-            <h2>Three trackers. One simple goal.</h2>
+            <h2>Four trackers. One simple goal.</h2>
             <p>Whether you're cutting, bulking, or just trying to stay consistent,
                each tracker focuses on the basics that actually matter.</p>
         </div>
@@ -155,6 +156,16 @@
                 <h3>Strength tracker</h3>
                 <p>Track bench, squat, and deadlift in one place so you
                    can see your big three progress over time.</p>
+            </a>
+
+            <a class="feature-card" href="<?= e($href('cardio')) ?>"
+               aria-label="<?= e($cardLabel('Cardio tracker')) ?>">
+                <img class="feature-image"
+                     src="<?= asset('images/cardio.png') ?>"
+                     alt="" width="88" height="88">
+                <h3>Cardio tracker</h3>
+                <p>Log walks, runs, rides, and more — duration, optional
+                   intensity, and distance roll up into a weekly goal.</p>
             </a>
 
         </div>

@@ -11,10 +11,11 @@ class PagesController extends Controller {
     public function home(): void {
         $this->view('pages/home', [
             'title'       => 'Home',
-            'description' => 'Track your calories, weight, and lifts in one '
-                          . 'simple dashboard. No gimmicks, no confusing '
-                          . 'spreadsheets — just the numbers that help you '
-                          . 'stay consistent and see real progress.',
+            'description' => 'Track your calories, weight, lifts, and '
+                          . 'cardio in one simple dashboard. No gimmicks, '
+                          . 'no confusing spreadsheets — just the numbers '
+                          . 'that help you stay consistent and see real '
+                          . 'progress.',
             'active'      => 'home',
         ]);
     }
@@ -24,7 +25,7 @@ class PagesController extends Controller {
         $this->view('pages/about', [
             'title'       => 'About',
             'description' => 'A beginner-friendly fitness tracker built '
-                          . 'for Rock County — three simple trackers in '
+                          . 'for Rock County — four simple trackers in '
                           . 'one dashboard, no jargon, no upsells.',
             'active'      => 'about',
         ]);

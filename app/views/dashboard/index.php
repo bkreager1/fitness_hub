@@ -9,7 +9,7 @@
 //   ┌─ Today's snapshot grid ───────────────────────────────────┐
 //   │  Calories | Weight  | Strength                            │
 //   │  ──────── This week ──── | Cardio                         │
-//   ┌─ Goals & progress strip ─────────────────────────────────-┐
+//   │  ───── Goals & progress (spans all 3 cols) ─────────────  │
 //   ┌─ Progress over time (3 trend charts + cardio) ────────────┐
 //   ┌─ Quick-action strip ──────────────────────────────────────┐
 //
@@ -44,6 +44,61 @@ $relativeDay = static function (string $iso) use ($today): string {
     $ts = strtotime($iso);
     return $ts ? date('M j', $ts) : $iso;
 };
+
+// Goals & progress — flat list of progress bars built from data the
+// controller already computed. Built up here so the card can sit
+// inside the dash-grid alongside the snapshot cards. Hidden entirely
+// when nothing has been set.
+$goalRows = [];
+
+if (!empty($weightCard['goal'])) {
+    $wg = $weightCard['goal'];
+    $goalRows[] = [
+        'icon'   => '⚖',
+        'label'  => 'Reach '
+                  . number_format($wg['target_display'], 1) . ' '
+                  . $weightCard['unit'],
+        'pct'    => (int) $wg['pct'],
+        'suffix' => $wg['direction'] === 'hit'
+            ? 'goal reached'
+            : number_format($wg['remaining_display'], 1) . ' '
+              . $weightCard['unit'] . ' to go',
+    ];
+}
+foreach (['bench', 'squat', 'deadlift'] as $lift) {
+    $sg = $strengthCard['goals'][$lift] ?? null;
+    if (!$sg) continue;
+    $label = $strengthCard['labels'][$lift] ?? ucfirst($lift);
+    $remaining = max(0, $sg['target_display'] - $sg['current_display']);
+    $goalRows[] = [
+        'icon'   => '🏋',
+        'label'  => $label . ' to '
+                  . number_format($sg['target_display'], 0) . ' '
+                  . $sg['unit'],
+        'pct'    => (int) $sg['pct'],
+        'suffix' => $remaining > 0
+            ? number_format($remaining, 0) . ' ' . $sg['unit'] . ' to go'
+            : 'goal reached',
+    ];
+}
+if (!empty($thisWeek['workouts_target'])) {
+    $done = (int) $thisWeek['workouts_done'];
+    $tgt  = (int) $thisWeek['workouts_target'];
+    $goalRows[] = [
+        'icon'   => '📅',
+        'label'  => $tgt . ' workouts / week',
+        'pct'    => (int) $thisWeek['workouts_pct'],
+        'suffix' => $done . ' of ' . $tgt . ' this week',
+    ];
+}
+if (!empty($cardioCard['target'])) {
+    $goalRows[] = [
+        'icon'   => '🏃',
+        'label'  => $cardioCard['target'] . ' cardio / week',
+        'pct'    => (int) $cardioCard['pct'],
+        'suffix' => $cardioCard['sessions_week'] . ' of ' . $cardioCard['target'] . ' this week',
+    ];
+}
 ?>
 
 
@@ -512,9 +567,7 @@ $hasAnyActivity =
                         </div>
                         <div class="dash-card__hint">
                             <?= e((string) $cardioCard['sessions_week']) ?> session<?= $cardioCard['sessions_week'] === 1 ? '' : 's' ?>
-                            · set a weekly target in
-                            <span class="dash-card__inline-link">your profile</span>
-                            to track progress.
+                            this week.
                         </div>
                     <?php endif; ?>
 
@@ -539,92 +592,34 @@ $hasAnyActivity =
                 <?php endif; ?>
             </a>
 
+            <!-- ===== Goals & progress (full-width row, nested goals-strip) ===== -->
+            <?php if (!empty($goalRows)): ?>
+            <article class="dash-card dash-grid__goals">
+                <header class="dash-card__head">
+                    <span class="dash-card__eyebrow">Goals &amp; progress</span>
+                    <a class="dash-card__view-all" href="<?= url('profile') ?>">Edit goals</a>
+                </header>
+
+                <ul class="goals-strip goals-strip--nested">
+                    <?php foreach ($goalRows as $g): ?>
+                        <li class="goals-strip__row">
+                            <span class="goals-strip__icon" aria-hidden="true"><?= e($g['icon']) ?></span>
+                            <span class="goals-strip__label"><?= e($g['label']) ?></span>
+                            <div class="goals-strip__track">
+                                <div class="goals-strip__fill"
+                                     style="width: <?= e((string) $g['pct']) ?>%"></div>
+                            </div>
+                            <span class="goals-strip__pct"><?= e((string) $g['pct']) ?>%</span>
+                            <span class="goals-strip__suffix"><?= e($g['suffix']) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </article>
+            <?php endif; ?>
+
         </div>
     </div>
 </section>
-
-
-<!-- ===================== Goals & progress strip ===================== -->
-<?php
-// Build a flat list of progress bars from data already computed above.
-// Each row needs: label (with icon), pct, suffix (e.g. "17.5 kg to go").
-// Hidden entirely if none of the goal columns are set.
-$goalRows = [];
-
-if (!empty($weightCard['goal'])) {
-    $wg = $weightCard['goal'];
-    $goalRows[] = [
-        'icon'   => '⚖',
-        'label'  => 'Reach '
-                  . number_format($wg['target_display'], 1) . ' '
-                  . $weightCard['unit'],
-        'pct'    => (int) $wg['pct'],
-        'suffix' => $wg['direction'] === 'hit'
-            ? 'goal reached'
-            : number_format($wg['remaining_display'], 1) . ' '
-              . $weightCard['unit'] . ' to go',
-    ];
-}
-foreach (['bench', 'squat', 'deadlift'] as $lift) {
-    $sg = $strengthCard['goals'][$lift] ?? null;
-    if (!$sg) continue;
-    $label = $strengthCard['labels'][$lift] ?? ucfirst($lift);
-    $remaining = max(0, $sg['target_display'] - $sg['current_display']);
-    $goalRows[] = [
-        'icon'   => '🏋',
-        'label'  => $label . ' to '
-                  . number_format($sg['target_display'], 0) . ' '
-                  . $sg['unit'],
-        'pct'    => (int) $sg['pct'],
-        'suffix' => $remaining > 0
-            ? number_format($remaining, 0) . ' ' . $sg['unit'] . ' to go'
-            : 'goal reached',
-    ];
-}
-if (!empty($thisWeek['workouts_target'])) {
-    $done = (int) $thisWeek['workouts_done'];
-    $tgt  = (int) $thisWeek['workouts_target'];
-    $goalRows[] = [
-        'icon'   => '📅',
-        'label'  => $tgt . ' workouts / week',
-        'pct'    => (int) $thisWeek['workouts_pct'],
-        'suffix' => $done . ' of ' . $tgt . ' this week',
-    ];
-}
-if (!empty($cardioCard['target'])) {
-    $goalRows[] = [
-        'icon'   => '🏃',
-        'label'  => $cardioCard['target'] . ' cardio / week',
-        'pct'    => (int) $cardioCard['pct'],
-        'suffix' => $cardioCard['sessions_week'] . ' of ' . $cardioCard['target'] . ' this week',
-    ];
-}
-?>
-<?php if (!empty($goalRows)): ?>
-<section class="section section--tight">
-    <div class="container">
-        <div class="section-head section-head--inline">
-            <h2>Goals &amp; progress</h2>
-            <a class="section-head__link" href="<?= url('profile') ?>">Edit goals</a>
-        </div>
-
-        <ul class="goals-strip">
-            <?php foreach ($goalRows as $g): ?>
-                <li class="goals-strip__row">
-                    <span class="goals-strip__icon" aria-hidden="true"><?= e($g['icon']) ?></span>
-                    <span class="goals-strip__label"><?= e($g['label']) ?></span>
-                    <div class="goals-strip__track">
-                        <div class="goals-strip__fill"
-                             style="width: <?= e((string) $g['pct']) ?>%"></div>
-                    </div>
-                    <span class="goals-strip__pct"><?= e((string) $g['pct']) ?>%</span>
-                    <span class="goals-strip__suffix"><?= e($g['suffix']) ?></span>
-                </li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-</section>
-<?php endif; ?>
 
 
 <!-- ===================== Progress over time ===================== -->
@@ -812,14 +807,9 @@ $hasAnyChart =
             <li>
                 <a class="action-strip__item" href="<?= url('cardio') ?>"
                    aria-label="Log a cardio session">
-                    <span class="action-strip__icon action-strip__icon--svg" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
-                            <path d="M5 22l3-8 4 3 2-5 5 2"/>
-                            <path d="M14 7c1 1 2 2 4 2"/>
-                        </svg>
-                    </span>
+                    <img class="action-strip__icon"
+                         src="<?= asset('images/cardio.png') ?>"
+                         alt="" width="44" height="44">
                     <span class="action-strip__body">
                         <span class="action-strip__title">Log cardio</span>
                         <span class="action-strip__caption">Walks, runs, rides, more</span>

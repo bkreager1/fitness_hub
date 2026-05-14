@@ -17,8 +17,8 @@
 $pageTitle = $title  ?? SITE_NAME;
 $active    = $active ?? '';
 $pageDesc  = $description
-    ?? 'Track calories, weight, and lifts in one simple dashboard. '
-     . 'A fitness app built for Rock County.';
+    ?? 'Track calories, weight, lifts, and cardio in one simple '
+     . 'dashboard. A fitness app built for Rock County.';
 
 // Build absolute URLs for Open Graph + Twitter Card tags. Social
 // platforms fetch og:url and og:image as absolute URLs, so we piece
