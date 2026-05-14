@@ -52,6 +52,40 @@ class DashboardController extends Controller {
             $calorieCard['diff'] = $calorieCard['today'] - $calorieCard['target'];
         }
 
+        // ----- Today's macros (Tier 2) -----------------------------
+        // Sum protein/carbs/fat across today's meals, plus auto-compute
+        // a per-macro target from the active calorie target using
+        // standard splits per goal (40/30/30 cut, 30/40/30 maintain,
+        // 25/45/30 bulk). Bars only render when the user has actually
+        // entered at least one macro on today's meals — we don't push
+        // macro tracking onto people who don't care.
+        $macroTotals = CalorieIntake::macroTotalsForUserOnDate($userId, $today);
+        $macroSplits = [
+            'cut'      => ['protein' => 0.40, 'carbs' => 0.30, 'fat' => 0.30],
+            'maintain' => ['protein' => 0.30, 'carbs' => 0.40, 'fat' => 0.30],
+            'bulk'     => ['protein' => 0.25, 'carbs' => 0.45, 'fat' => 0.30],
+        ];
+        $macroCalsPerG = ['protein' => 4, 'carbs' => 4, 'fat' => 9];
+        $calorieCard['has_macros'] = $macroTotals['macro_rows'] > 0;
+        if ($calorieCard['has_macros'] && $latestTargets) {
+            $split = $macroSplits[$activeGoal];
+            $targetCal = (int) $latestTargets[$goalColumn];
+            $calorieCard['macros'] = [
+                'protein' => [
+                    'g'        => $macroTotals['protein_g'],
+                    'target_g' => (int) round(($targetCal * $split['protein']) / $macroCalsPerG['protein']),
+                ],
+                'carbs' => [
+                    'g'        => $macroTotals['carbs_g'],
+                    'target_g' => (int) round(($targetCal * $split['carbs']) / $macroCalsPerG['carbs']),
+                ],
+                'fat' => [
+                    'g'        => $macroTotals['fat_g'],
+                    'target_g' => (int) round(($targetCal * $split['fat']) / $macroCalsPerG['fat']),
+                ],
+            ];
+        }
+
         // ----- Weight summary --------------------------------------
         $weightHistory = WeightLog::forUser($userId);   // newest-first
         $latestWeight  = $weightHistory[0] ?? null;

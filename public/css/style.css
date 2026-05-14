@@ -2927,6 +2927,125 @@ a.feature-card:focus-visible {
     gap: 0.75rem;
 }
 
+/* ----- Macro bars (dashboard calorie card) -------------------------
+   Three stacked rows shown under the calorie ring + hint when the
+   user has logged at least one meal with macros today. Auto-target
+   for each macro is computed in PHP from the active calorie goal
+   using standard 40/30/30 (cut) / 30/40/30 (maintain) / 25/45/30
+   (bulk) splits. Each macro gets a tinted bar color so a quick glance
+   tells them apart. */
+.macro-bars {
+    margin-top: 0.75rem;
+    display: grid;
+    gap: 0.5rem;
+}
+.macro-bar__meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 0.2rem;
+}
+.macro-bar__letter {
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0;
+}
+.macro-bar__nums {
+    font-variant-numeric: tabular-nums;
+}
+.macro-bar__nums strong {
+    color: var(--text);
+    font-weight: 700;
+}
+.macro-bar__track {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.macro-bar__fill {
+    height: 100%;
+    border-radius: 999px;
+    animation: goalBarRise .9s cubic-bezier(0.4, 0, 0.2, 1) both;
+    transform-origin: left center;
+}
+/* Per-macro tint. Protein gets the brand orange; carbs go warm-yellow;
+   fat gets a softer pink-orange. Reads as three related-but-distinct
+   accent colors against the dark card. */
+.macro-bar--protein .macro-bar__fill {
+    background: linear-gradient(90deg, var(--primary-deep), var(--primary));
+}
+.macro-bar--carbs .macro-bar__fill {
+    background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+.macro-bar--fat .macro-bar__fill {
+    background: linear-gradient(90deg, #b45309, #f97316);
+}
+@media (prefers-reduced-motion: reduce) {
+    .macro-bar__fill { animation: none; }
+}
+
+/* ----- Macros row on the add-meal / edit-meal forms ----------------
+   Sits below the main Date/Label/Calories row. The title is a small
+   eyebrow; the three inputs are a 3-col grid that collapses to 1 col
+   on phones. The field--macro variant tightens the input height a hair
+   so the row reads as a sub-section, not a parallel primary row. */
+.macros-row {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-soft);
+}
+.macros-row__title {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+}
+.macros-row__title .field-optional {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--text-faint);
+}
+.macros-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 640px) {
+    .macros-grid { grid-template-columns: 1fr; }
+}
+
+/* Inline macro chips under each meal in "Today's meals" — three tiny
+   pills showing P / C / F grams. Only rendered if the meal has at
+   least one macro entered. Kept under the label so the calorie number
+   on the right stays uncluttered. */
+.meals-list__macros {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-left: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+.meals-list__macros span {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+    line-height: 1.35;
+}
+
 
 /* ===================================================================
    Phase 8 — Profile + avatar

@@ -36,6 +36,9 @@ $errWeightKg = field_error('weight_kg');
 $errIntakeDate  = field_error('intake_logged_date');
 $errIntakeCal   = field_error('intake_calories');
 $errIntakeLabel = field_error('intake_label');
+$errIntakeProt  = field_error('intake_protein');
+$errIntakeCarbs = field_error('intake_carbs');
+$errIntakeFat   = field_error('intake_fat');
 
 // ----- Targets form state --------------------------------------------
 $unitSystem = old('unit_system', 'us');
@@ -52,8 +55,11 @@ $intakeDate = old('intake_logged_date') !== ''
 
 // Calories field is empty by default — each meal is its own entry,
 // so there's no "previous total" to seed it with.
-$intakeCal   = old('intake_calories');
-$intakeLabel = old('intake_label');
+$intakeCal     = old('intake_calories');
+$intakeLabel   = old('intake_label');
+$intakeProtein = old('intake_protein');
+$intakeCarbs   = old('intake_carbs');
+$intakeFat     = old('intake_fat');
 
 // ----- Goal lookups (drives the dynamic copy + highlight) ------------
 // activeGoal is one of 'cut' | 'maintain' | 'bulk' from the controller.
@@ -465,10 +471,22 @@ $fmtDate = static function (string $iso): string {
 
             <?php if (!empty($todayMeals)): ?>
                 <ul class="meals-list">
-                    <?php foreach ($todayMeals as $i => $meal): ?>
+                    <?php foreach ($todayMeals as $i => $meal):
+                        $mProt  = $meal['protein_g'] ?? null;
+                        $mCarb  = $meal['carbs_g']   ?? null;
+                        $mFat   = $meal['fat_g']     ?? null;
+                        $hasMacros = $mProt !== null || $mCarb !== null || $mFat !== null;
+                    ?>
                         <li class="meals-list__item">
                             <span class="meals-list__label">
                                 <?= e(($meal['label'] ?? '') !== '' ? $meal['label'] : 'Meal ' . ($i + 1)) ?>
+                                <?php if ($hasMacros): ?>
+                                    <span class="meals-list__macros">
+                                        <?php if ($mProt !== null): ?><span title="Protein">P <?= (int) $mProt ?>g</span><?php endif; ?>
+                                        <?php if ($mCarb !== null): ?><span title="Carbs">C <?= (int) $mCarb ?>g</span><?php endif; ?>
+                                        <?php if ($mFat  !== null): ?><span title="Fat">F <?= (int) $mFat ?>g</span><?php endif; ?>
+                                    </span>
+                                <?php endif; ?>
                             </span>
                             <span class="meals-list__value">
                                 <?= e(number_format((int) $meal['calories'])) ?> cal
@@ -544,6 +562,49 @@ $fmtDate = static function (string $iso): string {
                         <?php endif; ?>
                     </div>
 
+                </div>
+
+                <div class="macros-row">
+                    <span class="macros-row__title">Macros <span class="field-optional">(optional)</span></span>
+                    <div class="macros-grid">
+
+                        <div class="field field--macro">
+                            <label for="intakeProtein">Protein (g)</label>
+                            <input type="number" id="intakeProtein" name="protein"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($intakeProtein) ?>"
+                                   placeholder="30"
+                                   <?= $errIntakeProt ? 'aria-invalid="true" aria-describedby="intake_protein-error"' : '' ?>>
+                            <?php if ($errIntakeProt): ?>
+                                <p id="intake_protein-error" class="field-error"><?= e($errIntakeProt) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="field field--macro">
+                            <label for="intakeCarbs">Carbs (g)</label>
+                            <input type="number" id="intakeCarbs" name="carbs"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($intakeCarbs) ?>"
+                                   placeholder="80"
+                                   <?= $errIntakeCarbs ? 'aria-invalid="true" aria-describedby="intake_carbs-error"' : '' ?>>
+                            <?php if ($errIntakeCarbs): ?>
+                                <p id="intake_carbs-error" class="field-error"><?= e($errIntakeCarbs) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="field field--macro">
+                            <label for="intakeFat">Fat (g)</label>
+                            <input type="number" id="intakeFat" name="fat"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($intakeFat) ?>"
+                                   placeholder="20"
+                                   <?= $errIntakeFat ? 'aria-invalid="true" aria-describedby="intake_fat-error"' : '' ?>>
+                            <?php if ($errIntakeFat): ?>
+                                <p id="intake_fat-error" class="field-error"><?= e($errIntakeFat) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div class="form-actions">

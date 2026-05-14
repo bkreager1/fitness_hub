@@ -246,6 +246,31 @@ $hasAnyActivity =
                             <?= e($calorieCard['goal_label']) ?> target.
                         <?php endif; ?>
                     </div>
+
+                    <?php if (!empty($calorieCard['has_macros']) && !empty($calorieCard['macros'])):
+                        $macros = $calorieCard['macros']; ?>
+                        <div class="macro-bars" aria-label="Today's macros vs target">
+                            <?php foreach (['protein' => 'P', 'carbs' => 'C', 'fat' => 'F'] as $key => $letter):
+                                $m   = $macros[$key];
+                                $pct = $m['target_g'] > 0
+                                    ? (int) round(max(0, min(100, ($m['g'] / $m['target_g']) * 100)))
+                                    : 0;
+                            ?>
+                                <div class="macro-bar macro-bar--<?= $key ?>">
+                                    <div class="macro-bar__meta">
+                                        <span class="macro-bar__letter"><?= $letter ?></span>
+                                        <span class="macro-bar__nums">
+                                            <strong><?= (int) $m['g'] ?></strong> / <?= (int) $m['target_g'] ?> g
+                                        </span>
+                                    </div>
+                                    <div class="macro-bar__track">
+                                        <div class="macro-bar__fill"
+                                             style="width: <?= $pct ?>%"></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">

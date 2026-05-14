@@ -9,13 +9,23 @@
 //   $row   the calorie_intake_logs row being edited
 // ============================================================
 
-$errCal   = field_error('intake_calories');
-$errLabel = field_error('intake_label');
+$errCal     = field_error('intake_calories');
+$errLabel   = field_error('intake_label');
+$errProtein = field_error('intake_protein');
+$errCarbs   = field_error('intake_carbs');
+$errFat     = field_error('intake_fat');
 
 // On a validation failure we round-trip via old(); on initial load we
-// use the row's stored values.
-$calVal   = old('intake_calories') !== '' ? old('intake_calories') : (string) (int) $row['calories'];
-$labelVal = old('intake_label')    !== '' ? old('intake_label')    : ($row['label'] ?? '');
+// use the row's stored values. Macros are nullable in the DB — render
+// "" (not "0") when null so the placeholder shows through.
+$rowMacro = static fn(string $col): string =>
+    $row[$col] !== null ? (string) (int) $row[$col] : '';
+
+$calVal     = old('intake_calories') !== '' ? old('intake_calories') : (string) (int) $row['calories'];
+$labelVal   = old('intake_label')    !== '' ? old('intake_label')    : ($row['label'] ?? '');
+$proteinVal = old('intake_protein')  !== '' ? old('intake_protein')  : $rowMacro('protein_g');
+$carbsVal   = old('intake_carbs')    !== '' ? old('intake_carbs')    : $rowMacro('carbs_g');
+$fatVal     = old('intake_fat')      !== '' ? old('intake_fat')      : $rowMacro('fat_g');
 
 $fmtDate = static function (string $iso): string {
     $ts = strtotime($iso);
@@ -81,6 +91,49 @@ $fmtDate = static function (string $iso): string {
                         <?php endif; ?>
                     </div>
 
+                </div>
+
+                <div class="macros-row">
+                    <span class="macros-row__title">Macros <span class="field-optional">(optional)</span></span>
+                    <div class="macros-grid">
+
+                        <div class="field field--macro">
+                            <label for="intakeProtein">Protein (g)</label>
+                            <input type="number" id="intakeProtein" name="protein"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($proteinVal) ?>"
+                                   placeholder="30"
+                                   <?= $errProtein ? 'aria-invalid="true" aria-describedby="intake_protein-error"' : '' ?>>
+                            <?php if ($errProtein): ?>
+                                <p id="intake_protein-error" class="field-error"><?= e($errProtein) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="field field--macro">
+                            <label for="intakeCarbs">Carbs (g)</label>
+                            <input type="number" id="intakeCarbs" name="carbs"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($carbsVal) ?>"
+                                   placeholder="80"
+                                   <?= $errCarbs ? 'aria-invalid="true" aria-describedby="intake_carbs-error"' : '' ?>>
+                            <?php if ($errCarbs): ?>
+                                <p id="intake_carbs-error" class="field-error"><?= e($errCarbs) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="field field--macro">
+                            <label for="intakeFat">Fat (g)</label>
+                            <input type="number" id="intakeFat" name="fat"
+                                   inputmode="numeric" min="0" max="500" step="1"
+                                   value="<?= e($fatVal) ?>"
+                                   placeholder="20"
+                                   <?= $errFat ? 'aria-invalid="true" aria-describedby="intake_fat-error"' : '' ?>>
+                            <?php if ($errFat): ?>
+                                <p id="intake_fat-error" class="field-error"><?= e($errFat) ?></p>
+                            <?php endif; ?>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div class="form-actions">

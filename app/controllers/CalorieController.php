@@ -339,20 +339,27 @@ class CalorieController extends Controller {
         $date     = $_POST['logged_date'] ?? '';
         $calories = $_POST['calories']    ?? '';
         $label    = trim((string) ($_POST['label'] ?? ''));
+        $protein  = $_POST['protein'] ?? '';
+        $carbs    = $_POST['carbs']   ?? '';
+        $fat      = $_POST['fat']     ?? '';
 
-        [$errors, $cleanLabel] = $this->validateIntake($date, $calories, $label);
+        [$errors, $cleanLabel, $cleanMacros] =
+            $this->validateIntake($date, $calories, $label, $protein, $carbs, $fat);
 
         if ($errors) {
             save_old([
                 'intake_logged_date' => $date,
                 'intake_calories'    => $calories,
                 'intake_label'       => $label,
+                'intake_protein'     => $protein,
+                'intake_carbs'       => $carbs,
+                'intake_fat'         => $fat,
             ]);
             set_errors($errors);
             $this->redirect('calorie');
         }
 
-        CalorieIntake::create($userId, (int) $calories, $date, $cleanLabel);
+        CalorieIntake::create($userId, (int) $calories, $date, $cleanLabel, $cleanMacros);
 
         flash('intake_success', 'Meal logged.');
         $this->redirect('calorie');
@@ -388,6 +395,9 @@ class CalorieController extends Controller {
         $id       = (int) ($_POST['id']  ?? 0);
         $calories = $_POST['calories']   ?? '';
         $label    = trim((string) ($_POST['label'] ?? ''));
+        $protein  = $_POST['protein'] ?? '';
+        $carbs    = $_POST['carbs']   ?? '';
+        $fat      = $_POST['fat']     ?? '';
 
         $row = $id > 0 ? CalorieIntake::find($id, $userId) : null;
         if (!$row) {
@@ -398,18 +408,22 @@ class CalorieController extends Controller {
 
         // Date is fixed for an edit — we re-validate it from the row so
         // a tampered POST can't sneak a different date through.
-        [$errors, $cleanLabel] = $this->validateIntake($row['logged_date'], $calories, $label);
+        [$errors, $cleanLabel, $cleanMacros] =
+            $this->validateIntake($row['logged_date'], $calories, $label, $protein, $carbs, $fat);
 
         if ($errors) {
             save_old([
                 'intake_calories' => $calories,
                 'intake_label'    => $label,
+                'intake_protein'  => $protein,
+                'intake_carbs'    => $carbs,
+                'intake_fat'      => $fat,
             ]);
             set_errors($errors);
             $this->redirect('calorie/intake/edit?id=' . $id);
         }
 
-        CalorieIntake::update($id, $userId, (int) $calories, $cleanLabel);
+        CalorieIntake::update($id, $userId, (int) $calories, $cleanLabel, $cleanMacros);
 
         flash('intake_success', 'Meal updated.');
         $this->redirect('calorie');
@@ -433,10 +447,13 @@ class CalorieController extends Controller {
 
     // ----- Internal helpers --------------------------------------
 
-    // Validate the intake fields and return [errors, cleanedLabel].
+    // Validate the intake fields and return [errors, cleanedLabel, cleanedMacros].
     // The "intake_" prefix on error keys keeps them from colliding
     // with the targets form (both forms have a logged_date field).
-    private function validateIntake(string $date, $calories, string $label): array {
+    private function validateIntake(
+        string $date, $calories, string $label,
+        $protein = '', $carbs = '', $fat = ''
+    ): array {
         $errors = [];
 
         if ($date === '') {
@@ -466,6 +483,30 @@ class CalorieController extends Controller {
             $errors['intake_label'] = 'Label must be 50 characters or fewer.';
         }
 
-        return [$errors, $cleanLabel];
+        // Macros — all three optional. Empty → null. Otherwise must be
+        // a non-negative whole gram count under a sanity cap (500g, way
+        // past any one-meal value).
+        $cleanMacros = ['protein_g' => null, 'carbs_g' => null, 'fat_g' => null];
+        $macroFields = [
+            'protein' => ['raw' => $protein, 'col' => 'protein_g', 'label' => 'Protein'],
+            'carbs'   => ['raw' => $carbs,   'col' => 'carbs_g',   'label' => 'Carbs'],
+            'fat'     => ['raw' => $fat,     'col' => 'fat_g',     'label' => 'Fat'],
+        ];
+        foreach ($macroFields as $name => $meta) {
+            $raw = trim((string) $meta['raw']);
+            if ($raw === '') continue;
+            if (!ctype_digit($raw)) {
+                $errors['intake_' . $name] = $meta['label'] . ' must be a whole number of grams.';
+                continue;
+            }
+            $g = (int) $raw;
+            if ($g < 0 || $g > 500) {
+                $errors['intake_' . $name] = $meta['label'] . ' must be between 0 and 500 g.';
+                continue;
+            }
+            $cleanMacros[$meta['col']] = $g;
+        }
+
+        return [$errors, $cleanLabel, $cleanMacros];
     }
 }
