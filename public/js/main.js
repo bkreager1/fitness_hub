@@ -154,13 +154,22 @@
     (function initFlashDismiss () {
         const DISMISS_AFTER = 4000;
 
+        const dismiss = (el) => {
+            // Guard so the timer + click paths can't double-fire and
+            // orphan the animationend listener.
+            if (el.classList.contains('is-dismissing')) return;
+            el.classList.add('is-dismissing');
+            el.addEventListener('animationend', (e) => {
+                if (e.animationName === 'flashSlideOut') el.remove();
+            }, { once: true });
+        };
+
         document.querySelectorAll('.flash').forEach((el) => {
-            setTimeout(() => {
-                el.classList.add('is-dismissing');
-                el.addEventListener('animationend', (e) => {
-                    if (e.animationName === 'flashSlideOut') el.remove();
-                }, { once: true });
-            }, DISMISS_AFTER);
+            setTimeout(() => dismiss(el), DISMISS_AFTER);
+            // Click anywhere on the banner dismisses it early. Flash
+            // banners are static text (no interactive children) so a
+            // single listener on the element is enough.
+            el.addEventListener('click', () => dismiss(el));
         });
     })();
 
