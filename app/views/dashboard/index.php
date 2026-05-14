@@ -569,13 +569,11 @@ $hasAnyActivity =
                                           aria-hidden="true"></span>
                                     <a href="<?= e($item['href']) ?>"
                                        class="recent-activity__link">
-                                        <span class="recent-activity__summary">
-                                            <?= e($item['summary']) ?>
-                                        </span>
-                                        <span class="recent-activity__when">
-                                            <?= e($relativeDay($item['date'])) ?>
-                                        </span>
+                                        <?= e($item['summary']) ?>
                                     </a>
+                                    <span class="recent-activity__when">
+                                        <?= e($relativeDay($item['date'])) ?>
+                                    </span>
                                 </li>
                             <?php endforeach; ?>
                         </ul>

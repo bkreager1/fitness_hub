@@ -3426,28 +3426,25 @@ a.feature-card:focus-visible {
 .recent-activity__dot--cardio   { background: #60a5fa; }
 .recent-activity__dot--weight   { background: #34d399; }
 .recent-activity__dot--calorie  { background: #f472b6; }
+/* Link wraps ONLY the summary text — not the timestamp on the right
+   and not the colored dot on the left. Keeps the click target sized
+   to the readable content. min-width: 0 + overflow ellipsis lets a
+   long summary truncate cleanly without pushing the when off-row. */
 .recent-activity__link {
-    display: flex;
-    flex: 1 1 auto;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-    color: inherit;
+    color: var(--text);
     text-decoration: none;
     font-size: 0.9rem;
     line-height: 1.35;
     min-width: 0;
-    transition: color .15s ease;
-}
-.recent-activity__link:hover { color: var(--primary-hot); }
-.recent-activity__summary {
-    color: var(--text);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    transition: color .15s ease;
 }
+.recent-activity__link:hover { color: var(--primary-hot); }
 .recent-activity__when {
     flex-shrink: 0;
+    margin-left: auto;
     color: var(--text-faint);
     font-size: 0.78rem;
     font-variant-numeric: tabular-nums;
