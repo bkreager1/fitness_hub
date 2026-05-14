@@ -3273,28 +3273,26 @@ a.feature-card:focus-visible {
 }
 
 
-/* ----- Session-segments bar (cardio card) --------------------------
-   Like .goal-bar, but split into N equal cells — one per target
-   session. Filled cells use the brand gradient; empty cells are the
-   muted card-2 surface. Reads as "you've done X of Y" at a glance,
-   echoing the mockup's segmented look. */
-.session-segments {
-    display: flex;
-    gap: 4px;
-    margin: 0.4rem 0 0.5rem;
-}
-.session-segments__seg {
-    flex: 1 1 0;
+/* ----- Cardio card progress bar ------------------------------------
+   Single continuous bar — the value line above ("3 / 4 sessions")
+   carries the "of target" info, so the bar itself is a clean
+   horizontal fill, sized prominently so it reads as the card's
+   headline metric. */
+.cardio-bar {
     height: 10px;
     background: var(--bg-card-2);
-    border-radius: 4px;
-    transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.5rem 0 0.6rem;
 }
-.session-segments__seg.is-filled {
+.cardio-bar__fill {
+    height: 100%;
     background: linear-gradient(90deg, var(--primary-deep), var(--primary));
+    border-radius: 999px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-    .session-segments__seg { transition: none; }
+    .cardio-bar__fill { transition: none; }
 }
 
 

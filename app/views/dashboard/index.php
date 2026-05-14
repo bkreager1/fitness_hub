@@ -597,23 +597,17 @@ $hasAnyActivity =
                             <?= e((string) $cardioCard['sessions_week']) ?>
                             <span class="dash-card__unit">/ <?= e((string) $cardioCard['target']) ?> sessions</span>
                         </div>
-                        <!-- Segmented bar: one cell per target session, filled
-                             cells = sessions logged. Caps the filled count at
-                             the target so a user past their goal doesn't see
-                             phantom segments. -->
-                        <?php
-                            $tgt    = (int) $cardioCard['target'];
-                            $filled = max(0, min($tgt, (int) $cardioCard['sessions_week']));
-                        ?>
-                        <div class="session-segments" aria-hidden="true">
-                            <?php for ($i = 0; $i < $tgt; $i++): ?>
-                                <span class="session-segments__seg<?= $i < $filled ? ' is-filled' : '' ?>"></span>
-                            <?php endfor; ?>
+                        <!-- Continuous progress bar, sized prominently so it
+                             reads as the card's headline metric. Width caps
+                             at 100% even if the user blew past their goal. -->
+                        <div class="cardio-bar" aria-label="Cardio sessions this week vs target">
+                            <div class="cardio-bar__fill"
+                                 style="width: <?= e((string) $cardioCard['pct']) ?>%"></div>
                         </div>
                         <div class="dash-card__hint">
                             <?= e((string) $cardioCard['minutes_week']) ?> min this week
-                            <span class="goal-bar__pct goal-bar__pct--inline">·
-                                <?= e((string) $cardioCard['pct']) ?>%</span>
+                            ·
+                            <?= e((string) $cardioCard['pct']) ?>%
                         </div>
                     <?php else: ?>
                         <div class="dash-card__value">
