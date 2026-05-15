@@ -105,7 +105,7 @@ if (!empty($cardioCard['target'])) {
 <!-- ===================== Greeting hero ===================== -->
 <section class="hero hero--compact hero--photo"
          style="--hero-image: url('<?= asset('images/dashboard.jpg') ?>');">
-    <div class="container">
+    <div class="container container--wide">
         <span class="eyebrow"><?= e($todayPretty) ?></span>
         <h1>Hi, <?= e($displayName) ?>.</h1>
         <p class="hero-lede">
@@ -131,7 +131,7 @@ $hasAnyActivity =
 ?>
 <?php if ($hasAnyActivity): ?>
 <section class="dash-stat-strip-wrap" aria-label="This week's momentum">
-    <div class="container">
+    <div class="container container--wide">
         <ul class="dash-stat-strip">
 
             <li class="dash-stat <?= $statStrip['streak'] > 0 ? 'dash-stat--hot' : '' ?>">
@@ -245,7 +245,7 @@ $hasAnyActivity =
 
 <!-- ===================== Today's snapshot grid ===================== -->
 <section class="section">
-    <div class="container">
+    <div class="container container--wide">
         <div class="section-head">
             <h2>Today's snapshot</h2>
             <p>Quick read on where you're at right now. Click any card to dive in.</p>
@@ -625,7 +625,13 @@ $hasAnyActivity =
 
             <!-- ===== Cardio ===== -->
             <a class="dash-card dash-grid__cardio" href="<?= url('cardio') ?>">
-                <span class="dash-card__eyebrow">Cardio</span>
+                <span class="dash-card__eyebrow">
+                    <svg class="dash-card__eyebrow-icon" viewBox="0 0 24 24"
+                         fill="currentColor" aria-hidden="true">
+                        <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>
+                    </svg>
+                    Cardio
+                </span>
 
                 <?php if ($cardioCard['has_logs']): ?>
                     <?php if ($cardioCard['target'] !== null): ?>
@@ -745,7 +751,7 @@ $hasAnyChart =
     || !empty($cardioChartData);
 ?>
 <section class="section section--alt">
-    <div class="container">
+    <div class="container container--wide">
         <div class="section-head">
             <h2>Progress over time</h2>
             <p>Trends across each tracker. Hover for details — or open the full tracker for range filters and the log form.</p>
@@ -857,7 +863,7 @@ $hasAnyChart =
 
 <!-- ===================== Quick actions ===================== -->
 <section class="section section--alt section--tight">
-    <div class="container">
+    <div class="container container--wide">
         <div class="section-head section-head--inline">
             <h2>Log something new</h2>
             <p>Jump straight to whichever tracker you need.</p>

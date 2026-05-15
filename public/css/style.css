@@ -154,6 +154,14 @@ a:hover { color: var(--primary-hot); }
     padding-inline: 1.25rem;
 }
 
+/* Wider variant — used on data-dense pages like the dashboard where
+   more horizontal real estate helps the snapshot grid + charts
+   breathe on large monitors. Stays the same on tablet/phone since
+   the inner padding caps the width below the breakpoint. */
+.container--wide {
+    max-width: 1400px;
+}
+
 /* Page entry — content fades + rises 12px into place over 350ms
    when the page first paints. Header and footer appear instantly
    so the structural chrome feels solid; only the per-page content
@@ -2457,8 +2465,17 @@ main:focus { outline: none; }
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-faint);
+    color: var(--text-dim);   /* bumped from text-faint for AA contrast at this size */
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.dash-card__eyebrow-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--primary-hot);
+    flex-shrink: 0;
 }
 .dash-card__value {
     font-size: 2rem;
@@ -2700,10 +2717,11 @@ a.feature-card:focus-visible {
 /* Label sits ABOVE the value (small uppercase eyebrow) and the value
    reads as the headline number. Markup order in the view puts label
    first so the visual stack matches without needing flex-direction
-   reverse. */
+   reverse. Uses text-dim (not text-faint) so the very small 0.7rem
+   label stays comfortably above the 4.5:1 AA threshold on bg-card. */
 .dash-stat__label {
     font-size: 0.7rem;
-    color: var(--text-faint);
+    color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-weight: 700;
@@ -3203,7 +3221,7 @@ a.feature-card:focus-visible {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-faint);
+    color: var(--text-dim);   /* small uppercase eyebrow — needs AA contrast */
     margin-bottom: 0.15rem;
     font-weight: 700;
 }
@@ -3418,7 +3436,7 @@ a.feature-card:focus-visible {
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--text-faint);
+    color: var(--text-dim);   /* small uppercase heading — needs AA contrast */
     font-weight: 700;
 }
 .recent-activity__list {
