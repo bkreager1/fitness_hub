@@ -627,8 +627,17 @@ $hasAnyActivity =
             <a class="dash-card dash-grid__cardio" href="<?= url('cardio') ?>">
                 <span class="dash-card__eyebrow">
                     <svg class="dash-card__eyebrow-icon" viewBox="0 0 24 24"
-                         fill="currentColor" aria-hidden="true">
-                        <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z"/>
+                         aria-hidden="true">
+                        <!-- Filled heart (centered in the viewBox so the
+                             icon doesn't sit low against the cap-height of
+                             "CARDIO") with an EKG pulse line stroked across
+                             the midline. White stroke reads cleanly on the
+                             orange fill. -->
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5L12 21l7-7z"
+                              fill="currentColor"/>
+                        <polyline points="3 12 7 12 8.5 10 10 14 11.5 9 13 14 14.5 11 16 12 21 12"
+                                  fill="none" stroke="#fff" stroke-width="1.8"
+                                  stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     Cardio
                 </span>
