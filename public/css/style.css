@@ -876,19 +876,22 @@ main:focus { outline: none; }
     font-size: 0.9rem;
 }
 .verify-banner__row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
     padding: 0.7rem 0;
-    flex-wrap: wrap;
 }
-.verify-banner__text { flex: 1 1 280px; line-height: 1.5; }
+.verify-banner__text { line-height: 1.5; }
 .verify-banner__text strong { color: var(--warning); margin-right: 0.4rem; }
-.verify-banner__form { margin: 0; }
+
+/* The form sits inline at the end of the sentence rather than as a
+   separate flex item on the right edge — feels like part of the
+   message instead of a floating CTA with a long visual gap. */
+.verify-banner__form {
+    display: inline;
+    margin: 0;
+}
 .verify-banner__form .btn-link {
     color: var(--warning);
-    padding: 0.3rem 0.7rem;
+    padding: 0.05rem 0.4rem;
+    margin-left: 0.35rem;
 }
 .verify-banner__form .btn-link:hover {
     color: #fde68a;

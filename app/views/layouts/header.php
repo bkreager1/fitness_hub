@@ -161,16 +161,16 @@ $navClass = static fn(string $key): string =>
                 <strong>Confirm your email.</strong>
                 We sent a verification link to
                 <?= e((string) current_user('email')) ?>.
-                Without it we can't help you recover your account.
+                Without it we can't help you recover your account.<form
+                      method="post" action="<?= url('resend-verification') ?>"
+                      class="verify-banner__form">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn-link"
+                            data-loading-text="Sending…">
+                        Resend
+                    </button>
+                </form>
             </div>
-            <form method="post" action="<?= url('resend-verification') ?>"
-                  class="verify-banner__form">
-                <?= csrf_field() ?>
-                <button type="submit" class="btn-link"
-                        data-loading-text="Sending…">
-                    Resend
-                </button>
-            </form>
         </div>
     </div>
 <?php endif; ?>
