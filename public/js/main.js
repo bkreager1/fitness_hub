@@ -1592,4 +1592,105 @@
             });
         });
     })();
+
+
+    /* ---------------------------------------------------------
+       Sitewide ARIA announcer
+       Writes one-liners into #ariaStatus (live="polite") so
+       silent UI updates — chart unit toggles, etc. — get spoken
+       by assistive tech. Empty-then-set avoids identical-text
+       deduping by screen readers.
+       --------------------------------------------------------- */
+    const ariaStatus = document.getElementById('ariaStatus');
+    function announce(message) {
+        if (!ariaStatus || typeof message !== 'string' || !message) return;
+        ariaStatus.textContent = '';
+        setTimeout(() => { ariaStatus.textContent = message; }, 20);
+    }
+
+    // Chart unit-toggle announcer. The per-tracker handlers (above)
+    // own the actual unit swap + chart redraw; this is purely a
+    // bubble-phase listener that announces the new state. Multiple
+    // clicks announce each time so the user always hears feedback.
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.unit-toggle button[data-unit]');
+        if (!btn) return;
+        const labels = { kg: 'kilograms', lbs: 'pounds', mi: 'miles', km: 'kilometers' };
+        const unit = btn.dataset.unit;
+        announce('Now showing data in ' + (labels[unit] || unit) + '.');
+    });
+
+
+    /* ---------------------------------------------------------
+       Confirmation dialog
+       Replaces inline `onsubmit="return confirm(...)"` with the
+       sitewide <dialog> in layouts/footer.php. Forms opt in via:
+           <form data-confirm="Are you sure?"
+                 data-confirm-ok="Yes, delete">…</form>
+       Falls back to native confirm() on browsers without
+       HTMLDialogElement support.
+       --------------------------------------------------------- */
+    (function initConfirmDialog() {
+        const dialog = document.getElementById('confirmDialog');
+        if (!dialog) return;
+
+        const msgEl    = document.getElementById('confirmDialogMsg');
+        const okBtn    = dialog.querySelector('[data-confirm-ok]');
+        const cancelBtn = dialog.querySelector('[data-confirm-cancel]');
+        const hasNative = typeof dialog.showModal === 'function';
+        let pending = null;
+
+        const finalizeSubmit = (form) => {
+            form.dataset.confirmed = 'yes';
+            // requestSubmit() (vs submit()) DOES dispatch a submit event,
+            // so the loading-state handler still triggers and the form's
+            // submit handlers run. Our own handler short-circuits on the
+            // confirmed flag.
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        };
+
+        document.addEventListener('submit', (e) => {
+            const form = e.target.closest('form[data-confirm]');
+            if (!form) return;
+            if (form.dataset.confirmed === 'yes') return; // user already confirmed
+            e.preventDefault();
+
+            if (!hasNative) {
+                if (window.confirm(form.dataset.confirm || 'Are you sure?')) {
+                    finalizeSubmit(form);
+                }
+                return;
+            }
+
+            pending = form;
+            msgEl.textContent = form.dataset.confirm || 'Are you sure?';
+            okBtn.textContent = form.dataset.confirmOk || 'Confirm';
+            dialog.showModal();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            pending = null;
+            dialog.close('cancel');
+        });
+        okBtn.addEventListener('click', () => {
+            const form = pending;
+            pending = null;
+            dialog.close('confirm');
+            if (form) finalizeSubmit(form);
+        });
+        // Click on the backdrop (the dialog itself outside the inner card) closes it.
+        dialog.addEventListener('click', (e) => {
+            if (e.target === dialog) {
+                pending = null;
+                dialog.close('backdrop');
+            }
+        });
+        // ESC: native dialog fires 'cancel' then 'close' — clear pending so
+        // a subsequent OK click on a different form doesn't submit the wrong one.
+        dialog.addEventListener('cancel', () => { pending = null; });
+    })();
 })();

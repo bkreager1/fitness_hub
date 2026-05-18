@@ -11,7 +11,7 @@
         <p class="lede">Track your weight, strength, and calories in one place.</p>
 
         <?php if ($errs = flash('errors')): ?>
-            <div class="error-box">
+            <div class="error-box" role="alert">
                 <ul>
                     <?php foreach (explode("\n", $errs) as $err): ?>
                         <li><?= e($err) ?></li>

@@ -497,7 +497,8 @@ $fmtDate = static function (string $iso): string {
                                     Edit
                                 </a>
                                 <form method="post" action="<?= url('calorie/intake/delete') ?>"
-                                      onsubmit="return confirm('Remove this meal?');">
+                                      data-confirm="Remove this meal? It will also drop from today's totals."
+                                      data-confirm-ok="Remove">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="id" value="<?= e((string) $meal['id']) ?>">
                                     <button type="submit" class="btn-link-danger"
@@ -860,7 +861,8 @@ $fmtDate = static function (string $iso): string {
                                                 Edit
                                             </a>
                                             <form method="post" action="<?= url('calorie/intake/delete') ?>"
-                                                  onsubmit="return confirm('Delete this meal?');">
+                                                  data-confirm="Delete this meal? This can't be undone."
+                                                  data-confirm-ok="Delete">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="id" value="<?= e((string) $row['id']) ?>">
                                                 <button type="submit" class="btn-link-danger"

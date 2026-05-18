@@ -138,7 +138,8 @@
                         <form method="post"
                               action="<?= url('profile/image/delete') ?>"
                               class="profile-remove-form"
-                              onsubmit="return confirm('Remove your profile photo?');">
+                              data-confirm="Remove your profile photo? Your initials will replace it."
+                              data-confirm-ok="Remove photo">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn-link-danger">Remove photo</button>
                         </form>

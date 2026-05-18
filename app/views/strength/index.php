@@ -470,7 +470,8 @@ if ($latest) {
                                                 Edit
                                             </a>
                                             <form method="post" action="<?= url('strength/delete') ?>"
-                                                  onsubmit="return confirm('Delete this lift log?');">
+                                                  data-confirm="Delete this lift log? This can't be undone."
+                                                  data-confirm-ok="Delete">
                                                 <?= csrf_field() ?>
                                                 <input type="hidden" name="id" value="<?= e((string) $row['id']) ?>">
                                                 <button type="submit" class="btn-link-danger"

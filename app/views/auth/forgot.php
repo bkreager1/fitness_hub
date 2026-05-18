@@ -6,7 +6,7 @@
         <p class="lede">Enter the email on your account and we'll send you a reset link.</p>
 
         <?php if ($errs = flash('errors')): ?>
-            <div class="error-box">
+            <div class="error-box" role="alert">
                 <ul>
                     <?php foreach (explode("\n", $errs) as $err): ?>
                         <li><?= e($err) ?></li>

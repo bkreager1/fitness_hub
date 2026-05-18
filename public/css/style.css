@@ -2408,6 +2408,42 @@ main:focus { outline: none; }
     border: 0;
 }
 
+/* ----- Confirmation dialog (sitewide) ------------------------------- */
+/* Replaces inline `onsubmit="return confirm(...)"` calls. Opens on
+   any form submission tagged with data-confirm="…" via the IIFE in
+   main.js. <dialog> styling: card-shaped, dark backdrop, no marker. */
+.confirm-dialog {
+    background: var(--bg-card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.6rem 1.75rem;
+    max-width: 28rem;
+    width: calc(100% - 2rem);
+    box-shadow: var(--shadow), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.confirm-dialog::backdrop {
+    background: rgba(7, 11, 24, 0.62);
+    backdrop-filter: blur(2px);
+}
+.confirm-dialog__title   { margin: 0 0 0.55rem; font-size: 1.15rem; }
+.confirm-dialog__message { margin: 0 0 1.25rem; color: var(--text-dim); line-height: 1.55; }
+.confirm-dialog__actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+@keyframes confirmDialogIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.confirm-dialog[open] { animation: confirmDialogIn .18s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+    .confirm-dialog[open] { animation: none; }
+}
+
 /* ----- Goal picker (Cutting / Maintaining / Bulking pills) ----------- */
 /* Each <button> is a real submit — clicking POSTs to /calorie/goal,
    redirects, and the page comes back with the chosen pill highlighted. */

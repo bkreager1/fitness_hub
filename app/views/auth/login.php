@@ -9,7 +9,7 @@
         <p class="lede">Log in to continue your fitness journey.</p>
 
         <?php if ($errs = flash('errors')): ?>
-            <div class="error-box">
+            <div class="error-box" role="alert">
                 <ul>
                     <?php foreach (explode("\n", $errs) as $err): ?>
                         <li><?= e($err) ?></li>

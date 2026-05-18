@@ -40,6 +40,28 @@
         </svg>
     </button>
 
+    <!-- Sitewide ARIA live region. main.js writes one-liners here so
+         screen readers announce silent UI changes like chart unit
+         toggles. Polite + atomic so re-announcements are clean. -->
+    <div id="ariaStatus" class="visually-hidden"
+         role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Sitewide confirmation dialog. JS intercepts forms with a
+         data-confirm="…" attribute and shows this <dialog> instead
+         of the native browser confirm(). Falls back to confirm()
+         on browsers without HTMLDialogElement support. -->
+    <dialog id="confirmDialog" class="confirm-dialog"
+            aria-labelledby="confirmDialogTitle">
+        <h2 id="confirmDialogTitle" class="confirm-dialog__title">Just to confirm</h2>
+        <p id="confirmDialogMsg" class="confirm-dialog__message"></p>
+        <div class="confirm-dialog__actions">
+            <button type="button" class="btn btn-secondary btn-inline"
+                    data-confirm-cancel>Cancel</button>
+            <button type="button" class="btn btn-danger btn-inline"
+                    data-confirm-ok>Confirm</button>
+        </div>
+    </dialog>
+
     <script src="<?= asset('js/main.js') ?>" defer></script>
     <script src="<?= asset('js/auth.js') ?>" defer></script>
 </body>
