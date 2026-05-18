@@ -1,0 +1,49 @@
+<?php
+// ============================================================
+// config/database.local.php — local-only overrides
+// ============================================================
+// On the server: rename this file to database.local.php (drop
+// the .example) and fill in the real values below. This file
+// is gitignored, so credentials never leave the box.
+//
+// Anything NOT defined here falls back to the defaults in
+// config/database.php.
+// ============================================================
+
+// ----- App environment ---------------------------------------
+// 'prod' on Hostinger; 'dev' on your local XAMPP machine.
+// In prod: error display is OFF, errors go to
+// storage/php_errors.log, Secure session cookies are FORCED,
+// outgoing email goes through real mail().
+// In dev: backtraces show on screen, email is appended to
+// storage/mail.log instead of sent.
+define('APP_ENV', 'prod');
+
+// ----- URL prefix --------------------------------------------
+// '' if the app lives at a domain root (yoursite.com/).
+// '/fitnesshub' if it lives in a subdirectory (the Hostinger
+// deploy at benkreager.com/fitnesshub uses this).
+// Local XAMPP default is '/fitness_hub' (set in database.php
+// itself — you don't need to override it here on dev).
+define('BASE_URL', '/fitnesshub');
+
+// ----- Database credentials ----------------------------------
+// Get these from Hostinger hPanel > Databases > MySQL Databases.
+// Hostinger prefixes every DB name + user with your account id
+// (e.g. u123456_fitnesshub).
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'u123456_fitnesshub');
+define('DB_USER', 'u123456_fhadmin');
+define('DB_PASS', 'YourLongDBPasswordHere');
+
+// ----- Outgoing email ----------------------------------------
+// FROM address on transactional emails (verification, password
+// reset). MUST be on a domain Hostinger hosts for your account,
+// or messages will fail / land in spam. no-reply@<your-domain>
+// is the usual choice.
+define('MAIL_FROM', 'no-reply@benkreager.com');
+
+// ----- App timezone (optional) -------------------------------
+// Defaults to America/Chicago. Override if Hostinger's server
+// is set elsewhere and you want to be explicit.
+// define('APP_TIMEZONE', 'America/Chicago');
