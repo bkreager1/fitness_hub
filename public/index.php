@@ -10,10 +10,10 @@
 // ============================================================
 
 // ----- 1. Bootstrap --------------------------------------------------
-// Start the session BEFORE any output — it sets a cookie header.
-session_start();
-
-// Load config (defines constants + the db() function)
+// Load config FIRST so APP_ENV / APP_ROOT are defined before we touch
+// session cookies or error handling below. The order change (vs. the
+// earlier session_start-first version) is safe — config doesn't open
+// the DB connection at load time, only when db() is first called.
 require __DIR__ . '/../config/database.php';
 
 // Load helper functions (url, e, flash, csrf_token, etc.)
@@ -21,6 +21,41 @@ require __DIR__ . '/../app/core/helpers.php';
 
 // Load the base Controller class (all controllers extend it)
 require __DIR__ . '/../app/core/Controller.php';
+
+// ----- Error display posture (env-aware) -----------------------------
+// Prod hides every detail from end users and writes them to a log file
+// instead. Dev keeps full backtraces visible so we can debug locally.
+if (APP_ENV === 'prod') {
+    ini_set('display_errors',         '0');
+    ini_set('display_startup_errors', '0');
+    ini_set('log_errors',             '1');
+    if (!is_dir(APP_ROOT . '/storage')) @mkdir(APP_ROOT . '/storage', 0775, true);
+    ini_set('error_log', APP_ROOT . '/storage/php_errors.log');
+} else {
+    ini_set('display_errors',         '1');
+    ini_set('display_startup_errors', '1');
+}
+error_reporting(E_ALL);
+
+// ----- Session cookie hardening --------------------------------------
+// Must run BEFORE session_start() — once the cookie is set, these
+// params no longer apply. HttpOnly blocks JS access (XSS mitigation),
+// SameSite=Lax blocks cross-site CSRF on top of our token check, and
+// Secure forces HTTPS-only transport whenever we're on HTTPS.
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || ((int) ($_SERVER['SERVER_PORT'] ?? 0) === 443);
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path'     => '/',
+    'domain'   => '',
+    'secure'   => APP_ENV === 'prod' ? true : $isHttps,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
+// Start the session AFTER cookie params + error posture are set.
+session_start();
 
 // Simple autoloader: when a class is referenced, find and require the file.
 // Looks in /app/controllers then /app/models.
@@ -110,15 +145,37 @@ try {
         default => (new PagesController())->notFound(),
     };
 } catch (Throwable $e) {
-    // Development-friendly error page.
-    // In production (Hostinger) we'd log this instead of printing.
     http_response_code(500);
-    echo '<!DOCTYPE html><html><head><title>Error</title>';
-    echo '<style>body{font-family:system-ui;background:#1a1a2e;color:#e8e8f0;padding:2rem;}';
-    echo 'pre{background:#22223b;padding:1rem;border-radius:8px;overflow:auto;font-size:.85rem;}';
-    echo 'h1{color:#f87171}</style></head><body>';
-    echo '<h1>Something went wrong</h1>';
-    echo '<p>' . e($e->getMessage()) . '</p>';
-    echo '<pre>' . e($e->getTraceAsString()) . '</pre>';
-    echo '</body></html>';
+
+    // Always write the full trace to the log so we can debug after
+    // the fact — both in dev and in prod.
+    error_log(
+        '[' . date('Y-m-d H:i:s') . '] '
+        . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()
+        . PHP_EOL . $e->getTraceAsString()
+    );
+
+    if (APP_ENV === 'prod') {
+        // Render the styled 500 view through the normal layout so the
+        // page still looks like the rest of the site. Falls back to a
+        // bare-bones page if even the layout is broken.
+        try {
+            (new PagesController())->serverError();
+        } catch (Throwable $_) {
+            echo '<!DOCTYPE html><html><head><title>Something went wrong</title></head>'
+               . '<body style="font-family:system-ui;background:#0e1424;color:#e8e8f0;padding:2rem">'
+               . '<h1>Something went wrong on our end.</h1>'
+               . '<p>Please refresh the page or try again in a moment.</p>'
+               . '</body></html>';
+        }
+    } else {
+        echo '<!DOCTYPE html><html><head><title>Error</title>';
+        echo '<style>body{font-family:system-ui;background:#1a1a2e;color:#e8e8f0;padding:2rem;}';
+        echo 'pre{background:#22223b;padding:1rem;border-radius:8px;overflow:auto;font-size:.85rem;}';
+        echo 'h1{color:#f87171}</style></head><body>';
+        echo '<h1>Something went wrong</h1>';
+        echo '<p>' . e($e->getMessage()) . '</p>';
+        echo '<pre>' . e($e->getTraceAsString()) . '</pre>';
+        echo '</body></html>';
+    }
 }

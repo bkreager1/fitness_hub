@@ -85,11 +85,23 @@ class AuthController extends Controller {
 
         save_old(['email' => $email, 'remember' => $remember ? '1' : '']);
 
+        // Throttle: 5 failures from this IP in the last 15 minutes locks
+        // the form for that window. Counted BEFORE we touch the DB for
+        // the user lookup, so a flood of attempts gets cheap rejections.
+        $ip = $this->clientIp();
+        $failures = LoginAttempt::recentFailuresByIp($ip, LoginAttempt::WINDOW_SECONDS);
+        if ($failures >= LoginAttempt::MAX_FAILURES) {
+            set_errors(['password' => 'Too many failed attempts from this device. Please wait 15 minutes and try again.']);
+            $this->redirect('login');
+            return;
+        }
+
         $user = User::findByEmail($email);
 
         // Use a generic error for both "no such user" and "wrong password" —
         // never leak which one failed.
         if (!$user || !User::checkPassword($password, $user['password'])) {
+            LoginAttempt::record($ip, $email, false);
             // Generic on purpose: don't reveal which field was wrong.
             // Shown under the password input — by convention, where
             // users look first when re-entering credentials.
@@ -98,9 +110,17 @@ class AuthController extends Controller {
             return;
         }
 
+        LoginAttempt::record($ip, $email, true);
         $this->startUserSession($user, $remember);
         flash('success', 'Welcome back, ' . $user['name'] . '!');
         $this->redirect('dashboard');
+    }
+
+    // Best-guess client IP. We deliberately don't trust X-Forwarded-For
+    // here — on Hostinger the request hits PHP directly without a proxy
+    // we control, so REMOTE_ADDR is the right source.
+    private function clientIp(): string {
+        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     }
 
     // ============ LOGOUT ============

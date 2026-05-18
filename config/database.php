@@ -19,6 +19,11 @@ if (is_file(__DIR__ . '/database.local.php')) {
 defined('BASE_URL')  or define('BASE_URL',  '/fitness_hub');
 defined('SITE_NAME') or define('SITE_NAME', 'Rock County Fitness Hub');
 
+// APP_ENV controls error display + cookie hardening + (later) which
+// mailer transport runs. 'dev' = local XAMPP, 'prod' = Hostinger.
+// Override in database.local.php on the production server.
+defined('APP_ENV') or define('APP_ENV', 'dev');
+
 // App timezone — drives every date()/DateTime call so "today" matches
 // the user's calendar instead of the server's. XAMPP's php.ini default
 // is often Europe/Berlin which renders dates ~7h ahead of US Central.

@@ -51,4 +51,15 @@ class PagesController extends Controller {
                           . 'home page to find what you were looking for.',
         ]);
     }
+
+    // Uncaught exception in production — rendered from index.php's
+    // top-level try/catch. The error itself has already been logged.
+    public function serverError(): void {
+        http_response_code(500);
+        $this->view('errors/500', [
+            'title'       => 'Something went wrong',
+            'description' => 'A temporary error stopped the page from loading. '
+                          . 'Please try again in a moment.',
+        ]);
+    }
 }
