@@ -78,11 +78,54 @@ class ProfileController extends Controller {
             return;
         }
 
+        $existing     = User::find($userId);
+        $emailChanged = $existing && strcasecmp($existing['email'], $email) !== 0;
+
         User::updateProfile($userId, $name, $email);
+
+        // Changing email un-verifies the new address — we don't know that
+        // the user owns it yet. Reset verification state + send a new link.
+        if ($emailChanged) {
+            User::clearEmailVerification($userId);
+            $fresh = User::find($userId);
+            if ($fresh) {
+                $this->sendVerificationEmail($fresh);
+            }
+        }
+
         $this->refreshSession($userId);
 
-        flash('success', 'Profile updated.');
+        flash(
+            'success',
+            $emailChanged
+                ? 'Profile updated. Check your new inbox for a verification link.'
+                : 'Profile updated.'
+        );
         $this->redirect('profile');
+    }
+
+    // Mirror of AuthController::sendVerificationEmail — kept duplicated
+    // because ProfileController otherwise has no auth-flow imports.
+    // Small enough that DRY-ing it would mean a new shared helper for
+    // little gain.
+    private function sendVerificationEmail(array $user): void {
+        $rawToken = bin2hex(random_bytes(32));
+        User::setVerificationToken((int) $user['id'], $rawToken);
+
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $link   = $scheme . '://' . $host . url('verify-email?token=' . $rawToken);
+
+        $body = "Hi " . $user['name'] . ",\n\n"
+              . "You updated the email on your Rock County Fitness Hub "
+              . "account. Confirm this new address by clicking the link "
+              . "below — it's valid for 24 hours.\n\n"
+              . $link . "\n\n"
+              . "If you didn't make this change, please log in and reset "
+              . "your password right away.\n\n"
+              . "— Rock County Fitness Hub";
+
+        Mailer::send($user['email'], 'Confirm your new Rock County Fitness Hub email', $body);
     }
 
     // ============ UPDATE GOALS ============
@@ -405,6 +448,7 @@ class ProfileController extends Controller {
             'name'               => $user['name'],
             'email'              => $user['email'],
             'profile_image_path' => $user['profile_image_path'] ?? null,
+            'email_verified_at'  => $user['email_verified_at']  ?? null,
         ];
     }
 }

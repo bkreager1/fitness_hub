@@ -149,6 +149,33 @@ $navClass = static fn(string $key): string =>
 <?php endif; ?>
 
 <?php
+    // Soft email-verification banner. Shown whenever a logged-in user
+    // hasn't confirmed their email yet. They keep full access — this
+    // is a nudge, not a gate.
+    if (is_logged_in()
+        && current_user('email_verified_at') === null):
+?>
+    <div class="verify-banner" role="status" aria-live="polite">
+        <div class="container verify-banner__row">
+            <div class="verify-banner__text">
+                <strong>Confirm your email.</strong>
+                We sent a verification link to
+                <?= e((string) current_user('email')) ?>.
+                Without it we can't help you recover your account.
+            </div>
+            <form method="post" action="<?= url('resend-verification') ?>"
+                  class="verify-banner__form">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn-link"
+                        data-loading-text="Sending…">
+                    Resend
+                </button>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php
     // Controllers can call flash('skip_page_entry', '1') before a
     // redirect to suppress the page-entry fade for that one render —
     // used by the calorie goal pills so the toggle feels instant.

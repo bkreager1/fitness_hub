@@ -62,10 +62,92 @@ class AuthController extends Controller {
 
         $userId = User::create($name, $email, $password);
         $user   = User::find($userId);
+
+        // Soft email verification: issue a token, email a link, but let
+        // the user into the app immediately — a sitewide banner nudges
+        // them until they confirm.
+        $this->sendVerificationEmail($user);
+
         $this->startUserSession($user, false);
 
-        flash('success', 'Welcome, ' . $user['name'] . '! Your account has been created.');
+        flash('success', 'Welcome, ' . $user['name'] . '! Check your inbox for a verification link.');
         $this->redirect('dashboard');
+    }
+
+    // ============ EMAIL VERIFICATION ============
+
+    // Clicked from the verification email.
+    public function verifyEmail(): void {
+        $token = $_GET['token'] ?? '';
+
+        if ($token === '') {
+            flash('errors', 'This verification link is missing its token.');
+            $this->redirect(is_logged_in() ? 'dashboard' : 'login');
+            return;
+        }
+
+        $user = User::findByVerificationToken($token);
+        if (!$user) {
+            flash('errors', 'This verification link is invalid or has expired. Request a new one below.');
+            $this->redirect(is_logged_in() ? 'dashboard' : 'login');
+            return;
+        }
+
+        User::markEmailVerified((int) $user['id']);
+
+        // If the verifier is the currently-logged-in user, refresh the
+        // session copy so the header banner disappears on the next page.
+        if (is_logged_in() && (int) current_user_id() === (int) $user['id']) {
+            $_SESSION['user']['email_verified_at'] = date('Y-m-d H:i:s');
+        }
+
+        flash('success', 'Email verified — thanks!');
+        $this->redirect(is_logged_in() ? 'dashboard' : 'login');
+    }
+
+    // Posted from the unverified-banner "Resend" button.
+    public function resendVerification(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId = (int) current_user_id();
+        $user   = User::find($userId);
+
+        if ($user && $user['email_verified_at'] === null) {
+            $this->sendVerificationEmail($user);
+            flash('success', 'Verification email sent. Check your inbox.');
+        } else {
+            // Already verified — just refresh the session.
+            if ($user) {
+                $_SESSION['user']['email_verified_at'] = $user['email_verified_at'];
+            }
+        }
+
+        // Bounce back to wherever they were. Fall back to dashboard.
+        $back = $_SERVER['HTTP_REFERER'] ?? '';
+        if ($back !== '' && parse_url($back, PHP_URL_HOST) === ($_SERVER['HTTP_HOST'] ?? '')) {
+            header('Location: ' . $back);
+            exit;
+        }
+        $this->redirect('dashboard');
+    }
+
+    // Mint a fresh token + send the link. Used by register() and resend.
+    private function sendVerificationEmail(array $user): void {
+        $rawToken = bin2hex(random_bytes(32));
+        User::setVerificationToken((int) $user['id'], $rawToken);
+
+        $link = $this->absoluteUrl('verify-email?token=' . $rawToken);
+        $body = "Hi " . $user['name'] . ",\n\n"
+              . "Confirm your email so we can recover your account if you "
+              . "ever forget your password. Click the link below — it's "
+              . "valid for 24 hours.\n\n"
+              . $link . "\n\n"
+              . "If you didn't sign up for Rock County Fitness Hub, you "
+              . "can safely ignore this message.\n\n"
+              . "— Rock County Fitness Hub";
+
+        Mailer::send($user['email'], 'Confirm your Rock County Fitness Hub email', $body);
     }
 
     // ============ LOGIN ============
@@ -179,13 +261,20 @@ class AuthController extends Controller {
             PasswordReset::create((int) $user['id'], $rawToken);
 
             $link = $this->absoluteUrl('reset-password?token=' . $rawToken);
-            $this->logResetLink($user['email'], $link);
+            $body = "Hi " . $user['name'] . ",\n\n"
+                  . "We received a request to reset your password. Click the "
+                  . "link below to set a new one — it's valid for 1 hour.\n\n"
+                  . $link . "\n\n"
+                  . "If you didn't request this, you can safely ignore this "
+                  . "message; your password won't change.\n\n"
+                  . "— Rock County Fitness Hub";
+            Mailer::send($user['email'], 'Reset your Rock County Fitness Hub password', $body);
         }
 
+        $devHint = APP_ENV === 'prod' ? '' : ' (Dev mode: check storage/mail.log)';
         flash(
             'success',
-            'If an account exists for that email, a reset link has been sent. '
-            . '(Dev mode: check storage/reset_links.log)'
+            'If an account exists for that email, a reset link has been sent.' . $devHint
         );
         $this->redirect('forgot-password');
     }
@@ -263,6 +352,7 @@ class AuthController extends Controller {
             'name'               => $user['name'],
             'email'              => $user['email'],
             'profile_image_path' => $user['profile_image_path'] ?? null,
+            'email_verified_at'  => $user['email_verified_at']  ?? null,
         ];
 
         if ($remember) {
@@ -291,14 +381,4 @@ class AuthController extends Controller {
         return $scheme . '://' . $host . url($path);
     }
 
-    // Write a reset link to storage/reset_links.log for the developer to open.
-    // In Phase 10 this will be replaced with real email sending.
-    private function logResetLink(string $email, string $link): void {
-        $dir = APP_ROOT . '/storage';
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0775, true);
-        }
-        $entry = sprintf("[%s] %s  ->  %s\n", date('Y-m-d H:i:s'), $email, $link);
-        @file_put_contents($dir . '/reset_links.log', $entry, FILE_APPEND);
-    }
 }

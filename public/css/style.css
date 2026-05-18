@@ -864,6 +864,37 @@ main:focus { outline: none; }
 .error-box ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
 .error-box li::before { content: "• "; margin-right: 0.25rem; }
 
+/* ----- Soft email-verification banner ------------------------------- */
+/* Pinned just under the header for any logged-in user whose email
+   hasn't been confirmed. Full-bleed background + container-constrained
+   inner row so it reads as a system message, not a card. */
+.verify-banner {
+    background: var(--warning-bg);
+    border-top:    1px solid rgba(251, 191, 36, 0.30);
+    border-bottom: 1px solid rgba(251, 191, 36, 0.30);
+    color: var(--text);
+    font-size: 0.9rem;
+}
+.verify-banner__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    flex-wrap: wrap;
+}
+.verify-banner__text { flex: 1 1 280px; line-height: 1.5; }
+.verify-banner__text strong { color: var(--warning); margin-right: 0.4rem; }
+.verify-banner__form { margin: 0; }
+.verify-banner__form .btn-link {
+    color: var(--warning);
+    padding: 0.3rem 0.7rem;
+}
+.verify-banner__form .btn-link:hover {
+    color: #fde68a;
+    background: rgba(251, 191, 36, 0.10);
+}
+
 
 /* ---------- 10. Stub / placeholder ---------- */
 .stub-wrap {

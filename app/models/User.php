@@ -79,6 +79,78 @@ class User {
     //   - weekly_workout_target + weekly_cardio_target
     //     (whole-number days/sessions per week, nullable — caller
     //     validates 1..7 range)
+    // ----- Email verification -------------------------------------
+    // Soft verification: a banner nudges unverified users, but
+    // nothing about the app is gated. Token validity is 24 hours.
+
+    public const VERIFICATION_LIFETIME = 24 * 60 * 60;
+
+    // Issue (or clear, by passing null) a verification token for a user.
+    // The raw token goes out in the email — we only store its SHA-256
+    // hash so the DB can't leak the secret.
+    public static function setVerificationToken(int $id, ?string $rawToken): void {
+        if ($rawToken === null) {
+            $stmt = db()->prepare(
+                'UPDATE users
+                 SET email_verification_hash       = NULL,
+                     email_verification_expires_at = NULL
+                 WHERE id = ?'
+            );
+            $stmt->execute([$id]);
+            return;
+        }
+        $hash    = hash('sha256', $rawToken);
+        $expires = date('Y-m-d H:i:s', time() + self::VERIFICATION_LIFETIME);
+        $stmt = db()->prepare(
+            'UPDATE users
+             SET email_verification_hash       = ?,
+                 email_verification_expires_at = ?
+             WHERE id = ?'
+        );
+        $stmt->execute([$hash, $expires, $id]);
+    }
+
+    // Find the (still-unverified, unexpired) user this raw token belongs
+    // to. Returns null if no match.
+    public static function findByVerificationToken(string $rawToken): ?array {
+        $hash = hash('sha256', $rawToken);
+        $stmt = db()->prepare(
+            'SELECT * FROM users
+             WHERE email_verification_hash = ?
+               AND email_verification_expires_at > NOW()
+               AND email_verified_at IS NULL
+             LIMIT 1'
+        );
+        $stmt->execute([$hash]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    // Reset verification state. Called from ProfileController when the
+    // user changes their email — the new address hasn't been confirmed.
+    public static function clearEmailVerification(int $id): void {
+        $stmt = db()->prepare(
+            'UPDATE users
+             SET email_verified_at             = NULL,
+                 email_verification_hash       = NULL,
+                 email_verification_expires_at = NULL
+             WHERE id = ?'
+        );
+        $stmt->execute([$id]);
+    }
+
+    // Flip the user to verified + burn the token in one shot.
+    public static function markEmailVerified(int $id): void {
+        $stmt = db()->prepare(
+            'UPDATE users
+             SET email_verified_at             = NOW(),
+                 email_verification_hash       = NULL,
+                 email_verification_expires_at = NULL
+             WHERE id = ?'
+        );
+        $stmt->execute([$id]);
+    }
+
     // Permanently delete a user. ON DELETE CASCADE on every dependent
     // table (weight_logs, calorie_intake_logs, strength_logs, cardio_logs,
     // password_resets) takes care of the user's data. Caller is responsible

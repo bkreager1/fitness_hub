@@ -58,11 +58,12 @@ session_set_cookie_params([
 session_start();
 
 // Simple autoloader: when a class is referenced, find and require the file.
-// Looks in /app/controllers then /app/models.
+// Searches controllers, models, and services in that order.
 spl_autoload_register(function (string $class): void {
     $candidates = [
         APP_ROOT . '/app/controllers/' . $class . '.php',
         APP_ROOT . '/app/models/'      . $class . '.php',
+        APP_ROOT . '/app/services/'    . $class . '.php',
     ];
     foreach ($candidates as $path) {
         if (is_file($path)) {
@@ -99,6 +100,9 @@ try {
         'POST forgot-password' => (new AuthController())->sendResetLink(),
         'GET reset-password'   => (new AuthController())->showResetPassword(),
         'POST reset-password'  => (new AuthController())->resetPassword(),
+
+        'GET verify-email'           => (new AuthController())->verifyEmail(),
+        'POST resend-verification'   => (new AuthController())->resendVerification(),
 
         // ----- Dashboard -----
         'GET dashboard' => (new DashboardController())->index(),
