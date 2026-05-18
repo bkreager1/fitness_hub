@@ -22,6 +22,8 @@
                     <li><a href="<?= url('login') ?>">Log in</a></li>
                     <li><a href="<?= url('register') ?>">Sign up</a></li>
                 <?php endif; ?>
+                <li><a href="<?= url('privacy') ?>">Privacy</a></li>
+                <li><a href="<?= url('terms') ?>">Terms</a></li>
             </ul>
         </div>
     </footer>

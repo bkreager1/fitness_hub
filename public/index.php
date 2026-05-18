@@ -84,10 +84,13 @@ try {
     match ($route) {
 
         // ----- Public pages -----
-        'GET '         => (new PagesController())->home(),
-        'GET about'    => (new PagesController())->about(),
-        'GET contact'  => (new PagesController())->contact(),
-        'POST contact' => (new ContactController())->submit(),
+        'GET '             => (new PagesController())->home(),
+        'GET about'        => (new PagesController())->about(),
+        'GET contact'      => (new PagesController())->contact(),
+        'POST contact'     => (new ContactController())->submit(),
+        'GET privacy'      => (new PagesController())->privacy(),
+        'GET terms'        => (new PagesController())->terms(),
+        'GET sitemap.xml'  => (new PagesController())->sitemap(),
 
         // ----- Auth -----
         'GET register'  => (new AuthController())->showRegister(),

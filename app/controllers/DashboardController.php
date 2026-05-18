@@ -456,11 +456,21 @@ class DashboardController extends Controller {
             array_reverse($cardioHistoryAll)
         );
 
+        // First-run check: drives a welcome card above the snapshot
+        // grid for brand-new accounts so the page doesn't read as a
+        // wall of empty placeholders. Cheap: four COUNT(*) queries.
+        $hasAnyLogs =
+            WeightLog::countForUser($userId)     > 0
+         || CalorieIntake::countForUser($userId) > 0
+         || StrengthLog::countForUser($userId)   > 0
+         || CardioLog::countForUser($userId)     > 0;
+
         $this->view('dashboard/index', [
             'title'              => 'Dashboard',
             'active'             => 'dashboard',
             'today'              => $today,
             'displayName'        => $user['name'] ?? 'there',
+            'hasAnyLogs'         => $hasAnyLogs,
             'calorieCard'        => $calorieCard,
             'weightCard'         => $weightCard,
             'strengthCard'       => $strengthCard,

@@ -116,6 +116,45 @@ if (!empty($cardioCard['target'])) {
 </section>
 
 
+<?php if (!$hasAnyLogs): ?>
+<!-- ===================== First-run welcome ===================== -->
+<!-- Hidden the moment the user logs anything in any tracker. -->
+<section class="section">
+    <div class="container container--wide">
+        <article class="welcome-card">
+            <div class="welcome-card__head">
+                <span class="eyebrow">Let's get started</span>
+                <h2>Your dashboard fills in as you log.</h2>
+                <p>
+                    Pick whichever tracker matters most to you today. Even
+                    one entry is enough to bring the charts to life —
+                    you can come back tomorrow for the rest.
+                </p>
+            </div>
+            <div class="welcome-card__actions">
+                <a class="welcome-action" href="<?= url('calorie') ?>">
+                    <span class="welcome-action__title">Log a meal</span>
+                    <span class="welcome-action__hint">Calories + macros</span>
+                </a>
+                <a class="welcome-action" href="<?= url('weight') ?>">
+                    <span class="welcome-action__title">Add a weigh-in</span>
+                    <span class="welcome-action__hint">lbs or kg</span>
+                </a>
+                <a class="welcome-action" href="<?= url('strength') ?>">
+                    <span class="welcome-action__title">Record a lift</span>
+                    <span class="welcome-action__hint">Bench, squat, deadlift</span>
+                </a>
+                <a class="welcome-action" href="<?= url('cardio') ?>">
+                    <span class="welcome-action__title">Log cardio</span>
+                    <span class="welcome-action__hint">Run, walk, bike…</span>
+                </a>
+            </div>
+        </article>
+    </div>
+</section>
+<?php endif; ?>
+
+
 <!-- ===================== Stat strip ===================== -->
 <?php
 // Workouts/week reuses $thisWeek (computed for the This-week card) so

@@ -1,0 +1,24 @@
+# ============================================================
+# robots.txt — Rock County Fitness Hub
+# ============================================================
+# We're happy to be indexed. Crawlers can hit any public page.
+# Auth-walled routes (dashboard, profile, trackers) just return
+# the login screen for unauthenticated requests, so there's no
+# value in indexing them.
+#
+# Add the line below on deploy once you know the prod domain:
+#   Sitemap: https://your-domain.tld/sitemap.xml
+# ============================================================
+
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /calorie
+Disallow: /weight
+Disallow: /strength
+Disallow: /cardio
+Disallow: /profile
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /uploads/

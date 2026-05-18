@@ -42,6 +42,54 @@ class PagesController extends Controller {
         ]);
     }
 
+    // GET /privacy
+    public function privacy(): void {
+        $this->view('pages/privacy', [
+            'title'       => 'Privacy',
+            'description' => 'What we store, why we store it, and the '
+                          . 'controls you have over your data on Rock '
+                          . 'County Fitness Hub.',
+            'active'      => '',
+        ]);
+    }
+
+    // GET /terms
+    public function terms(): void {
+        $this->view('pages/terms', [
+            'title'       => 'Terms of use',
+            'description' => 'The ground rules for using Rock County '
+                          . 'Fitness Hub. Plain language, short read.',
+            'active'      => '',
+        ]);
+    }
+
+    // GET /sitemap.xml — dynamic so the host portion always matches
+    // the deploy environment (XAMPP, Hostinger preview, prod domain).
+    public function sitemap(): void {
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $origin = $scheme . '://' . $host;
+
+        $paths = ['', 'about', 'contact', 'privacy', 'terms', 'login', 'register', 'forgot-password'];
+
+        header('Content-Type: application/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $today = date('Y-m-d');
+        foreach ($paths as $p) {
+            $loc = $origin . url($p);
+            // Higher priority for the landing + the four marketing pages.
+            $priority = $p === '' ? '1.0' : ($p === 'about' || $p === 'contact' ? '0.8' : '0.5');
+            echo "  <url>\n";
+            echo "    <loc>" . htmlspecialchars($loc, ENT_QUOTES, 'UTF-8') . "</loc>\n";
+            echo "    <lastmod>{$today}</lastmod>\n";
+            echo "    <priority>{$priority}</priority>\n";
+            echo "  </url>\n";
+        }
+        echo '</urlset>' . "\n";
+        exit;
+    }
+
     // Any unknown URL
     public function notFound(): void {
         http_response_code(404);

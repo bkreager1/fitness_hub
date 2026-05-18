@@ -2509,6 +2509,91 @@ main:focus { outline: none; }
     gap: 1.25rem;
 }
 
+/* ----- Legal-page prose (Privacy, Terms) ---------------------------- */
+/* Comfortable reading width with structured h2 spacing. Kept its own
+   class instead of touching global tag styles so the home/about pages
+   don't pick up the wider rhythm. */
+.legal-prose {
+    max-width: 70ch;
+    color: var(--text);
+}
+.legal-prose h2 {
+    margin: 2.25rem 0 0.6rem;
+    font-size: 1.25rem;
+}
+.legal-prose h2:first-child { margin-top: 0; }
+.legal-prose p,
+.legal-prose ul {
+    color: var(--text-dim);
+    line-height: 1.65;
+    margin: 0 0 0.9rem;
+}
+.legal-prose ul {
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+.legal-prose li { margin-bottom: 0.3rem; }
+.legal-prose a   { color: var(--primary-hot); }
+.legal-prose code {
+    background: var(--bg-card-2);
+    padding: 0.05rem 0.35rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+}
+
+/* ----- First-run welcome card --------------------------------------- */
+/* Rendered above the snapshot grid only when the user has zero logs
+   across all four trackers. Disappears the moment they log anything. */
+.welcome-card {
+    background: linear-gradient(135deg,
+        rgba(255, 122, 50, 0.10),
+        rgba(255, 148, 71, 0.04) 60%,
+        var(--bg-card) 100%);
+    border: 1px solid rgba(255, 148, 71, 0.30);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem 2rem;
+    display: grid;
+    gap: 1.25rem;
+}
+.welcome-card__head h2 {
+    margin: 0.35rem 0 0.5rem;
+    font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+    line-height: 1.3;
+}
+.welcome-card__head p {
+    margin: 0;
+    color: var(--text-dim);
+    max-width: 56ch;
+}
+.welcome-card__actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+.welcome-action {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.9rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: inherit;
+    text-decoration: none;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+.welcome-action:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 148, 71, 0.45);
+    background: var(--bg-card-2);
+}
+.welcome-action:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+.welcome-action__title { font-weight: 700; }
+.welcome-action__hint  { color: var(--text-dim); font-size: 0.82rem; }
+
 .dash-card {
     display: flex;
     flex-direction: column;
