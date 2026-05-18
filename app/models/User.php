@@ -79,6 +79,15 @@ class User {
     //   - weekly_workout_target + weekly_cardio_target
     //     (whole-number days/sessions per week, nullable — caller
     //     validates 1..7 range)
+    // Permanently delete a user. ON DELETE CASCADE on every dependent
+    // table (weight_logs, calorie_intake_logs, strength_logs, cardio_logs,
+    // password_resets) takes care of the user's data. Caller is responsible
+    // for first removing the avatar file from disk.
+    public static function delete(int $id): void {
+        $stmt = db()->prepare('DELETE FROM users WHERE id = ?');
+        $stmt->execute([$id]);
+    }
+
     public static function updateGoals(int $id, array $goals): void {
         $stmt = db()->prepare(
             'UPDATE users

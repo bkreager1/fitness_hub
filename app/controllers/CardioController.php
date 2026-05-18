@@ -277,4 +277,35 @@ class CardioController extends Controller {
             'old' => $old,
         ];
     }
+
+    // ============ EXPORT (CSV download) ============
+    public function exportCsv(): void {
+        $this->requireLogin();
+        $userId = (int) current_user_id();
+        $rows   = CardioLog::forUser($userId);
+
+        $filename = 'fitness-hub-cardio-' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, [
+            'date', 'cardio_type', 'duration_min', 'intensity',
+            'distance', 'distance_unit',
+        ]);
+        foreach ($rows as $r) {
+            fputcsv($out, [
+                $r['logged_date'],
+                $r['cardio_type'],
+                (int) $r['duration_min'],
+                $r['intensity']     ?? '',
+                $r['distance']      !== null ? number_format((float) $r['distance'], 2, '.', '') : '',
+                $r['distance_unit'] ?? '',
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
 }

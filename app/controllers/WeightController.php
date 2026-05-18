@@ -272,4 +272,37 @@ class WeightController extends Controller {
             'old' => $old,
         ];
     }
+
+    // ============ EXPORT (CSV download) ============
+    // Streams every weigh-in for the logged-in user as CSV. We emit both
+    // canonical kg and the user's originally-typed value so the file is
+    // useful regardless of which unit they think in. UTF-8 BOM up front
+    // makes Excel open it without mangling characters.
+    public function exportCsv(): void {
+        $this->requireLogin();
+        $userId = (int) current_user_id();
+        $rows   = WeightLog::forUser($userId);
+
+        $filename = 'fitness-hub-weights-' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['date', 'weight_kg', 'weight_display', 'unit', 'notes']);
+        foreach ($rows as $r) {
+            $kg   = (float) $r['weight_kg'];
+            $disp = $r['unit'] === 'lbs' ? $kg * 2.2046226218 : $kg;
+            fputcsv($out, [
+                $r['logged_date'],
+                number_format($kg,   2, '.', ''),
+                number_format($disp, 2, '.', ''),
+                $r['unit'],
+                $r['notes'] ?? '',
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
 }

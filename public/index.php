@@ -140,6 +140,13 @@ try {
         'POST profile/goals'        => (new ProfileController())->goals(),
         'POST profile/image'        => (new ProfileController())->uploadImage(),
         'POST profile/image/delete' => (new ProfileController())->deleteImage(),
+        'POST profile/delete'       => (new ProfileController())->delete(),
+
+        // ----- Data export (one CSV per tracker) -----
+        'GET calorie/export'  => (new CalorieController())->exportCsv(),
+        'GET weight/export'   => (new WeightController())->exportCsv(),
+        'GET strength/export' => (new StrengthController())->exportCsv(),
+        'GET cardio/export'   => (new CardioController())->exportCsv(),
 
         // ----- Anything else → 404 -----
         default => (new PagesController())->notFound(),

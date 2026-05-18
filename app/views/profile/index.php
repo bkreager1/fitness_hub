@@ -384,5 +384,69 @@
             </form>
         </div>
 
+        <!-- ============ DANGER ZONE ============ -->
+        <?php
+            $errDelPw     = field_error('confirm_password');
+            $errDelPhrase = field_error('confirm_phrase');
+            // Re-open the disclosure if the user just bounced off a validation
+            // error so they're not staring at a closed panel.
+            $delOpen = (bool) flash('delete_open') || $errDelPw || $errDelPhrase;
+        ?>
+        <div class="tracker-card tracker-card--danger">
+            <div class="tracker-card__head">
+                <h2>Delete account</h2>
+            </div>
+            <p class="field-hint">
+                Permanently deletes your account, profile photo, and every
+                logged weigh-in, meal, lift, and cardio session. This can't
+                be undone.
+            </p>
+
+            <details class="danger-zone" <?= $delOpen ? 'open' : '' ?>>
+                <summary class="btn btn-secondary btn-inline">
+                    I want to delete my account
+                </summary>
+
+                <form method="post" action="<?= url('profile/delete') ?>"
+                      class="danger-zone__form" novalidate>
+                    <?= csrf_field() ?>
+
+                    <div class="field">
+                        <label for="confirm_password">Confirm with your password</label>
+                        <div class="password-wrap">
+                            <input type="password" id="confirm_password" name="confirm_password"
+                                   autocomplete="current-password"
+                                   <?= $errDelPw ? 'aria-invalid="true" aria-describedby="confirm_password-error"' : '' ?>
+                                   required>
+                            <?= password_toggle_button('confirm_password') ?>
+                        </div>
+                        <?php if ($errDelPw): ?>
+                            <p id="confirm_password-error" class="field-error"><?= e($errDelPw) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="confirm_phrase">Type <strong>DELETE</strong> to confirm</label>
+                        <input type="text" id="confirm_phrase" name="confirm_phrase"
+                               autocomplete="off" autocapitalize="characters"
+                               <?= $errDelPhrase ? 'aria-invalid="true" aria-describedby="confirm_phrase-error"' : 'aria-describedby="confirm_phrase-hint"' ?>
+                               required>
+                        <?php if ($errDelPhrase): ?>
+                            <p id="confirm_phrase-error" class="field-error"><?= e($errDelPhrase) ?></p>
+                        <?php else: ?>
+                            <small id="confirm_phrase-hint" class="field-hint">
+                                Final guard against accidental clicks.
+                            </small>
+                        <?php endif; ?>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-inline"
+                            data-loading-text="Deleting…">
+                        Permanently delete my account
+                    </button>
+                </form>
+            </details>
+        </div>
+
     </div>
 </section>

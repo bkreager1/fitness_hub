@@ -296,6 +296,67 @@ class ProfileController extends Controller {
         $this->redirect('profile');
     }
 
+    // ============ DELETE ACCOUNT ============
+    // Two gates before deletion: the user must re-enter their current
+    // password AND type the literal word DELETE into the confirmation
+    // field. Both are required to avoid accidental "yes I'm sure" clicks
+    // and to defend against a stolen-session attacker (they'd still need
+    // the password).
+
+    public function delete(): void {
+        $this->requireLogin();
+        csrf_verify();
+
+        $userId   = (int) current_user_id();
+        $password = $_POST['confirm_password'] ?? '';
+        $phrase   = trim($_POST['confirm_phrase'] ?? '');
+
+        $user   = User::find($userId);
+        $errors = [];
+
+        if ($password === '') {
+            $errors['confirm_password'] = 'Enter your password to confirm.';
+        } elseif (!User::checkPassword($password, $user['password'])) {
+            $errors['confirm_password'] = 'That password is incorrect.';
+        }
+
+        if (strtoupper($phrase) !== 'DELETE') {
+            $errors['confirm_phrase'] = 'Type DELETE in all caps to confirm.';
+        }
+
+        if ($errors) {
+            set_errors($errors);
+            flash('delete_open', '1');   // keep the danger-zone form expanded on re-render
+            $this->redirect('profile');
+            return;
+        }
+
+        // Remove avatar file from disk before wiping the row (cascade
+        // doesn't touch the filesystem).
+        if (!empty($user['profile_image_path'])) {
+            $this->deleteAvatarFile($user['profile_image_path']);
+        }
+
+        User::delete($userId);
+
+        // Wipe + rebuild the session so nothing leaks across to the
+        // post-deletion landing.
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(
+                session_name(), '', time() - 42000,
+                $p['path'], $p['domain'], $p['secure'], $p['httponly']
+            );
+        }
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
+
+        flash('success', 'Your account and all logged data have been deleted.');
+        $this->redirect('');
+    }
+
     // ============ INTERNAL HELPERS ============
 
     // Translate a $_FILES entry's error code + size into a user-facing message.

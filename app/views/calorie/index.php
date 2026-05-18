@@ -782,13 +782,19 @@ $fmtDate = static function (string $iso): string {
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
-                    <h2>History</h2>
-                    <span class="field-hint">
-                        <?= count($intakeHistory) ?> meal<?= count($intakeHistory) === 1 ? '' : 's' ?>
-                        across <?= count($dailyTotals) ?> day<?= count($dailyTotals) === 1 ? '' : 's' ?>
-                        · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
-                        · newest first
-                    </span>
+                    <div>
+                        <h2>History</h2>
+                        <span class="field-hint">
+                            <?= count($intakeHistory) ?> meal<?= count($intakeHistory) === 1 ? '' : 's' ?>
+                            across <?= count($dailyTotals) ?> day<?= count($dailyTotals) === 1 ? '' : 's' ?>
+                            · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
+                            · newest first
+                        </span>
+                    </div>
+                    <a class="btn-link" href="<?= url('calorie/export') ?>" download
+                       aria-label="Download all calorie logs as a CSV file">
+                        Download CSV
+                    </a>
                 </header>
 
                 <div class="history-scroll">

@@ -509,4 +509,34 @@ class CalorieController extends Controller {
 
         return [$errors, $cleanLabel, $cleanMacros];
     }
+
+    // ============ EXPORT (CSV download) ============
+    // One row per logged meal. Macros are included as-is — blank cells
+    // mean the user didn't fill that macro in for that meal.
+    public function exportCsv(): void {
+        $this->requireLogin();
+        $userId = (int) current_user_id();
+        $rows   = CalorieIntake::forUser($userId);
+
+        $filename = 'fitness-hub-calories-' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['date', 'label', 'calories', 'protein_g', 'carbs_g', 'fat_g']);
+        foreach ($rows as $r) {
+            fputcsv($out, [
+                $r['logged_date'],
+                $r['label'] ?? '',
+                (int) $r['calories'],
+                $r['protein_g'] !== null ? (int) $r['protein_g'] : '',
+                $r['carbs_g']   !== null ? (int) $r['carbs_g']   : '',
+                $r['fat_g']     !== null ? (int) $r['fat_g']     : '',
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
 }

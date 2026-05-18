@@ -281,4 +281,38 @@ class StrengthController extends Controller {
             'old' => $old,
         ];
     }
+
+    // ============ EXPORT (CSV download) ============
+    public function exportCsv(): void {
+        $this->requireLogin();
+        $userId = (int) current_user_id();
+        $rows   = StrengthLog::forUser($userId);
+
+        $filename = 'fitness-hub-strength-' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['date', 'lift', 'weight', 'unit', 'reps', 'est_1rm_kg', 'notes']);
+        foreach ($rows as $r) {
+            $w     = (float) $r['weight'];
+            $reps  = (int) $r['reps'];
+            $kg    = StrengthLog::toKg($w, $r['unit']);
+            // Epley est. 1RM in canonical kg so it's comparable across rows.
+            $oneRm = $reps > 0 ? $kg * (1 + $reps / 30.0) : $kg;
+            fputcsv($out, [
+                $r['logged_date'],
+                $r['lift_type'],
+                number_format($w, 2, '.', ''),
+                $r['unit'],
+                $reps,
+                number_format($oneRm, 2, '.', ''),
+                $r['notes'] ?? '',
+            ]);
+        }
+        fclose($out);
+        exit;
+    }
 }

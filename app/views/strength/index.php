@@ -380,13 +380,19 @@ if ($latest) {
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
-                    <h2>History</h2>
-                    <span class="field-hint">
-                        <?= count($history) ?> lift<?= count($history) === 1 ? '' : 's' ?>
-                        across <?= count($byDate) ?> day<?= count($byDate) === 1 ? '' : 's' ?>
-                        · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
-                        · newest first
-                    </span>
+                    <div>
+                        <h2>History</h2>
+                        <span class="field-hint">
+                            <?= count($history) ?> lift<?= count($history) === 1 ? '' : 's' ?>
+                            across <?= count($byDate) ?> day<?= count($byDate) === 1 ? '' : 's' ?>
+                            · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
+                            · newest first
+                        </span>
+                    </div>
+                    <a class="btn-link" href="<?= url('strength/export') ?>" download
+                       aria-label="Download all lift logs as a CSV file">
+                        Download CSV
+                    </a>
                 </header>
 
                 <div class="history-scroll">

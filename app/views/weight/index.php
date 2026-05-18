@@ -315,12 +315,18 @@ $displayWeight = static function (float $kg, string $asUnit): string {
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
-                    <h2>History</h2>
-                    <span class="field-hint">
-                        <?= count($history) ?> log<?= count($history) === 1 ? '' : 's' ?>
-                        · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
-                        · newest first
-                    </span>
+                    <div>
+                        <h2>History</h2>
+                        <span class="field-hint">
+                            <?= count($history) ?> log<?= count($history) === 1 ? '' : 's' ?>
+                            · <?= e($range === 'all' ? 'all time' : 'last ' . $rangeLabel) ?>
+                            · newest first
+                        </span>
+                    </div>
+                    <a class="btn-link" href="<?= url('weight/export') ?>" download
+                       aria-label="Download all weight logs as a CSV file">
+                        Download CSV
+                    </a>
                 </header>
 
                 <div class="history-scroll">
