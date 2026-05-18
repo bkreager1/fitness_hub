@@ -27,7 +27,7 @@ $todayPretty = date('l, F j', strtotime($today));
 $liftLine = static function (?array $row): string {
     if (!$row) return '—';
     $w = (float) $row['weight'];
-    $weightStr = rtrim(rtrim((string) $w, '0'), '.');
+    $weightStr = rtrim(rtrim(number_format($w, 2, '.', ''), '0'), '.');
     return sprintf('%s %s × %s', $weightStr, $row['unit'], $row['reps']);
 };
 

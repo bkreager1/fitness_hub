@@ -539,9 +539,9 @@ class DashboardController extends Controller {
 
         // Weight
         foreach (array_slice(WeightLog::forUser($userId), 0, $perTracker) as $r) {
-            $w = rtrim(rtrim((string) round((float) $r['weight_kg'] * (
+            $w = rtrim(rtrim(number_format((float) $r['weight_kg'] * (
                 $r['unit'] === 'kg' ? 1 : self::LB_PER_KG
-            ), 1), '0'), '.');
+            ), 1, '.', ''), '0'), '.');
             $items[] = [
                 'type'    => 'weight',
                 'date'    => $r['logged_date'],

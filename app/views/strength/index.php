@@ -454,7 +454,7 @@ if ($latest) {
                                         <td class="cell-date cell-date--indent"></td>
                                         <td><?= e($liftLabels[$row['lift_type']] ?? $row['lift_type']) ?></td>
                                         <td class="num strong">
-                                            <?= e(rtrim(rtrim((string) $w, '0'), '.')) ?>
+                                            <?= e(rtrim(rtrim(number_format($w, 2, '.', ''), '0'), '.')) ?>
                                             <span class="weight-unit-suffix"><?= e($row['unit']) ?></span>
                                             <span class="reps-suffix">× <?= e((string) $r) ?></span>
                                         </td>
