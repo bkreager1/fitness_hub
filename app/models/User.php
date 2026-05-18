@@ -88,6 +88,12 @@ class User {
     // Issue (or clear, by passing null) a verification token for a user.
     // The raw token goes out in the email — we only store its SHA-256
     // hash so the DB can't leak the secret.
+    //
+    // expires_at is computed by MySQL (NOW() + INTERVAL) instead of PHP
+    // so the comparison in findByVerificationToken() — which also uses
+    // NOW() — always lines up regardless of PHP/MySQL timezone mismatch.
+    // On Hostinger PHP is America/Chicago and MySQL is UTC; without
+    // this, the token would appear expired the moment it's issued.
     public static function setVerificationToken(int $id, ?string $rawToken): void {
         if ($rawToken === null) {
             $stmt = db()->prepare(
@@ -99,15 +105,14 @@ class User {
             $stmt->execute([$id]);
             return;
         }
-        $hash    = hash('sha256', $rawToken);
-        $expires = date('Y-m-d H:i:s', time() + self::VERIFICATION_LIFETIME);
+        $hash = hash('sha256', $rawToken);
         $stmt = db()->prepare(
             'UPDATE users
              SET email_verification_hash       = ?,
-                 email_verification_expires_at = ?
+                 email_verification_expires_at = DATE_ADD(NOW(), INTERVAL ? SECOND)
              WHERE id = ?'
         );
-        $stmt->execute([$hash, $expires, $id]);
+        $stmt->execute([$hash, self::VERIFICATION_LIFETIME, $id]);
     }
 
     // Find the (still-unverified, unexpired) user this raw token belongs

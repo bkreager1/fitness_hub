@@ -16,15 +16,21 @@ class PasswordReset {
 
     // Store a new token for a user. We hash the raw token before inserting
     // so the DB never sees the actual secret the user will click.
+    //
+    // expires_at is computed by MySQL itself (NOW() + INTERVAL) rather
+    // than by PHP, so the comparison in findValidToken() — which also
+    // uses NOW() — always lines up regardless of whether the PHP
+    // timezone and the MySQL server timezone agree. On Hostinger PHP
+    // is America/Chicago and MySQL is UTC; without this you'd hand
+    // out tokens that appear already-expired.
     public static function create(int $userId, string $rawToken): void {
-        $hash    = hash('sha256', $rawToken);
-        $expires = date('Y-m-d H:i:s', time() + self::TOKEN_LIFETIME);
+        $hash = hash('sha256', $rawToken);
 
         $stmt = db()->prepare(
             'INSERT INTO password_resets (user_id, token_hash, expires_at)
-             VALUES (?, ?, ?)'
+             VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? SECOND))'
         );
-        $stmt->execute([$userId, $hash, $expires]);
+        $stmt->execute([$userId, $hash, self::TOKEN_LIFETIME]);
     }
 
     // Look up a token that is: not used, not expired, and whose hash matches.
