@@ -109,8 +109,8 @@
     <div class="container">
         <div class="section-head">
             <h2>Four trackers. One simple goal.</h2>
-            <p>Whether you're cutting, bulking, or just trying to stay consistent,
-               each tracker focuses on the basics that actually matter.</p>
+            <p>Whether you&rsquo;re losing weight, building muscle, or staying consistent,
+               each tracker helps you measure progress without overcomplicating it.</p>
         </div>
 
         <?php
