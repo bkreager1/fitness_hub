@@ -85,7 +85,7 @@ class StrengthController extends Controller {
             'latest'          => $latest,
             'chartRows'       => $chartRows,
             'defaultUnit'     => $defaultUnit,
-            'liftLabels'      => StrengthLog::LIFT_LABELS,
+            'liftLabels'      => StrengthLog::labels(),
             'flashInline'     => true,
             'range'           => $range,
             'totalLoggedDays' => $totalLoggedDays,
@@ -130,7 +130,7 @@ class StrengthController extends Controller {
             'active'     => 'dashboard',
             'today'      => date('Y-m-d'),
             'row'        => $row,
-            'liftLabels' => StrengthLog::LIFT_LABELS,
+            'liftLabels' => StrengthLog::labels(),
         ]);
     }
 
@@ -192,7 +192,7 @@ class StrengthController extends Controller {
         $errors = [];
 
         // Lift type
-        if (!in_array($liftType, StrengthLog::ALLOWED_LIFTS, true)) {
+        if (!in_array($liftType, StrengthLog::allowedKeys(), true)) {
             $errors['lift_type'] = 'Please choose a lift.';
         }
 

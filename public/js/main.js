@@ -1165,9 +1165,11 @@
 
     /* ---------------------------------------------------------
        10. Strength chart (Chart.js).
-           Three lines (bench/squat/deadlift). Y = estimated 1RM
-           via Epley: weight * (1 + reps/30). Display unit is
-           independent of the form's unit and toggleable.
+           One line per logged lift. Featured lifts (the big three)
+           show by default; accessory lifts start hidden and toggle
+           in from the legend. Y = estimated 1RM via Epley:
+           weight * (1 + reps/30). Display unit is independent of
+           the form's unit and toggleable.
        --------------------------------------------------------- */
     (function initStrengthChart () {
         const canvas = document.getElementById('strengthChart');
@@ -1220,32 +1222,52 @@
             return allDates.map((d) => d in byDate ? byDate[d] : null);
         }
 
-        const COLORS = {
-            bench:    '#60a5fa',   // sky
-            squat:    '#fb923c',   // orange (matches brand)
-            deadlift: '#34d399',   // mint
-        };
-        const TITLE = {
-            bench:    'Bench',
-            squat:    'Squat',
-            deadlift: 'Deadlift',
-        };
+        // Which lifts to plot, each { key, label, featured }. PHP emits
+        // this (featured first) via data-lifts; fall back to deriving the
+        // set from the rows so the chart still works without it.
+        let lifts;
+        try {
+            lifts = JSON.parse(canvas.dataset.lifts || '[]');
+        } catch (e) {
+            lifts = [];
+        }
+        if (!Array.isArray(lifts) || lifts.length === 0) {
+            lifts = [...new Set(rows.map((r) => r.lift_type))]
+                .map((key) => ({ key: key, label: key, featured: true }));
+        }
 
-        function makeDataset (lift) {
+        // Color per lift by index. The first three slots are the brand
+        // colors for the featured big three (bench / squat / deadlift),
+        // which PHP orders first; accessories cycle the rest.
+        const PALETTE = [
+            '#60a5fa', // sky    — bench
+            '#fb923c', // orange — squat
+            '#34d399', // mint   — deadlift
+            '#f472b6', '#a78bfa', '#fbbf24', '#22d3ee', '#fb7185',
+            '#4ade80', '#c084fc', '#38bdf8', '#facc15', '#f87171',
+            '#2dd4bf',
+        ];
+        const colorFor = (i) => PALETTE[i % PALETTE.length];
+
+        function makeDataset (lift, i) {
+            const color = colorFor(i);
             return {
-                label: TITLE[lift],
-                data: dataFor(lift, displayUnit),
-                borderColor: COLORS[lift],
+                label: lift.label,
+                data: dataFor(lift.key, displayUnit),
+                borderColor: color,
                 backgroundColor: 'transparent',
                 borderWidth: 2.5,
                 tension: 0.35,
                 pointRadius: 3,
                 pointHoverRadius: 6,
-                pointBackgroundColor: COLORS[lift],
+                pointBackgroundColor: color,
                 pointBorderColor: 'rgba(15, 18, 24, 0.95)',
                 pointBorderWidth: 2,
                 spanGaps: true,
                 fill: false,
+                // Accessory lifts start hidden so the chart loads as the
+                // featured trio; the legend toggles the rest in.
+                hidden: lift.featured === false,
             };
         }
 
@@ -1253,11 +1275,7 @@
             type: 'line',
             data: {
                 labels,
-                datasets: [
-                    makeDataset('bench'),
-                    makeDataset('squat'),
-                    makeDataset('deadlift'),
-                ],
+                datasets: lifts.map((lift, i) => makeDataset(lift, i)),
             },
             options: {
                 responsive: true,
@@ -1295,8 +1313,8 @@
                 if (newUnit === displayUnit) return;
 
                 displayUnit = newUnit;
-                ['bench', 'squat', 'deadlift'].forEach((lift, i) => {
-                    chart.data.datasets[i].data = dataFor(lift, displayUnit);
+                lifts.forEach((lift, i) => {
+                    chart.data.datasets[i].data = dataFor(lift.key, displayUnit);
                 });
                 chart.update();
 

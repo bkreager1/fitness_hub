@@ -11,15 +11,123 @@
 
 class StrengthLog {
 
-    public const ALLOWED_LIFTS = ['bench', 'squat', 'deadlift'];
     public const ALLOWED_UNITS = ['lbs', 'kg'];
 
-    // Friendly labels for views (lift_type ENUM key → label).
-    public const LIFT_LABELS = [
-        'bench'    => 'Bench press',
-        'squat'    => 'Squat',
-        'deadlift' => 'Deadlift',
+    // ---- Lift catalog (single source of truth) ----------------
+    // Each entry is [label, category, featured, bodyweight]:
+    //   label       human-facing name shown in views + the picker
+    //   category    body-part group; drives the picker's <optgroup>
+    //               and the canonical display ordering
+    //   featured    true for the "big three" (bench/squat/deadlift)
+    //               — these get a dashboard card row + goal bar; the
+    //               rest are accessory lifts surfaced in a rollup
+    //   bodyweight  true when there's no external load (pull-up,
+    //               dips, crunch, hanging leg raise) — weight is
+    //               optional and the chart plots reps for these
+    //
+    // ENUM keys mirror strength_logs.lift_type (migration 011). The
+    // original bench/squat/deadlift keys are preserved so existing
+    // rows + the users.target_*_kg goal columns still line up. Read
+    // everything through the accessors below (labels(),
+    // featuredLifts(), byCategory(), …) so a future move to a
+    // user-defined `exercises` table stays mechanical — call sites
+    // never hard-code lift keys.
+    //
+    // ('plank' is deliberately absent — it's time-based, not
+    //  weight × reps, and needs a separate logging mode later.)
+    public const LIFTS = [
+        // Chest
+        'bench'                 => ['Bench press',             'Chest',     true,  false],
+        'incline_bench'         => ['Incline bench press',     'Chest',     false, false],
+        'db_bench'              => ['Dumbbell bench press',    'Chest',     false, false],
+        'chest_fly'             => ['Chest fly',               'Chest',     false, false],
+        // Back
+        'barbell_row'           => ['Barbell row',             'Back',      false, false],
+        'lat_pulldown'          => ['Lat pulldown',            'Back',      false, false],
+        'pull_up'               => ['Pull-up',                 'Back',      false, true],
+        'seated_row'            => ['Seated cable row',        'Back',      false, false],
+        'shrugs'                => ['Shrugs',                  'Back',      false, false],
+        // Shoulders
+        'ohp'                   => ['Overhead press',          'Shoulders', false, false],
+        'db_shoulder_press'     => ['Dumbbell shoulder press', 'Shoulders', false, false],
+        'lateral_raise'         => ['Lateral raise',           'Shoulders', false, false],
+        'face_pull'             => ['Face pull',               'Shoulders', false, false],
+        // Biceps
+        'barbell_curl'          => ['Barbell curl',            'Biceps',    false, false],
+        'db_curl'               => ['Dumbbell curl',           'Biceps',    false, false],
+        'hammer_curl'           => ['Hammer curl',             'Biceps',    false, false],
+        'preacher_curl'         => ['Preacher curl',           'Biceps',    false, false],
+        'cable_curl'            => ['Cable curl',              'Biceps',    false, false],
+        // Triceps
+        'tricep_pushdown'       => ['Tricep pushdown',         'Triceps',   false, false],
+        'skullcrusher'          => ['Skullcrusher',            'Triceps',   false, false],
+        'overhead_extension'    => ['Overhead cable extension','Triceps',   false, false],
+        'dips'                  => ['Dips',                    'Triceps',   false, true],
+        // Legs
+        'squat'                 => ['Squat',                   'Legs',      true,  false],
+        'deadlift'              => ['Deadlift',                'Legs',      true,  false],
+        'leg_press'             => ['Leg press',               'Legs',      false, false],
+        'rdl'                   => ['Romanian deadlift',       'Legs',      false, false],
+        'leg_curl'              => ['Leg curl',                'Legs',      false, false],
+        'leg_extension'         => ['Leg extension',           'Legs',      false, false],
+        'calf_raise'            => ['Calf raise',              'Legs',      false, false],
+        'bulgarian_split_squat' => ['Bulgarian split squat',   'Legs',      false, false],
+        // Core
+        'crunch'                => ['Crunch',                  'Core',      false, true],
+        'hanging_leg_raise'     => ['Hanging leg raise',       'Core',      false, true],
     ];
+
+    // Tuple positions within a LIFTS entry.
+    private const L_LABEL      = 0;
+    private const L_CATEGORY   = 1;
+    private const L_FEATURED   = 2;
+    private const L_BODYWEIGHT = 3;
+
+    // All valid lift_type keys, in catalog (display) order.
+    public static function allowedKeys(): array {
+        return array_keys(self::LIFTS);
+    }
+
+    // [key => label] map — the shape views expect as $liftLabels.
+    public static function labels(): array {
+        return array_map(
+            static fn(array $l): string => $l[self::L_LABEL],
+            self::LIFTS
+        );
+    }
+
+    // Single label with a safe fallback for unknown keys.
+    public static function label(string $key): string {
+        return self::LIFTS[$key][self::L_LABEL] ?? $key;
+    }
+
+    // The "big three" keys (bench/squat/deadlift), in catalog order.
+    // Drives the dashboard card rows + per-lift goal bars.
+    public static function featuredLifts(): array {
+        return array_keys(array_filter(
+            self::LIFTS,
+            static fn(array $l): bool => $l[self::L_FEATURED]
+        ));
+    }
+
+    public static function isFeatured(string $key): bool {
+        return (bool) (self::LIFTS[$key][self::L_FEATURED] ?? false);
+    }
+
+    // Bodyweight lifts log reps with optional added weight.
+    public static function isBodyweight(string $key): bool {
+        return (bool) (self::LIFTS[$key][self::L_BODYWEIGHT] ?? false);
+    }
+
+    // [category => [key => label, …], …], preserving catalog order.
+    // Feeds the lift picker's grouped <optgroup> options.
+    public static function byCategory(): array {
+        $out = [];
+        foreach (self::LIFTS as $key => $l) {
+            $out[$l[self::L_CATEGORY]][$key] = $l[self::L_LABEL];
+        }
+        return $out;
+    }
 
     // Insert a new lift entry. Caller validates first.
     public static function create(int $userId, array $data): int {
@@ -130,9 +238,10 @@ class StrengthLog {
 
     // Most recent entry per lift type — useful for "current PRs"
     // style summaries on the dashboard.
-    // Returns ['bench' => row|null, 'squat' => …, 'deadlift' => …].
+    // Returns [key => row|null] for every catalog lift, so callers
+    // can index any lift without an isset() guard.
     public static function latestPerLiftForUser(int $userId): array {
-        $out = ['bench' => null, 'squat' => null, 'deadlift' => null];
+        $out = array_fill_keys(self::allowedKeys(), null);
 
         $stmt = db()->prepare(
             'SELECT s.*

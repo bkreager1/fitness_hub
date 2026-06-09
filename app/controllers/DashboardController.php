@@ -227,7 +227,11 @@ class DashboardController extends Controller {
         // fetched below for the chart) so we don't issue an extra
         // query. Falls back to all-false when the user has no history.
         $strengthHistoryAll = StrengthLog::forUser($userId);
-        $bestEst1rmKg = ['bench' => 0.0, 'squat' => 0.0, 'deadlift' => 0.0];
+        // Best est-1RM per lift across all history. Seeded with the
+        // featured lifts (so they always exist for the card), but the
+        // accumulation below adds a key for every lift_type present —
+        // accessory bests feed the dashboard rollup line.
+        $bestEst1rmKg = array_fill_keys(StrengthLog::featuredLifts(), 0.0);
         foreach ($strengthHistoryAll as $row) {
             $kg     = StrengthLog::toKg((float) $row['weight'], $row['unit']);
             $reps   = (int) $row['reps'];
@@ -236,8 +240,8 @@ class DashboardController extends Controller {
                 $bestEst1rmKg[$row['lift_type']] = $est1rm;
             }
         }
-        $isPr = ['bench' => false, 'squat' => false, 'deadlift' => false];
-        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+        $isPr = array_fill_keys(StrengthLog::featuredLifts(), false);
+        foreach (StrengthLog::featuredLifts() as $lift) {
             $latest = $latestPerLift[$lift] ?? null;
             if (!$latest) continue;
             $kg     = StrengthLog::toKg((float) $latest['weight'], $latest['unit']);
@@ -253,8 +257,8 @@ class DashboardController extends Controller {
         // card's "1RM | All-time" inset toggle — the bar's right-hand
         // number swaps between current and best, the goal bar's % stays
         // tied to all-time best (that's "where you are" toward target).
-        $strengthDisplay = ['bench' => null, 'squat' => null, 'deadlift' => null];
-        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+        $strengthDisplay = array_fill_keys(StrengthLog::featuredLifts(), null);
+        foreach (StrengthLog::featuredLifts() as $lift) {
             $latest = $latestPerLift[$lift] ?? null;
             if (!$latest) continue;
             $unit       = $latest['unit'];
@@ -276,8 +280,8 @@ class DashboardController extends Controller {
         // above) to their target. Bar fills as a % of target,
         // clamped to 100. Display unit = the unit the latest entry
         // for that lift was logged in (falls back to lbs).
-        $strengthGoals = ['bench' => null, 'squat' => null, 'deadlift' => null];
-        foreach (['bench', 'squat', 'deadlift'] as $lift) {
+        $strengthGoals = array_fill_keys(StrengthLog::featuredLifts(), null);
+        foreach (StrengthLog::featuredLifts() as $lift) {
             $col = 'target_' . $lift . '_kg';
             $targetKg = isset($user[$col]) ? (float) $user[$col] : 0.0;
             if ($targetKg <= 0) continue;
@@ -301,8 +305,8 @@ class DashboardController extends Controller {
 
         $strengthCard = [
             'has_logs' => (bool) array_filter($latestPerLift),
-            'lifts'    => $latestPerLift,   // ['bench' => row|null, ...]
-            'labels'   => StrengthLog::LIFT_LABELS,
+            'lifts'    => $latestPerLift,   // [key => row|null] for every catalog lift
+            'labels'   => StrengthLog::labels(),
             'is_pr'    => $isPr,
             'goals'    => $strengthGoals,
             'display'  => $strengthDisplay, // current_orm + alltime_orm per lift
@@ -431,6 +435,10 @@ class DashboardController extends Controller {
         $weightChartUnit = $latestWeight['unit'] ?? 'lbs';
 
         // Reuse $strengthHistoryAll (already fetched for PR computation).
+        // The dashboard mini-chart is the "featured trio" summary — the
+        // full per-lift chart lives on the strength page — so filter to
+        // featured lifts to keep the legend to the three big lifts.
+        $featuredKeys = StrengthLog::featuredLifts();
         $strengthChartData = array_map(
             static fn(array $r): array => [
                 'date'      => $r['logged_date'],
@@ -438,7 +446,10 @@ class DashboardController extends Controller {
                 'weight_kg' => StrengthLog::toKg((float) $r['weight'], $r['unit']),
                 'reps'      => (int) $r['reps'],
             ],
-            array_reverse($strengthHistoryAll)
+            array_reverse(array_filter(
+                $strengthHistoryAll,
+                static fn(array $r): bool => in_array($r['lift_type'], $featuredKeys, true)
+            ))
         );
         $latestStrength = StrengthLog::latestForUser($userId);
         $strengthChartUnit = $latestStrength['unit'] ?? 'lbs';
@@ -512,7 +523,7 @@ class DashboardController extends Controller {
                 'id'      => (int) $r['id'],
                 'summary' => sprintf(
                     '%s %s %s × %s',
-                    StrengthLog::LIFT_LABELS[$r['lift_type']] ?? $r['lift_type'],
+                    StrengthLog::label($r['lift_type']),
                     $w,
                     $r['unit'],
                     $r['reps']

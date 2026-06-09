@@ -124,20 +124,26 @@ if ($latest) {
                 <?= csrf_field() ?>
                 <input type="hidden" name="unit" id="strengthUnit" value="<?= e($unit) ?>">
 
-                <!-- Lift picker (3 pills, same look as the goal picker) -->
+                <!-- Lift picker — grouped <select> by body part. The
+                     catalog grew past the big three, so a select with
+                     <optgroup>s scales better than a wall of pills. -->
                 <div class="field field--wide">
-                    <span class="field-label">Lift</span>
-                    <div class="goal-picker__pills <?= $errLift ? 'is-invalid' : '' ?>"
-                         role="radiogroup" aria-label="Lift type"
-                         <?= $errLift ? 'aria-describedby="lift_type-error"' : '' ?>>
-                        <?php foreach ($liftLabels as $key => $label): ?>
-                            <label class="goal-pill goal-pill--radio">
-                                <input type="radio" name="lift_type" value="<?= e($key) ?>"
-                                       <?= $liftType === $key ? 'checked' : '' ?>>
-                                <?= e($label) ?>
-                            </label>
+                    <label for="strengthLift">Lift</label>
+                    <select id="strengthLift" name="lift_type"
+                            <?= $errLift ? 'aria-invalid="true" aria-describedby="lift_type-error"' : '' ?>
+                            required>
+                        <option value="" <?= $liftType === '' ? 'selected' : '' ?>>Choose a lift…</option>
+                        <?php foreach (StrengthLog::byCategory() as $category => $lifts): ?>
+                            <optgroup label="<?= e($category) ?>">
+                                <?php foreach ($lifts as $key => $label): ?>
+                                    <option value="<?= e($key) ?>"
+                                            <?= $liftType === $key ? 'selected' : '' ?>>
+                                        <?= e($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
                         <?php endforeach; ?>
-                    </div>
+                    </select>
                     <?php if ($errLift): ?>
                         <p id="lift_type-error" class="field-error"><?= e($errLift) ?></p>
                     <?php endif; ?>
@@ -330,11 +336,34 @@ if ($latest) {
                         </button>
                     </div>
                 </header>
+                <?php
+                    // Per-lift metadata for main.js (initStrengthChart):
+                    // every lift present in the data, featured lifts first
+                    // (so the big three keep their brand colors), then
+                    // accessories. Non-featured start hidden so the chart
+                    // loads clean and the legend toggles the rest in.
+                    $present = [];
+                    foreach ($chartRows as $r) { $present[$r['lift_type']] = true; }
+                    $featuredFirst = [];
+                    $accessories   = [];
+                    foreach (StrengthLog::allowedKeys() as $k) {
+                        if (!isset($present[$k])) continue;
+                        $entry = [
+                            'key'      => $k,
+                            'label'    => $liftLabels[$k] ?? $k,
+                            'featured' => StrengthLog::isFeatured($k),
+                        ];
+                        if ($entry['featured']) { $featuredFirst[] = $entry; }
+                        else { $accessories[] = $entry; }
+                    }
+                    $strengthChartLifts = array_merge($featuredFirst, $accessories);
+                ?>
                 <div class="chart-wrap chart-wrap--loading">
                     <canvas id="strengthChart"
                             role="img"
-                            aria-label="Estimated 1-rep max line chart for bench, squat, and deadlift over <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Full data in the table below."
+                            aria-label="Estimated 1-rep max line chart for your logged lifts over <?= e($range === 'all' ? 'all time' : 'the last ' . $rangeLabel) ?>. Featured lifts show by default; toggle others from the legend. Full data in the table below."
                             data-rows='<?= e(json_encode($chartRows, JSON_THROW_ON_ERROR)) ?>'
+                            data-lifts='<?= e(json_encode($strengthChartLifts, JSON_THROW_ON_ERROR)) ?>'
                             data-default-unit="<?= e($defaultUnit) ?>">
                     </canvas>
                 </div>
@@ -419,7 +448,7 @@ if ($latest) {
                                     $typesThatDay[$r['lift_type']] = true;
                                 }
                                 $typeSummary = [];
-                                foreach (StrengthLog::ALLOWED_LIFTS as $key) {
+                                foreach (StrengthLog::allowedKeys() as $key) {
                                     if (isset($typesThatDay[$key])) {
                                         $typeSummary[] = $liftLabels[$key] ?? $key;
                                     }

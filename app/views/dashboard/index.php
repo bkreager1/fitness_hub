@@ -65,7 +65,7 @@ if (!empty($weightCard['goal'])) {
               . $weightCard['unit'] . ' to go',
     ];
 }
-foreach (['bench', 'squat', 'deadlift'] as $lift) {
+foreach (StrengthLog::featuredLifts() as $lift) {
     $sg = $strengthCard['goals'][$lift] ?? null;
     if (!$sg) continue;
     $label = $strengthCard['labels'][$lift] ?? ucfirst($lift);
@@ -544,7 +544,7 @@ $hasAnyActivity =
                     </div>
 
                     <ul class="strength-list">
-                        <?php foreach (['bench', 'squat', 'deadlift'] as $key):
+                        <?php foreach (StrengthLog::featuredLifts() as $key):
                             $sg     = $strengthCard['goals'][$key]   ?? null;
                             $disp   = $strengthCard['display'][$key] ?? null;
                             $isPr   = !empty($strengthCard['is_pr'][$key]);
@@ -859,12 +859,30 @@ $hasAnyChart =
                     <h3>Big three (est. 1RM)</h3>
                     <a class="dash-card__view-all" href="<?= url('strength') ?>">Open tracker →</a>
                 </header>
+                <?php
+                    // Featured lifts present in the data, in featured
+                    // order, with labels — drives the per-lift datasets
+                    // in main.js (initStrengthChart). Dashboard shows the
+                    // featured trio only, so none start hidden.
+                    $present = array_column($strengthChartData, 'lift_type');
+                    $strengthChartLifts = [];
+                    foreach (StrengthLog::featuredLifts() as $k) {
+                        if (in_array($k, $present, true)) {
+                            $strengthChartLifts[] = [
+                                'key'      => $k,
+                                'label'    => StrengthLog::label($k),
+                                'featured' => true,
+                            ];
+                        }
+                    }
+                ?>
                 <?php if (!empty($strengthChartData)): ?>
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="strengthChart"
                                 role="img"
-                                aria-label="Recent estimated 1-rep max line chart for bench, squat, and deadlift. Open the strength tracker for full data."
+                                aria-label="Recent estimated 1-rep max line chart for your featured lifts (bench, squat, deadlift). Open the strength tracker for full data."
                                 data-rows='<?= e(json_encode($strengthChartData, JSON_THROW_ON_ERROR)) ?>'
+                                data-lifts='<?= e(json_encode($strengthChartLifts, JSON_THROW_ON_ERROR)) ?>'
                                 data-default-unit="<?= e($strengthChartUnit) ?>">
                         </canvas>
                     </div>

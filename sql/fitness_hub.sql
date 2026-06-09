@@ -174,15 +174,34 @@ CREATE TABLE weight_logs (
 -- ============================================================
 -- Multiple entries per (user, date) are allowed — strength
 -- training is naturally more variable than weight or calories.
--- The dashboard chart filters by lift_type to draw three separate
--- lines, and uses Epley estimated 1RM (weight * (1 + reps/30))
--- as the Y-axis value so cross-rep-range comparisons line up.
+-- lift_type is a full body-part catalog (~30 lifts); the three
+-- "featured" lifts (bench/squat/deadlift) drive the dashboard
+-- card + goal bars, the rest are accessory work. The chart filters
+-- by lift_type to draw a line per lift, using Epley estimated 1RM
+-- (weight * (1 + reps/30)) as the Y-axis value so cross-rep-range
+-- comparisons line up.
+--
+-- weight is NULLable: a handful of lifts are bodyweight (pull-up,
+-- dips, crunch, hanging leg raise) and carry no external load —
+-- those log reps with weight = NULL.
+--
+-- The keys below mirror StrengthLog::LIFTS in PHP (single source
+-- of truth for labels/categories/featured/bodyweight). Keep in sync.
 -- ============================================================
 CREATE TABLE strength_logs (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id     INT UNSIGNED NOT NULL,
-    lift_type   ENUM('bench', 'squat', 'deadlift') NOT NULL,
-    weight      DECIMAL(6,2) NOT NULL,
+    lift_type   ENUM(
+        'bench', 'incline_bench', 'db_bench', 'chest_fly',
+        'barbell_row', 'lat_pulldown', 'pull_up', 'seated_row', 'shrugs',
+        'ohp', 'db_shoulder_press', 'lateral_raise', 'face_pull',
+        'barbell_curl', 'db_curl', 'hammer_curl', 'preacher_curl', 'cable_curl',
+        'tricep_pushdown', 'skullcrusher', 'overhead_extension', 'dips',
+        'squat', 'deadlift', 'leg_press', 'rdl', 'leg_curl',
+        'leg_extension', 'calf_raise', 'bulgarian_split_squat',
+        'crunch', 'hanging_leg_raise'
+    ) NOT NULL,
+    weight      DECIMAL(6,2) NULL,
     reps        TINYINT UNSIGNED NOT NULL,
     unit        ENUM('lbs', 'kg') NOT NULL DEFAULT 'lbs',
     logged_date DATE NOT NULL,

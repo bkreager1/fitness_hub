@@ -82,18 +82,22 @@ $fmtDate = static function (string $iso): string {
                 <input type="hidden" name="unit" id="strengthUnit" value="<?= e($unit) ?>">
 
                 <div class="field field--wide">
-                    <span class="field-label">Lift</span>
-                    <div class="goal-picker__pills <?= $errLift ? 'is-invalid' : '' ?>"
-                         role="radiogroup" aria-label="Lift type"
-                         <?= $errLift ? 'aria-describedby="lift_type-error"' : '' ?>>
-                        <?php foreach ($liftLabels as $key => $label): ?>
-                            <label class="goal-pill goal-pill--radio">
-                                <input type="radio" name="lift_type" value="<?= e($key) ?>"
-                                       <?= $liftType === $key ? 'checked' : '' ?>>
-                                <?= e($label) ?>
-                            </label>
+                    <label for="strengthLift">Lift</label>
+                    <select id="strengthLift" name="lift_type"
+                            <?= $errLift ? 'aria-invalid="true" aria-describedby="lift_type-error"' : '' ?>
+                            required>
+                        <option value="" <?= $liftType === '' ? 'selected' : '' ?>>Choose a lift…</option>
+                        <?php foreach (StrengthLog::byCategory() as $category => $lifts): ?>
+                            <optgroup label="<?= e($category) ?>">
+                                <?php foreach ($lifts as $key => $label): ?>
+                                    <option value="<?= e($key) ?>"
+                                            <?= $liftType === $key ? 'selected' : '' ?>>
+                                        <?= e($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
                         <?php endforeach; ?>
-                    </div>
+                    </select>
                     <?php if ($errLift): ?>
                         <p id="lift_type-error" class="field-error"><?= e($errLift) ?></p>
                     <?php endif; ?>
