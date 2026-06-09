@@ -54,8 +54,8 @@
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Strength</h3>
-                <p>Track 30+ lifts across every muscle group with weight
-                   and reps — your main lifts spotlighted on the dashboard.
+                <p>Track your lifts across every muscle group with weight
+                   and reps — the main ones spotlighted on the dashboard.
                    The chart estimates your one-rep max so progress is
                    easier to compare across rep ranges.</p>
             </article>
