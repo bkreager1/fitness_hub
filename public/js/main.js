@@ -1160,6 +1160,28 @@
 
             applyUnitUI(newUnit);
         });
+
+        // Bodyweight lifts (pull-up, dips, …) make the weight field
+        // optional — it reads as "added weight". Keep the required flag,
+        // label, and "— optional" hint in sync with the selected lift;
+        // each <option> carries a data-bw flag emitted from the catalog.
+        const liftSelect     = document.getElementById('strengthLift');
+        const weightLabel    = document.getElementById('strengthWeightLabel');
+        const weightOptional = document.getElementById('strengthWeightOptional');
+
+        function applyLiftUI () {
+            if (!liftSelect) return;
+            const opt  = liftSelect.selectedOptions[0];
+            const isBw = !!(opt && opt.dataset.bw);
+            weightInput.required = !isBw;
+            if (weightLabel)    weightLabel.textContent = isBw ? 'Added weight' : 'Weight';
+            if (weightOptional) weightOptional.hidden   = !isBw;
+        }
+
+        if (liftSelect) {
+            liftSelect.addEventListener('change', applyLiftUI);
+            applyLiftUI();   // sync initial state (edit page + re-renders)
+        }
     })();
 
 
@@ -1213,8 +1235,11 @@
         function dataFor (lift, unit) {
             const byDate = {};
             rows.forEach((r) => {
-                if (r.lift_type !== lift) return;
-                const v = ormFor(r, unit);
+                if (r.lift_type !== lift.key) return;
+                // Bodyweight lifts track reps (no meaningful 1RM from
+                // added load); loaded lifts track est. 1RM. Highest
+                // value per day either way.
+                const v = lift.bodyweight ? r.reps : ormFor(r, unit);
                 if (!(r.date in byDate) || v > byDate[r.date]) {
                     byDate[r.date] = v;
                 }
@@ -1253,7 +1278,7 @@
             const color = colorFor(i);
             return {
                 label: lift.label,
-                data: dataFor(lift.key, displayUnit),
+                data: dataFor(lift, displayUnit),
                 borderColor: color,
                 backgroundColor: 'transparent',
                 borderWidth: 2.5,
@@ -1288,6 +1313,10 @@
                         callbacks: {
                             label: (ctx) => {
                                 if (ctx.parsed.y === null || ctx.parsed.y === undefined) return null;
+                                const lift = lifts[ctx.datasetIndex];
+                                if (lift && lift.bodyweight) {
+                                    return `${ctx.dataset.label}: ${ctx.parsed.y} reps`;
+                                }
                                 return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} ${displayUnit} (1RM)`;
                             },
                         },
@@ -1314,7 +1343,7 @@
 
                 displayUnit = newUnit;
                 lifts.forEach((lift, i) => {
-                    chart.data.datasets[i].data = dataFor(lift.key, displayUnit);
+                    chart.data.datasets[i].data = dataFor(lift, displayUnit);
                 });
                 chart.update();
 

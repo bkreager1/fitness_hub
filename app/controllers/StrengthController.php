@@ -196,16 +196,28 @@ class StrengthController extends Controller {
             $errors['lift_type'] = 'Please choose a lift.';
         }
 
+        // Bodyweight lifts (pull-up, dips, …) carry no external load, so
+        // weight is optional for them (blank = bodyweight). Every other
+        // lift still requires a weight.
+        $isBodyweight = in_array($liftType, StrengthLog::allowedKeys(), true)
+            && StrengthLog::isBodyweight($liftType);
+
         // Unit
         if (!in_array($unit, StrengthLog::ALLOWED_UNITS, true)) {
             $errors['unit'] = 'Please choose lbs or kg.';
             $unit = 'lbs';
         }
 
-        // Weight — bounds depend on unit.
+        // Weight — required for loaded lifts, optional added load for
+        // bodyweight lifts. A NULL weight means "bodyweight, no added
+        // load"; the bounds only apply when a number was entered.
         $weight = null;
-        if ($weightRaw === '' || !is_numeric($weightRaw)) {
-            $errors['weight'] = 'Weight is required.';
+        if ($weightRaw === '') {
+            if (!$isBodyweight) {
+                $errors['weight'] = 'Weight is required.';
+            }
+        } elseif (!is_numeric($weightRaw)) {
+            $errors['weight'] = 'Weight must be a number.';
         } else {
             $w = (float) $weightRaw;
             if ($unit === 'lbs') {
@@ -297,18 +309,26 @@ class StrengthController extends Controller {
         fwrite($out, "\xEF\xBB\xBF");
         fputcsv($out, ['date', 'lift', 'weight', 'unit', 'reps', 'est_1rm_kg', 'notes']);
         foreach ($rows as $r) {
-            $w     = (float) $r['weight'];
-            $reps  = (int) $r['reps'];
-            $kg    = StrengthLog::toKg($w, $r['unit']);
-            // Epley est. 1RM in canonical kg so it's comparable across rows.
-            $oneRm = $reps > 0 ? $kg * (1 + $reps / 30.0) : $kg;
+            $reps = (int) $r['reps'];
+            if ($r['weight'] === null) {
+                // Bodyweight entry — no load, no meaningful 1RM.
+                $weightCol = 'BW';
+                $oneRmCol  = '';
+            } else {
+                $w   = (float) $r['weight'];
+                $kg  = StrengthLog::toKg($w, $r['unit']);
+                // Epley est. 1RM in canonical kg so it's comparable across rows.
+                $oneRm = $reps > 0 ? $kg * (1 + $reps / 30.0) : $kg;
+                $weightCol = number_format($w, 2, '.', '');
+                $oneRmCol  = number_format($oneRm, 2, '.', '');
+            }
             fputcsv($out, [
                 $r['logged_date'],
                 $r['lift_type'],
-                number_format($w, 2, '.', ''),
+                $weightCol,
                 $r['unit'],
                 $reps,
-                number_format($oneRm, 2, '.', ''),
+                $oneRmCol,
                 $r['notes'] ?? '',
             ]);
         }

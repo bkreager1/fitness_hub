@@ -869,9 +869,10 @@ $hasAnyChart =
                     foreach (StrengthLog::featuredLifts() as $k) {
                         if (in_array($k, $present, true)) {
                             $strengthChartLifts[] = [
-                                'key'      => $k,
-                                'label'    => StrengthLog::label($k),
-                                'featured' => true,
+                                'key'        => $k,
+                                'label'      => StrengthLog::label($k),
+                                'featured'   => true,
+                                'bodyweight' => false,
                             ];
                         }
                     }

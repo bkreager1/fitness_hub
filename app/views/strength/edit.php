@@ -28,6 +28,12 @@ $notesVal   = old('notes')  !== '' ? old('notes')  : ($row['notes'] ?? '');
 
 $placeholderWeight = $unit === 'lbs' ? '225' : '102';
 
+// Bodyweight lifts make the weight field optional (added load only);
+// the JS keeps it in sync if the user switches the lift while editing.
+$liftIsBw = $liftType !== ''
+    && in_array($liftType, StrengthLog::allowedKeys(), true)
+    && StrengthLog::isBodyweight($liftType);
+
 $fmtDate = static function (string $iso): string {
     $ts = strtotime($iso);
     return $ts ? date('M j, Y', $ts) : $iso;
@@ -91,6 +97,7 @@ $fmtDate = static function (string $iso): string {
                             <optgroup label="<?= e($category) ?>">
                                 <?php foreach ($lifts as $key => $label): ?>
                                     <option value="<?= e($key) ?>"
+                                            <?= StrengthLog::isBodyweight($key) ? 'data-bw="1"' : '' ?>
                                             <?= $liftType === $key ? 'selected' : '' ?>>
                                         <?= e($label) ?>
                                     </option>
@@ -119,7 +126,9 @@ $fmtDate = static function (string $iso): string {
 
                     <div class="field">
                         <label for="strengthWeight">
-                            Weight <span class="weight-unit-label" id="strengthUnitLabel">(<?= e($unit) ?>)</span>
+                            <span id="strengthWeightLabel"><?= $liftIsBw ? 'Added weight' : 'Weight' ?></span>
+                            <span class="weight-unit-label" id="strengthUnitLabel">(<?= e($unit) ?>)</span>
+                            <span class="field-hint-inline" id="strengthWeightOptional"<?= $liftIsBw ? '' : ' hidden' ?>>— optional</span>
                         </label>
                         <input type="number" id="strengthWeight" name="weight"
                                inputmode="decimal" step="0.5"
@@ -128,7 +137,7 @@ $fmtDate = static function (string $iso): string {
                                value="<?= e($weightVal) ?>"
                                placeholder="<?= e($placeholderWeight) ?>"
                                <?= $errWeight ? 'aria-invalid="true" aria-describedby="weight-error"' : '' ?>
-                               required>
+                               <?= $liftIsBw ? '' : 'required' ?>>
                         <?php if ($errWeight): ?>
                             <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
                         <?php endif; ?>

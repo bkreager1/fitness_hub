@@ -516,16 +516,17 @@ class DashboardController extends Controller {
         // limit), then slice. forUser sorts DESC so the slice is
         // already the most recent.
         foreach (array_slice(StrengthLog::forUser($userId), 0, $perTracker) as $r) {
-            $w = rtrim(rtrim((string) $r['weight'], '0'), '.');
+            $load = $r['weight'] !== null
+                ? rtrim(rtrim((string) $r['weight'], '0'), '.') . ' ' . $r['unit']
+                : 'BW';
             $items[] = [
                 'type'    => 'strength',
                 'date'    => $r['logged_date'],
                 'id'      => (int) $r['id'],
                 'summary' => sprintf(
-                    '%s %s %s × %s',
+                    '%s %s × %s',
                     StrengthLog::label($r['lift_type']),
-                    $w,
-                    $r['unit'],
+                    $load,
                     $r['reps']
                 ),
                 'href' => url('strength'),

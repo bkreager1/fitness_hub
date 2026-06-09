@@ -32,6 +32,14 @@ $notesVal   = old('notes');
 
 $placeholderWeight = $unit === 'lbs' ? '225' : '102';
 
+// Bodyweight lifts make the weight field optional (added load only).
+// Sets the field's initial required/label state on render (covers
+// validation re-renders + nothing-selected); JS keeps it in sync as
+// the user changes the lift picker.
+$liftIsBw = $liftType !== ''
+    && in_array($liftType, StrengthLog::allowedKeys(), true)
+    && StrengthLog::isBodyweight($liftType);
+
 $fmtDate = static function (string $iso): string {
     $ts = strtotime($iso);
     return $ts ? date('M j, Y', $ts) : $iso;
@@ -40,12 +48,14 @@ $fmtDate = static function (string $iso): string {
 // Latest summary line — show in form header if there's a recent lift.
 $latestLine = null;
 if ($latest) {
+    $load = $latest['weight'] === null
+        ? 'BW'
+        : rtrim(rtrim((string) $latest['weight'], '0'), '.') . ' ' . $latest['unit'];
     $latestLine = sprintf(
-        'Last lift: %s %s × %s %s on %s',
+        'Last lift: %s %s × %s reps on %s',
         $liftLabels[$latest['lift_type']] ?? $latest['lift_type'],
-        rtrim(rtrim((string) $latest['weight'], '0'), '.'),
+        $load,
         $latest['reps'],
-        $latest['unit'],
         $fmtDate($latest['logged_date'])
     );
 }
@@ -137,6 +147,7 @@ if ($latest) {
                             <optgroup label="<?= e($category) ?>">
                                 <?php foreach ($lifts as $key => $label): ?>
                                     <option value="<?= e($key) ?>"
+                                            <?= StrengthLog::isBodyweight($key) ? 'data-bw="1"' : '' ?>
                                             <?= $liftType === $key ? 'selected' : '' ?>>
                                         <?= e($label) ?>
                                     </option>
@@ -165,16 +176,18 @@ if ($latest) {
 
                     <div class="field">
                         <label for="strengthWeight">
-                            Weight <span class="weight-unit-label" id="strengthUnitLabel">(<?= e($unit) ?>)</span>
+                            <span id="strengthWeightLabel"><?= $liftIsBw ? 'Added weight' : 'Weight' ?></span>
+                            <span class="weight-unit-label" id="strengthUnitLabel">(<?= e($unit) ?>)</span>
+                            <span class="field-hint-inline" id="strengthWeightOptional"<?= $liftIsBw ? '' : ' hidden' ?>>— optional</span>
                         </label>
                         <input type="number" id="strengthWeight" name="weight"
                                inputmode="decimal" step="0.5"
-                               min="<?= $unit === 'lbs' ? '1' : '1' ?>"
+                               min="1"
                                max="<?= $unit === 'lbs' ? '1500' : '700' ?>"
                                value="<?= e($weightVal) ?>"
                                placeholder="<?= e($placeholderWeight) ?>"
                                <?= $errWeight ? 'aria-invalid="true" aria-describedby="weight-error"' : '' ?>
-                               required>
+                               <?= $liftIsBw ? '' : 'required' ?>>
                         <?php if ($errWeight): ?>
                             <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
                         <?php endif; ?>
@@ -349,9 +362,10 @@ if ($latest) {
                     foreach (StrengthLog::allowedKeys() as $k) {
                         if (!isset($present[$k])) continue;
                         $entry = [
-                            'key'      => $k,
-                            'label'    => $liftLabels[$k] ?? $k,
-                            'featured' => StrengthLog::isFeatured($k),
+                            'key'        => $k,
+                            'label'      => $liftLabels[$k] ?? $k,
+                            'featured'   => StrengthLog::isFeatured($k),
+                            'bodyweight' => StrengthLog::isBodyweight($k),
                         ];
                         if ($entry['featured']) { $featuredFirst[] = $entry; }
                         else { $accessories[] = $entry; }
@@ -392,6 +406,7 @@ if ($latest) {
                     </thead>
                     <tbody>
                         <?php foreach ($chartRows as $row):
+                            $isBw = StrengthLog::isBodyweight($row['lift_type']);
                             $w = $defaultUnit === 'lbs'
                                 ? $row['weight_kg'] * $LB_PER_KG
                                 : $row['weight_kg'];
@@ -399,8 +414,20 @@ if ($latest) {
                             <tr>
                                 <td><?= e($fmtDate($row['date'])) ?></td>
                                 <td><?= e($liftLabels[$row['lift_type']] ?? $row['lift_type']) ?></td>
-                                <td><?= e(number_format($w, 1)) ?> × <?= e((string) $row['reps']) ?></td>
-                                <td><?= e(number_format($orm($row, $defaultUnit), 1)) ?></td>
+                                <td>
+                                    <?php if ($isBw): ?>
+                                        Bodyweight × <?= e((string) $row['reps']) ?>
+                                    <?php else: ?>
+                                        <?= e(number_format($w, 1)) ?> × <?= e((string) $row['reps']) ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($isBw): ?>
+                                        <?= e((string) $row['reps']) ?> reps
+                                    <?php else: ?>
+                                        <?= e(number_format($orm($row, $defaultUnit), 1)) ?>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -474,22 +501,32 @@ if ($latest) {
                                     <td class="actions"></td>
                                 </tr>
                                 <?php foreach ($rows as $row):
-                                    $w   = (float) $row['weight'];
-                                    $r   = (int) $row['reps'];
-                                    // Epley 1RM in the row's own unit.
+                                    $isBw = StrengthLog::isBodyweight($row['lift_type']);
+                                    $hasW = $row['weight'] !== null;
+                                    $w    = (float) $row['weight'];
+                                    $r    = (int) $row['reps'];
+                                    // Epley 1RM in the row's own unit (loaded lifts only).
                                     $orm1 = $w * (1 + $r / 30);
                                 ?>
                                     <tr class="lift-row" data-day="<?= e($d) ?>">
                                         <td class="cell-date cell-date--indent"></td>
                                         <td><?= e($liftLabels[$row['lift_type']] ?? $row['lift_type']) ?></td>
                                         <td class="num strong">
-                                            <?= e(rtrim(rtrim(number_format($w, 2, '.', ''), '0'), '.')) ?>
-                                            <span class="weight-unit-suffix"><?= e($row['unit']) ?></span>
+                                            <?php if ($hasW): ?>
+                                                <?= $isBw ? '+' : '' ?><?= e(rtrim(rtrim(number_format($w, 2, '.', ''), '0'), '.')) ?>
+                                                <span class="weight-unit-suffix"><?= e($row['unit']) ?></span>
+                                            <?php else: ?>
+                                                <span class="weight-unit-suffix">BW</span>
+                                            <?php endif; ?>
                                             <span class="reps-suffix">× <?= e((string) $r) ?></span>
                                         </td>
                                         <td class="num">
-                                            <?= e(number_format($orm1, 1)) ?>
-                                            <span class="weight-unit-suffix"><?= e($row['unit']) ?></span>
+                                            <?php if ($isBw): ?>
+                                                <span class="text-faint">—</span>
+                                            <?php else: ?>
+                                                <?= e(number_format($orm1, 1)) ?>
+                                                <span class="weight-unit-suffix"><?= e($row['unit']) ?></span>
+                                            <?php endif; ?>
                                         </td>
                                         <td class="notes-cell"><?= e($row['notes'] ?? '') ?></td>
                                         <td class="actions">
