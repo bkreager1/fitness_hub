@@ -3496,6 +3496,49 @@ a.feature-card:focus-visible {
     margin-left: 0.15rem;
 }
 
+/* ----- Strength accessory rollup (dashboard strength card) ---------
+   The card features the big three; every other logged lift collapses
+   into this single clickable row linking to the full tracker. Count
+   stacks over the most-recent line; the latest line ellipsizes so a
+   long lift name never breaks the card width. */
+.strength-rollup {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--border-soft);
+    text-decoration: none;
+}
+.strength-rollup__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+    flex: 1;
+}
+.strength-rollup__count {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: color .15s ease;
+}
+.strength-rollup__latest {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.strength-rollup__arrow {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: transform .15s ease;
+}
+.strength-rollup:hover .strength-rollup__count { color: var(--primary); }
+.strength-rollup:hover .strength-rollup__arrow { transform: translateX(2px); }
+
 
 /* ----- Weight sparkline (dashboard weight card) --------------------
    Inline SVG line + end-dot that fills the empty space below the

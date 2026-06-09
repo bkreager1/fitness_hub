@@ -303,6 +303,35 @@ class DashboardController extends Controller {
             ];
         }
 
+        // Accessory rollup — the dashboard card features the big three,
+        // so everything else collapses into a single "+N other lifts ·
+        // last: …" line. Counts the distinct non-featured lifts logged
+        // and surfaces the most recently logged one. $strengthHistoryAll
+        // is newest-first, so the first non-featured row we see is the
+        // most recent.
+        $featuredSet     = array_flip(StrengthLog::featuredLifts());
+        $accessoryTypes  = [];
+        $accessoryLatest = null;
+        foreach ($strengthHistoryAll as $row) {
+            if (isset($featuredSet[$row['lift_type']])) continue;
+            $accessoryTypes[$row['lift_type']] = true;
+            if ($accessoryLatest === null) {
+                $accessoryLatest = $row;
+            }
+        }
+        $accessoryRollup = null;
+        if ($accessoryLatest !== null) {
+            $load = $accessoryLatest['weight'] === null
+                ? 'BW × ' . (int) $accessoryLatest['reps']
+                : rtrim(rtrim((string) $accessoryLatest['weight'], '0'), '.')
+                    . ' ' . $accessoryLatest['unit'] . ' × ' . (int) $accessoryLatest['reps'];
+            $accessoryRollup = [
+                'count'        => count($accessoryTypes),
+                'latest_label' => StrengthLog::label($accessoryLatest['lift_type']),
+                'latest_load'  => $load,
+            ];
+        }
+
         $strengthCard = [
             'has_logs' => (bool) array_filter($latestPerLift),
             'lifts'    => $latestPerLift,   // [key => row|null] for every catalog lift
@@ -310,6 +339,7 @@ class DashboardController extends Controller {
             'is_pr'    => $isPr,
             'goals'    => $strengthGoals,
             'display'  => $strengthDisplay, // current_orm + alltime_orm per lift
+            'rollup'   => $accessoryRollup, // accessory-lift summary, or null
         ];
 
         // ----- Cardio summary --------------------------------------

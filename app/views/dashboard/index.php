@@ -591,6 +591,23 @@ $hasAnyActivity =
                             </li>
                         <?php endforeach; ?>
                     </ul>
+
+                    <?php if (!empty($strengthCard['rollup'])):
+                        $rb = $strengthCard['rollup']; ?>
+                        <a class="strength-rollup" href="<?= url('strength') ?>">
+                            <span class="strength-rollup__text">
+                                <span class="strength-rollup__count">
+                                    +<?= e((string) $rb['count']) ?> other
+                                    lift<?= $rb['count'] === 1 ? '' : 's' ?> tracked
+                                </span>
+                                <span class="strength-rollup__latest">
+                                    Last: <?= e($rb['latest_label']) ?>
+                                    · <?= e($rb['latest_load']) ?>
+                                </span>
+                            </span>
+                            <span class="strength-rollup__arrow" aria-hidden="true">→</span>
+                        </a>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
