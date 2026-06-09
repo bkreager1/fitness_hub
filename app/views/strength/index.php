@@ -67,15 +67,16 @@ if ($latest) {
     <div class="container">
         <span class="eyebrow">Strength tracker</span>
         <div class="hero-heading-row">
-            <h1>Bench, squat, deadlift — chart your big three.</h1>
+            <h1>Every lift you train, charted over time.</h1>
             <img class="hero-icon"
                  src="<?= asset('images/strengthlogo.png') ?>"
                  alt="" width="96" height="96">
         </div>
         <p class="hero-lede">
-            Log each lift with weight and reps. The chart estimates your
-            one-rep max over time, so you can compare progress even when
-            your rep ranges change.
+            Log any lift with weight and reps. The chart tracks your
+            estimated one-rep max over time — or reps for bodyweight
+            moves — so you can compare progress even as your rep ranges
+            change.
         </p>
     </div>
 </section>
@@ -251,7 +252,7 @@ if ($latest) {
             <article class="tracker-card empty-state">
                 <?= empty_state_icon() ?>
                 <h2>No lifts logged yet</h2>
-                <p>Add your first bench, squat, or deadlift entry above to start tracking progress.</p>
+                <p>Add your first lift above to start tracking progress.</p>
             </article>
 
         <?php else: ?>

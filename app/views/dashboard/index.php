@@ -142,7 +142,7 @@ if (!empty($cardioCard['target'])) {
                 </a>
                 <a class="welcome-action" href="<?= url('strength') ?>">
                     <span class="welcome-action__title">Record a lift</span>
-                    <span class="welcome-action__hint">Bench, squat, deadlift</span>
+                    <span class="welcome-action__hint">Bench, squat, deadlift &amp; more</span>
                 </a>
                 <a class="welcome-action" href="<?= url('cardio') ?>">
                     <span class="welcome-action__title">Log cardio</span>
@@ -611,7 +611,7 @@ $hasAnyActivity =
                 <?php else: ?>
                     <div class="dash-card__value dash-card__value--placeholder"><?= empty_state_icon('card') ?></div>
                     <div class="dash-card__hint">
-                        Log your first big-three lift to start tracking PRs.
+                        Log your first lift to start tracking PRs.
                     </div>
                 <?php endif; ?>
             </article>
@@ -873,7 +873,7 @@ $hasAnyChart =
 
             <article class="tracker-card">
                 <header class="tracker-card__head">
-                    <h3>Big three (est. 1RM)</h3>
+                    <h3>Main lifts (est. 1RM)</h3>
                     <a class="dash-card__view-all" href="<?= url('strength') ?>">Open tracker →</a>
                 </header>
                 <?php
@@ -898,7 +898,7 @@ $hasAnyChart =
                     <div class="chart-wrap chart-wrap--compact chart-wrap--loading">
                         <canvas id="strengthChart"
                                 role="img"
-                                aria-label="Recent estimated 1-rep max line chart for your featured lifts (bench, squat, deadlift). Open the strength tracker for full data."
+                                aria-label="Recent estimated 1-rep max line chart for your main lifts (bench, squat, and deadlift). Open the strength tracker for full data."
                                 data-rows='<?= e(json_encode($strengthChartData, JSON_THROW_ON_ERROR)) ?>'
                                 data-lifts='<?= e(json_encode($strengthChartLifts, JSON_THROW_ON_ERROR)) ?>'
                                 data-default-unit="<?= e($strengthChartUnit) ?>">
@@ -907,7 +907,7 @@ $hasAnyChart =
                 <?php else: ?>
                     <div class="dash-chart-empty">
                         <?= empty_state_icon('sm') ?>
-                        <p>No lifts logged yet. Add your first bench, squat, or deadlift entry to start tracking progress.</p>
+                        <p>No lifts logged yet. Add your first lift to start tracking progress.</p>
                         <a href="<?= url('strength') ?>" class="btn btn-secondary btn-inline">Log a lift</a>
                     </div>
                 <?php endif; ?>
@@ -1001,7 +1001,7 @@ $hasAnyChart =
                          alt="" width="44" height="44">
                     <span class="action-strip__body">
                         <span class="action-strip__title">Log a lift</span>
-                        <span class="action-strip__caption">Bench, squat, or deadlift</span>
+                        <span class="action-strip__caption">Your main lifts &amp; more</span>
                     </span>
                     <span class="action-strip__chev" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"

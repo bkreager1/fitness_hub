@@ -154,8 +154,9 @@
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
                 <h3>Strength tracker</h3>
-                <p>Track bench, squat, and deadlift in one place so you
-                   can see your big three progress over time.</p>
+                <p>Track 30+ lifts in one place — your main lifts
+                   spotlighted — so you can see your strength progress
+                   over time.</p>
             </a>
 
             <a class="feature-card" href="<?= e($href('cardio')) ?>"

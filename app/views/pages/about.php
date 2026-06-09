@@ -53,10 +53,11 @@
                 <img class="feature-image"
                      src="<?= asset('images/strengthlogo.png') ?>"
                      alt="" width="88" height="88">
-                <h3>The big three lifts</h3>
-                <p>Track bench press, squat, and deadlift with weight and
-                   reps. The chart estimates your one-rep max so progress
-                   is easier to compare across different rep ranges.</p>
+                <h3>Strength</h3>
+                <p>Track 30+ lifts across every muscle group with weight
+                   and reps — your main lifts spotlighted on the dashboard.
+                   The chart estimates your one-rep max so progress is
+                   easier to compare across rep ranges.</p>
             </article>
 
             <article class="feature-card">

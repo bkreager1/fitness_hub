@@ -196,8 +196,8 @@
                 <div>
                     <h2>Goals</h2>
                     <span class="field-hint">
-                        Set a target weight and PR goals for each big-three
-                        lift. Leave any field blank to clear that goal —
+                        Set a target weight and PR goals for each of your
+                        main lifts. Leave any field blank to clear that goal —
                         the dashboard hides progress bars without a target.
                     </span>
                 </div>
