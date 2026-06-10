@@ -27,6 +27,8 @@ class StrengthController extends Controller {
     private const LB_MAX = 1500.0;
     private const REPS_MIN = 1;
     private const REPS_MAX = 30;
+    private const SETS_MIN = 1;
+    private const SETS_MAX = 20;
 
     // Allowed values for the ?range= history filter. Strings (not ints)
     // because 'all' is also valid. Default lives in index().
@@ -186,6 +188,7 @@ class StrengthController extends Controller {
         $unit       = $input['unit']        ?? '';
         $weightRaw  = $input['weight']      ?? '';
         $repsRaw    = $input['reps']        ?? '';
+        $setsRaw    = $input['sets']        ?? '';
         $loggedDate = $input['logged_date'] ?? '';
         $notes      = trim((string) ($input['notes'] ?? ''));
 
@@ -251,6 +254,23 @@ class StrengthController extends Controller {
             }
         }
 
+        // Sets — optional whole number; blank defaults to 1 so the
+        // quick top-set flow needs no extra input.
+        $sets = 1;
+        if ($setsRaw !== '') {
+            if (!ctype_digit((string) $setsRaw)) {
+                $errors['sets'] = 'Sets must be a whole number.';
+            } else {
+                $s = (int) $setsRaw;
+                if ($s < self::SETS_MIN || $s > self::SETS_MAX) {
+                    $errors['sets'] = 'Sets must be between '
+                        . self::SETS_MIN . ' and ' . self::SETS_MAX . '.';
+                } else {
+                    $sets = $s;
+                }
+            }
+        }
+
         // Date — required, valid, not in the future.
         if ($loggedDate === '') {
             $errors['logged_date'] = 'Date is required.';
@@ -273,6 +293,7 @@ class StrengthController extends Controller {
             'unit'        => $unit,
             'weight'      => $weightRaw,
             'reps'        => $repsRaw,
+            'sets'        => $setsRaw,
             'logged_date' => $loggedDate,
             'notes'       => $notes,
         ];
@@ -286,6 +307,7 @@ class StrengthController extends Controller {
                 'lift_type'   => $liftType,
                 'weight'      => $weight,
                 'reps'        => $reps,
+                'sets'        => $sets,
                 'unit'        => $unit,
                 'logged_date' => $loggedDate,
                 'notes'       => $notes !== '' ? $notes : null,
@@ -307,7 +329,7 @@ class StrengthController extends Controller {
 
         $out = fopen('php://output', 'w');
         fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, ['date', 'lift', 'weight', 'unit', 'reps', 'est_1rm_kg', 'notes']);
+        fputcsv($out, ['date', 'lift', 'weight', 'unit', 'sets', 'reps', 'est_1rm_kg', 'notes']);
         foreach ($rows as $r) {
             $reps = (int) $r['reps'];
             if ($r['weight'] === null) {
@@ -327,6 +349,7 @@ class StrengthController extends Controller {
                 $r['lift_type'],
                 $weightCol,
                 $r['unit'],
+                (int) $r['sets'],
                 $reps,
                 $oneRmCol,
                 $r['notes'] ?? '',

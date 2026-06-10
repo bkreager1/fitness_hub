@@ -203,6 +203,7 @@ CREATE TABLE strength_logs (
     ) NOT NULL,
     weight      DECIMAL(6,2) NULL,
     reps        TINYINT UNSIGNED NOT NULL,
+    sets        TINYINT UNSIGNED NOT NULL DEFAULT 1,
     unit        ENUM('lbs', 'kg') NOT NULL DEFAULT 'lbs',
     logged_date DATE NOT NULL,
     notes       VARCHAR(300) DEFAULT NULL,

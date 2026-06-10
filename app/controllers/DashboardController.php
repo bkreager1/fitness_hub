@@ -321,10 +321,13 @@ class DashboardController extends Controller {
         }
         $accessoryRollup = null;
         if ($accessoryLatest !== null) {
-            $load = $accessoryLatest['weight'] === null
-                ? 'BW × ' . (int) $accessoryLatest['reps']
+            $reps  = (int) $accessoryLatest['reps'];
+            $setsN = (int) ($accessoryLatest['sets'] ?? 1);
+            $sr    = $setsN > 1 ? $setsN . ' × ' . $reps : '× ' . $reps;
+            $load  = $accessoryLatest['weight'] === null
+                ? 'BW ' . $sr
                 : rtrim(rtrim((string) $accessoryLatest['weight'], '0'), '.')
-                    . ' ' . $accessoryLatest['unit'] . ' × ' . (int) $accessoryLatest['reps'];
+                    . ' ' . $accessoryLatest['unit'] . ' ' . $sr;
             $accessoryRollup = [
                 'count'        => count($accessoryTypes),
                 'latest_label' => StrengthLog::label($accessoryLatest['lift_type']),
@@ -549,15 +552,17 @@ class DashboardController extends Controller {
             $load = $r['weight'] !== null
                 ? rtrim(rtrim((string) $r['weight'], '0'), '.') . ' ' . $r['unit']
                 : 'BW';
+            $setsN = (int) ($r['sets'] ?? 1);
+            $sr = $setsN > 1 ? $setsN . ' × ' . $r['reps'] : '× ' . $r['reps'];
             $items[] = [
                 'type'    => 'strength',
                 'date'    => $r['logged_date'],
                 'id'      => (int) $r['id'],
                 'summary' => sprintf(
-                    '%s %s × %s',
+                    '%s %s %s',
                     StrengthLog::label($r['lift_type']),
                     $load,
-                    $r['reps']
+                    $sr
                 ),
                 'href' => url('strength'),
             ];

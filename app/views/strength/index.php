@@ -20,6 +20,7 @@ $errLift   = field_error('lift_type');
 $errUnit   = field_error('unit');
 $errWeight = field_error('weight');
 $errReps   = field_error('reps');
+$errSets   = field_error('sets');
 $errDate   = field_error('logged_date');
 $errNotes  = field_error('notes');
 
@@ -28,6 +29,7 @@ $unit       = old('unit')        ?: $defaultUnit;
 $loggedDate = old('logged_date') ?: $today;
 $weightVal  = old('weight');
 $repsVal    = old('reps');
+$setsVal    = old('sets');
 $notesVal   = old('notes');
 
 $placeholderWeight = $unit === 'lbs' ? '225' : '102';
@@ -51,11 +53,15 @@ if ($latest) {
     $load = $latest['weight'] === null
         ? 'BW'
         : rtrim(rtrim((string) $latest['weight'], '0'), '.') . ' ' . $latest['unit'];
+    $setsN = (int) ($latest['sets'] ?? 1);
+    $sr = $setsN > 1
+        ? $setsN . ' × ' . $latest['reps']
+        : $latest['reps'] . ' reps';
     $latestLine = sprintf(
-        'Last lift: %s %s × %s reps on %s',
+        'Last lift: %s %s · %s on %s',
         $liftLabels[$latest['lift_type']] ?? $latest['lift_type'],
         $load,
-        $latest['reps'],
+        $sr,
         $fmtDate($latest['logged_date'])
     );
 }
@@ -191,6 +197,18 @@ if ($latest) {
                                <?= $liftIsBw ? '' : 'required' ?>>
                         <?php if ($errWeight): ?>
                             <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="strengthSets">Sets</label>
+                        <input type="number" id="strengthSets" name="sets"
+                               inputmode="numeric" step="1" min="1" max="20"
+                               value="<?= e($setsVal ?: '1') ?>"
+                               placeholder="1"
+                               <?= $errSets ? 'aria-invalid="true" aria-describedby="sets-error"' : '' ?>>
+                        <?php if ($errSets): ?>
+                            <p id="sets-error" class="field-error"><?= e($errSets) ?></p>
                         <?php endif; ?>
                     </div>
 
@@ -506,6 +524,7 @@ if ($latest) {
                                     $hasW = $row['weight'] !== null;
                                     $w    = (float) $row['weight'];
                                     $r    = (int) $row['reps'];
+                                    $sets = (int) $row['sets'];
                                     // Epley 1RM in the row's own unit (loaded lifts only).
                                     $orm1 = $w * (1 + $r / 30);
                                 ?>
@@ -519,7 +538,13 @@ if ($latest) {
                                             <?php else: ?>
                                                 <span class="weight-unit-suffix">BW</span>
                                             <?php endif; ?>
-                                            <span class="reps-suffix">× <?= e((string) $r) ?></span>
+                                            <span class="reps-suffix"><?php
+                                                if ($sets > 1) {
+                                                    echo '· ' . e((string) $sets) . ' × ' . e((string) $r);
+                                                } else {
+                                                    echo '× ' . e((string) $r);
+                                                }
+                                            ?></span>
                                         </td>
                                         <td class="num">
                                             <?php if ($isBw): ?>

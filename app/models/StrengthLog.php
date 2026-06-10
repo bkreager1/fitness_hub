@@ -133,14 +133,15 @@ class StrengthLog {
     public static function create(int $userId, array $data): int {
         $stmt = db()->prepare(
             'INSERT INTO strength_logs
-                (user_id, lift_type, weight, reps, unit, logged_date, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?)'
+                (user_id, lift_type, weight, reps, sets, unit, logged_date, notes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $userId,
             $data['lift_type'],
             $data['weight'],
             $data['reps'],
+            $data['sets'] ?? 1,
             $data['unit'],
             $data['logged_date'],
             $data['notes'] ?? null,
@@ -152,7 +153,7 @@ class StrengthLog {
     public static function update(int $id, int $userId, array $data): void {
         $stmt = db()->prepare(
             'UPDATE strength_logs
-             SET lift_type = ?, weight = ?, reps = ?, unit = ?,
+             SET lift_type = ?, weight = ?, reps = ?, sets = ?, unit = ?,
                  logged_date = ?, notes = ?
              WHERE id = ? AND user_id = ?'
         );
@@ -160,6 +161,7 @@ class StrengthLog {
             $data['lift_type'],
             $data['weight'],
             $data['reps'],
+            $data['sets'] ?? 1,
             $data['unit'],
             $data['logged_date'],
             $data['notes'] ?? null,

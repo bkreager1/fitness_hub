@@ -15,6 +15,7 @@ $errLift   = field_error('lift_type');
 $errUnit   = field_error('unit');
 $errWeight = field_error('weight');
 $errReps   = field_error('reps');
+$errSets   = field_error('sets');
 $errDate   = field_error('logged_date');
 $errNotes  = field_error('notes');
 
@@ -24,6 +25,7 @@ $unit       = old('unit')        ?: $row['unit'];
 $loggedDate = old('logged_date') ?: $row['logged_date'];
 $weightVal  = old('weight') !== '' ? old('weight') : rtrim(rtrim((string) $row['weight'], '0'), '.');
 $repsVal    = old('reps')   !== '' ? old('reps')   : (string) $row['reps'];
+$setsVal    = old('sets')   !== '' ? old('sets')   : (string) ($row['sets'] ?? 1);
 $notesVal   = old('notes')  !== '' ? old('notes')  : ($row['notes'] ?? '');
 
 $placeholderWeight = $unit === 'lbs' ? '225' : '102';
@@ -140,6 +142,18 @@ $fmtDate = static function (string $iso): string {
                                <?= $liftIsBw ? '' : 'required' ?>>
                         <?php if ($errWeight): ?>
                             <p id="weight-error" class="field-error"><?= e($errWeight) ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="field">
+                        <label for="strengthSets">Sets</label>
+                        <input type="number" id="strengthSets" name="sets"
+                               inputmode="numeric" step="1" min="1" max="20"
+                               value="<?= e($setsVal ?: '1') ?>"
+                               placeholder="1"
+                               <?= $errSets ? 'aria-invalid="true" aria-describedby="sets-error"' : '' ?>>
+                        <?php if ($errSets): ?>
+                            <p id="sets-error" class="field-error"><?= e($errSets) ?></p>
                         <?php endif; ?>
                     </div>
 
