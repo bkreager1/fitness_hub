@@ -19,6 +19,9 @@ DROP TABLE IF EXISTS login_attempts;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS cardio_logs;
 DROP TABLE IF EXISTS strength_logs;
+DROP TABLE IF EXISTS workout_sessions;
+DROP TABLE IF EXISTS workout_exercises;
+DROP TABLE IF EXISTS workouts;
 DROP TABLE IF EXISTS weight_logs;
 DROP TABLE IF EXISTS calorie_intake_logs;
 DROP TABLE IF EXISTS calorie_logs;
@@ -207,6 +210,7 @@ CREATE TABLE strength_logs (
     unit        ENUM('lbs', 'kg') NOT NULL DEFAULT 'lbs',
     logged_date DATE NOT NULL,
     notes       VARCHAR(300) DEFAULT NULL,
+    session_id  INT UNSIGNED DEFAULT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     INDEX user_id (user_id),
@@ -282,3 +286,56 @@ CREATE TABLE login_attempts (
     INDEX idx_ip_time    (ip, attempted_at),
     INDEX idx_email_time (email, attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ============================================================
+-- WORKOUT BUILDER (templates + performed sessions)
+-- ============================================================
+-- workouts: saved templates. workout_exercises: ordered lines
+-- (lift_type is a catalog key string, validated in PHP against
+-- StrengthLog::allowedKeys()). workout_sessions: one performed
+-- session; strength_logs.session_id links each logged set to it
+-- (SET NULL so logged lifts survive a session delete). See
+-- migration 013.
+-- ============================================================
+CREATE TABLE workouts (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL,
+    name        VARCHAR(80) NOT NULL,
+    notes       VARCHAR(300) DEFAULT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_user (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE workout_exercises (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    workout_id  INT UNSIGNED NOT NULL,
+    lift_type   VARCHAR(32) NOT NULL,
+    target_sets TINYINT UNSIGNED DEFAULT NULL,
+    target_reps TINYINT UNSIGNED DEFAULT NULL,
+    position    SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+
+    INDEX idx_workout (workout_id),
+    FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE workout_sessions (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL,
+    workout_id  INT UNSIGNED DEFAULT NULL,
+    name        VARCHAR(80) NOT NULL,
+    logged_date DATE NOT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_user_date (user_id, logged_date),
+    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Added after workout_sessions exists so the FK resolves on a fresh
+-- import (the session_id column itself is declared on strength_logs above).
+ALTER TABLE strength_logs
+    ADD INDEX idx_session (session_id),
+    ADD FOREIGN KEY (session_id) REFERENCES workout_sessions(id) ON DELETE SET NULL;
