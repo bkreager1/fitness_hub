@@ -851,6 +851,11 @@ main:focus { outline: none; }
     color: var(--success);
     border: 1px solid rgba(52, 211, 153, 0.25);
 }
+.flash-error {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+}
 
 .error-box {
     background: var(--danger-bg);
@@ -4289,5 +4294,233 @@ html {
     .reveal.is-visible {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+
+/* ============================================================
+   Workout builder (templates)
+   List of saved workouts + the create/edit builder with its
+   add/remove/reorder exercise rows. Reuses the design system's
+   .tracker-card / .field / .btn primitives; everything below is
+   the bits those don't already cover.
+   ============================================================ */
+
+/* ----- Page toolbar (back-link on the left, action on the right) ---- */
+.page-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1.25rem;
+}
+.page-toolbar .back-link { margin-bottom: 0; }
+
+/* ----- Saved-workout list ------------------------------------------- */
+.workout-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.workout-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    transition: border-color .15s ease, transform .15s ease;
+}
+.workout-card:hover {
+    border-color: var(--border-hot);
+    transform: translateY(-2px);
+}
+.workout-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.workout-card__heading { min-width: 0; }
+.workout-card__name {
+    margin: 0 0 0.3rem;
+    font-size: 1.15rem;
+    line-height: 1.3;
+}
+.workout-card__meta {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+.workout-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+.workout-card__actions form { margin: 0; }
+
+/* Inline exercise list inside each saved-workout card — numbered via a
+   CSS counter so the order reads as the order you'll train. */
+.workout-card__exercises {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    counter-reset: wx;
+}
+.workout-exercise {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card-2);
+}
+.workout-exercise__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.workout-exercise__name::before {
+    counter-increment: wx;
+    content: counter(wx) ". ";
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+}
+.workout-exercise__target {
+    flex-shrink: 0;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.workout-card__notes {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.empty-state__cta { margin-top: 1.5rem; }
+
+/* ----- Builder: exercise rows --------------------------------------- */
+.exercise-builder { margin: 0.5rem 0 1.5rem; }
+.exercise-builder__head { margin-bottom: 1rem; }
+.exercise-builder__head h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+}
+
+.exercise-list {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+}
+.exercise-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.9rem;
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+.exercise-row + .exercise-row { margin-top: 0.6rem; }
+
+.exercise-row__pos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-hot);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.exercise-row__fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 5.5rem 5.5rem;
+    gap: 0.75rem;
+    align-items: end;
+}
+.exercise-row__field { margin-bottom: 0; }
+.exercise-row__label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+}
+.exercise-row__fields select,
+.exercise-row__fields input { width: 100%; }
+
+.exercise-row__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Square icon buttons for reorder / remove. */
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+}
+.icon-btn svg { width: 1.05rem; height: 1.05rem; }
+.icon-btn:hover {
+    color: var(--text);
+    border-color: var(--border-hot);
+    background: var(--bg-card);
+}
+.icon-btn:focus-visible {
+    outline: 2px solid var(--primary-hot);
+    outline-offset: 2px;
+}
+.icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.icon-btn--danger:hover {
+    color: var(--danger);
+    border-color: rgba(248, 113, 113, 0.4);
+    background: var(--danger-bg);
+}
+
+/* Phone layout: drop the controls to their own line and let the lift
+   select span the full width above the sets/reps pair. */
+@media (max-width: 560px) {
+    .exercise-row { grid-template-columns: auto minmax(0, 1fr); }
+    .exercise-row__fields { grid-template-columns: 1fr 1fr; }
+    .exercise-row__field--lift { grid-column: 1 / -1; }
+    .exercise-row__controls {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
     }
 }

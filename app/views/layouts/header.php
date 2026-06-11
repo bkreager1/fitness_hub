@@ -109,6 +109,7 @@ $navClass = static fn(string $key): string =>
 
             <?php if (is_logged_in()): ?>
                 <a class="<?= $navClass('dashboard') ?>" href="<?= url('dashboard') ?>">Dashboard</a>
+                <a class="<?= $navClass('workouts') ?>" href="<?= url('workouts') ?>">Workouts</a>
                 <?php
                     $navAvatarFile = current_user('profile_image_path');
                     $navAvatarSrc  = $navAvatarFile ? asset('uploads/' . $navAvatarFile) : null;

@@ -91,10 +91,15 @@ if ($latest) {
 <!-- ===================== Form card ===================== -->
 <section class="section">
     <div class="container">
-        <a class="back-link" href="<?= url('dashboard') ?>">
-            <span class="back-link__arrow" aria-hidden="true">&larr;</span>
-            Back to dashboard
-        </a>
+        <div class="page-toolbar">
+            <a class="back-link" href="<?= url('dashboard') ?>">
+                <span class="back-link__arrow" aria-hidden="true">&larr;</span>
+                Back to dashboard
+            </a>
+            <a class="btn-link" href="<?= url('workouts') ?>">
+                Workouts <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
 
         <?php if ($flashMsg = flash('success')): ?>
             <div class="flash flash-success flash--centered" role="status">

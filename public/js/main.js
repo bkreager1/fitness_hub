@@ -1186,6 +1186,80 @@
 
 
     /* ---------------------------------------------------------
+       Workout builder — dynamic exercise rows
+       Add / remove / reorder rows on the template form. Rows post
+       as parallel arrays (ex_lift[]/ex_sets[]/ex_reps[]), so DOM
+       order == submission order and reordering is just moving the
+       <li>. New rows are cloned from a hidden <template>; the
+       builder is never allowed to drop below one row.
+       --------------------------------------------------------- */
+    (function initWorkoutBuilder () {
+        const list     = document.getElementById('exerciseRows');
+        const addBtn   = document.getElementById('addExerciseBtn');
+        const template = document.getElementById('exerciseRowTemplate');
+        if (!list || !addBtn || !template) return;
+
+        const MAX_ROWS = 30;
+
+        const rows = () => Array.from(list.querySelectorAll('[data-exercise-row]'));
+
+        // Keep the visible position number, the up/down disabled states,
+        // and the add-button cap in sync after any structural change.
+        function renumber () {
+            const all = rows();
+            all.forEach((row, i) => {
+                const pos  = row.querySelector('.exercise-row__pos');
+                const up   = row.querySelector('[data-move-up]');
+                const down = row.querySelector('[data-move-down]');
+                if (pos)  pos.textContent = String(i + 1);
+                if (up)   up.disabled   = (i === 0);
+                if (down) down.disabled = (i === all.length - 1);
+            });
+            addBtn.disabled = all.length >= MAX_ROWS;
+        }
+
+        function addRow () {
+            if (rows().length >= MAX_ROWS) return;
+            const frag = template.content.cloneNode(true);
+            const li   = frag.querySelector('[data-exercise-row]');
+            list.appendChild(frag);
+            renumber();
+            const sel = li && li.querySelector('select');
+            if (sel) sel.focus();   // land on the new row for fast entry
+        }
+
+        function removeRow (row) {
+            row.remove();
+            if (rows().length === 0) addRow();  // never leave it empty
+            else renumber();
+        }
+
+        function move (row, dir) {
+            if (dir < 0) {
+                const prev = row.previousElementSibling;
+                if (prev) list.insertBefore(row, prev);
+            } else {
+                const next = row.nextElementSibling;
+                if (next) list.insertBefore(next, row);
+            }
+            renumber();
+        }
+
+        addBtn.addEventListener('click', addRow);
+
+        list.addEventListener('click', (e) => {
+            const row = e.target.closest('[data-exercise-row]');
+            if (!row) return;
+            if (e.target.closest('[data-remove-row]'))      removeRow(row);
+            else if (e.target.closest('[data-move-up]'))    move(row, -1);
+            else if (e.target.closest('[data-move-down]'))  move(row,  1);
+        });
+
+        renumber();   // initial positions + arrow/add states
+    })();
+
+
+    /* ---------------------------------------------------------
        10. Strength chart (Chart.js).
            One line per logged lift. Featured lifts (the big three)
            show by default; accessory lifts start hidden and toggle

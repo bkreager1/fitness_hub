@@ -54,6 +54,27 @@ class Workout {
         return $stmt->fetchAll();
     }
 
+    // Every exercise across all of a user's workouts, grouped by
+    // workout_id and ordered by position. One query feeds the list
+    // view so it can render each template's lifts inline without an
+    // N+1 (one query per card). Returns [workout_id => [rows…]].
+    public static function exercisesForUser(int $userId): array {
+        $stmt = db()->prepare(
+            'SELECT e.*
+             FROM workout_exercises e
+             INNER JOIN workouts w ON w.id = e.workout_id
+             WHERE w.user_id = ?
+             ORDER BY e.workout_id ASC, e.position ASC, e.id ASC'
+        );
+        $stmt->execute([$userId]);
+
+        $out = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $out[(int) $row['workout_id']][] = $row;
+        }
+        return $out;
+    }
+
     // Create a workout + its exercises in one transaction. $exercises
     // is an ordered list of ['lift_type', 'target_sets', 'target_reps']
     // (targets may be null). Caller validates lift_type + bounds.
