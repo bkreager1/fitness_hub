@@ -70,7 +70,7 @@ $renderRow = static function (array $row) use ($renderLiftSelect): string {
             <div class="field exercise-row__field exercise-row__field--num">
                 <span class="exercise-row__label" aria-hidden="true">Reps</span>
                 <input type="number" name="ex_reps[]" class="exercise-row__num"
-                       inputmode="numeric" min="1" max="50" step="1"
+                       inputmode="numeric" min="1" max="30" step="1"
                        placeholder="8" aria-label="Target reps"
                        value="<?= e($reps) ?>">
             </div>

@@ -18,17 +18,17 @@
 
 class StrengthController extends Controller {
 
-    // Validation bounds. Generous ceiling so elite lifters aren't
-    // capped (max raw deadlift is ~501 kg / 1105 lbs at the time of
-    // writing); reps capped at 30 since beyond that it's endurance.
-    private const KG_MIN = 1.0;
-    private const KG_MAX = 700.0;
-    private const LB_MIN = 1.0;
-    private const LB_MAX = 1500.0;
-    private const REPS_MIN = 1;
-    private const REPS_MAX = 30;
-    private const SETS_MIN = 1;
-    private const SETS_MAX = 20;
+    // Validation bounds — the canonical values live in StrengthLog
+    // (shared with the workout session logger in WorkoutController).
+    // Aliased here so the validator below keeps its self:: references.
+    private const KG_MIN   = StrengthLog::KG_MIN;
+    private const KG_MAX   = StrengthLog::KG_MAX;
+    private const LB_MIN   = StrengthLog::LB_MIN;
+    private const LB_MAX   = StrengthLog::LB_MAX;
+    private const REPS_MIN = StrengthLog::REPS_MIN;
+    private const REPS_MAX = StrengthLog::REPS_MAX;
+    private const SETS_MIN = StrengthLog::SETS_MIN;
+    private const SETS_MAX = StrengthLog::SETS_MAX;
 
     // Allowed values for the ?range= history filter. Strings (not ints)
     // because 'all' is also valid. Default lives in index().

@@ -133,13 +133,16 @@ try {
         'POST strength/update' => (new StrengthController())->update(),
         'POST strength/delete' => (new StrengthController())->delete(),
 
-        // ----- Workout builder (strength templates) -----
-        'GET workouts'         => (new WorkoutController())->index(),
-        'GET workouts/new'     => (new WorkoutController())->create(),
-        'POST workouts'        => (new WorkoutController())->store(),
-        'GET workouts/edit'    => (new WorkoutController())->edit(),
-        'POST workouts/update' => (new WorkoutController())->update(),
-        'POST workouts/delete' => (new WorkoutController())->delete(),
+        // ----- Workout builder (strength templates + sessions) -----
+        'GET workouts'                 => (new WorkoutController())->index(),
+        'GET workouts/new'             => (new WorkoutController())->create(),
+        'POST workouts'                => (new WorkoutController())->store(),
+        'GET workouts/edit'            => (new WorkoutController())->edit(),
+        'POST workouts/update'         => (new WorkoutController())->update(),
+        'POST workouts/delete'         => (new WorkoutController())->delete(),
+        'GET workouts/start'           => (new WorkoutController())->start(),
+        'POST workouts/start'          => (new WorkoutController())->logSession(),
+        'POST workouts/session/delete' => (new WorkoutController())->deleteSession(),
 
         // ----- Cardio tracker -----
         'GET cardio'         => (new CardioController())->index(),

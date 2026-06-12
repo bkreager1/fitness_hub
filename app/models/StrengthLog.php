@@ -13,6 +13,22 @@ class StrengthLog {
 
     public const ALLOWED_UNITS = ['lbs', 'kg'];
 
+    // ---- Validation bounds (single source of truth) ------------
+    // What a strength_logs row may hold. Consumed by both
+    // StrengthController (direct logging) and WorkoutController
+    // (session logging) so the two forms can never drift apart.
+    // Generous weight ceiling so elite lifters aren't capped (max
+    // raw deadlift is ~501 kg / 1105 lbs at the time of writing);
+    // reps capped at 30 since beyond that it's endurance work.
+    public const KG_MIN   = 1.0;
+    public const KG_MAX   = 700.0;
+    public const LB_MIN   = 1.0;
+    public const LB_MAX   = 1500.0;
+    public const REPS_MIN = 1;
+    public const REPS_MAX = 30;
+    public const SETS_MIN = 1;
+    public const SETS_MAX = 20;
+
     // ---- Lift catalog (single source of truth) ----------------
     // Each entry is [label, category, featured, bodyweight]:
     //   label       human-facing name shown in views + the picker
@@ -129,12 +145,14 @@ class StrengthLog {
         return $out;
     }
 
-    // Insert a new lift entry. Caller validates first.
+    // Insert a new lift entry. Caller validates first. session_id
+    // ties the row to a workout_sessions row when the lift was logged
+    // via "Start workout"; direct logs leave it null.
     public static function create(int $userId, array $data): int {
         $stmt = db()->prepare(
             'INSERT INTO strength_logs
-                (user_id, lift_type, weight, reps, sets, unit, logged_date, notes)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                (user_id, lift_type, weight, reps, sets, unit, logged_date, notes, session_id)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $userId,
@@ -145,6 +163,7 @@ class StrengthLog {
             $data['unit'],
             $data['logged_date'],
             $data['notes'] ?? null,
+            $data['session_id'] ?? null,
         ]);
         return (int) db()->lastInsertId();
     }

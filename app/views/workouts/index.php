@@ -23,6 +23,22 @@ $fmtTarget = static function ($sets, $reps): ?string {
     if ($r !== null) return $r . ' rep' . ($r === 1 ? '' : 's');
     return null;
 };
+
+// What a logged lift reads as in the sessions list: "225 lbs · 3 × 5",
+// "BW · × 8" for bodyweight, "+25 lbs · × 6" for weighted bodyweight.
+$fmtLoad = static function (array $r): string {
+    if ($r['weight'] === null) {
+        $load = 'BW';
+    } else {
+        $prefix = StrengthLog::isBodyweight($r['lift_type']) ? '+' : '';
+        $load = $prefix
+            . rtrim(rtrim(number_format((float) $r['weight'], 2, '.', ''), '0'), '.')
+            . ' ' . $r['unit'];
+    }
+    $sets = (int) ($r['sets'] ?? 1);
+    $sr   = $sets > 1 ? $sets . ' × ' . (int) $r['reps'] : '× ' . (int) $r['reps'];
+    return $load . ' · ' . $sr;
+};
 ?>
 
 
@@ -38,9 +54,9 @@ $fmtTarget = static function ($sets, $reps): ?string {
         </div>
         <p class="hero-lede">
             Save a workout once — a named, ordered list of lifts with
-            optional target sets and reps — then reuse it whenever you
-            train. Building the template is step one; logging a session
-            straight from it arrives in the next update.
+            optional target sets and reps — then hit Start on training
+            day to log the whole session in one go. Every lift lands in
+            your strength history automatically.
         </p>
     </div>
 </section>
@@ -101,6 +117,11 @@ $fmtTarget = static function ($sets, $reps): ?string {
                                 </p>
                             </div>
                             <div class="workout-card__actions">
+                                <a class="btn btn-inline btn--sm"
+                                   href="<?= url('workouts/start?id=' . (int) $w['id']) ?>"
+                                   aria-label="Start <?= e($w['name']) ?>">
+                                    Start
+                                </a>
                                 <a class="btn-link"
                                    href="<?= url('workouts/edit?id=' . (int) $w['id']) ?>">
                                     Edit
@@ -143,3 +164,87 @@ $fmtTarget = static function ($sets, $reps): ?string {
 
     </div>
 </section>
+
+
+<!-- ===================== Recent sessions ===================== -->
+<?php if (!empty($sessions) || !empty($workouts)): ?>
+<section class="section section--alt">
+    <div class="container">
+
+        <?php if (!empty($sessions)): ?>
+
+            <article class="tracker-card">
+                <header class="tracker-card__head">
+                    <div>
+                        <h2>Recent sessions</h2>
+                        <span class="field-hint">
+                            Workouts you've logged, newest first. Every lift
+                            here also lives in your strength history.
+                        </span>
+                    </div>
+                    <a class="btn-link" href="<?= url('strength') ?>">
+                        Strength tracker <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </header>
+
+                <ul class="session-list">
+                    <?php foreach ($sessions as $s):
+                        $lifts = $sessionLifts[(int) $s['id']] ?? [];
+                        $n = count($lifts);
+                        $confirmMsg = $n > 0
+                            ? 'Delete this session and its ' . $n . ' logged lift'
+                              . ($n === 1 ? '' : 's')
+                              . "? They'll be removed from your strength history too. This can't be undone."
+                            : "Delete this session? This can't be undone.";
+                    ?>
+                        <li class="session-item">
+                            <div class="session-item__top">
+                                <div>
+                                    <h3 class="session-item__name"><?= e($s['name']) ?></h3>
+                                    <p class="session-item__meta">
+                                        <?= e($fmtDate($s['logged_date'])) ?>
+                                        · <?= $n ?> lift<?= $n === 1 ? '' : 's' ?>
+                                    </p>
+                                </div>
+                                <form method="post" action="<?= url('workouts/session/delete') ?>"
+                                      data-confirm="<?= e($confirmMsg) ?>"
+                                      data-confirm-ok="Delete">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="id" value="<?= e((string) $s['id']) ?>">
+                                    <button type="submit" class="btn-link-danger"
+                                            aria-label="Delete session <?= e($s['name']) ?> from <?= e($fmtDate($s['logged_date'])) ?>">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                            <?php if (!empty($lifts)): ?>
+                                <ol class="workout-card__exercises">
+                                    <?php foreach ($lifts as $l): ?>
+                                        <li class="workout-exercise">
+                                            <span class="workout-exercise__name"><?= e(StrengthLog::label($l['lift_type'])) ?></span>
+                                            <span class="workout-exercise__target"><?= e($fmtLoad($l)) ?></span>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ol>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </article>
+
+        <?php else: ?>
+
+            <article class="tracker-card empty-state">
+                <?= empty_state_icon() ?>
+                <h2>No sessions yet</h2>
+                <p>
+                    Hit Start on a workout above on training day — you'll get
+                    a pre-filled form to log the whole session in one go.
+                </p>
+            </article>
+
+        <?php endif; ?>
+
+    </div>
+</section>
+<?php endif; ?>

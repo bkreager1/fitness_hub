@@ -1260,6 +1260,61 @@
 
 
     /* ---------------------------------------------------------
+       Workout session form — shared lbs/kg toggle
+       One unit applies to every weight input on the "Start
+       workout" form. Toggling converts any typed values (same
+       behavior as the strength form) and refreshes the per-row
+       unit labels, placeholders, and bounds. Bodyweight rows
+       (data-bw) keep their blank placeholder.
+       --------------------------------------------------------- */
+    (function initSessionForm () {
+        const form      = document.getElementById('sessionForm');
+        const toggle    = document.getElementById('sessionUnitToggle');
+        const unitInput = document.getElementById('sessionUnit');
+        if (!form || !toggle || !unitInput) return;
+
+        const LB_PER_KG = 2.2046226218;
+        const PLACEHOLDERS = { lbs: '225', kg: '102' };
+        const BOUNDS = {
+            lbs: { min: 1, max: 1500 },
+            kg:  { min: 1, max: 700 },
+        };
+
+        toggle.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-unit]');
+            if (!btn) return;
+            const newUnit = btn.dataset.unit;
+            const oldUnit = unitInput.value;
+            if (newUnit === oldUnit) return;
+
+            form.querySelectorAll('input[name="ex_weight[]"]').forEach((inp) => {
+                const v = parseFloat(inp.value);
+                if (!isNaN(v) && v > 0) {
+                    const converted = (oldUnit === 'lbs' && newUnit === 'kg')
+                        ? v / LB_PER_KG
+                        : v * LB_PER_KG;
+                    inp.value = converted.toFixed(1);
+                }
+                if (!inp.dataset.bw) inp.placeholder = PLACEHOLDERS[newUnit];
+                inp.min = BOUNDS[newUnit].min;
+                inp.max = BOUNDS[newUnit].max;
+            });
+
+            form.querySelectorAll('.session-unit').forEach((s) => {
+                s.textContent = newUnit;
+            });
+
+            unitInput.value = newUnit;
+            toggle.querySelectorAll('button').forEach((b) => {
+                const on = b.dataset.unit === newUnit;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+        });
+    })();
+
+
+    /* ---------------------------------------------------------
        10. Strength chart (Chart.js).
            One line per logged lift. Featured lifts (the big three)
            show by default; accessory lifts start hidden and toggle
