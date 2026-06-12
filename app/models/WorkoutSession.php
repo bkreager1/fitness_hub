@@ -24,6 +24,16 @@ class WorkoutSession {
         return $row ?: null;
     }
 
+    // Total sessions ever logged — lets the list header say
+    // "Showing 15 of 23" instead of silently truncating.
+    public static function countForUser(int $userId): int {
+        $stmt = db()->prepare(
+            'SELECT COUNT(*) FROM workout_sessions WHERE user_id = ?'
+        );
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
     // Most recent sessions for a user, newest session date first.
     // $limit is int-clamped and inlined because LIMIT placeholders
     // are unreliable across PDO emulation modes.

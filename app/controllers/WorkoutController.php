@@ -59,6 +59,7 @@ class WorkoutController extends Controller {
             'exercisesBy'  => Workout::exercisesForUser($userId),
             'sessions'     => $sessions,
             'sessionLifts' => WorkoutSession::liftsForSessions(array_column($sessions, 'id')),
+            'sessionTotal' => WorkoutSession::countForUser($userId),
             'flashInline'  => true,
         ]);
     }

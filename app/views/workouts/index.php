@@ -178,8 +178,13 @@ $fmtLoad = static function (array $r): string {
                     <div>
                         <h2>Recent sessions</h2>
                         <span class="field-hint">
-                            Workouts you've logged, newest first. Every lift
-                            here also lives in your strength history.
+                            <?php if ($sessionTotal > count($sessions)): ?>
+                                Your latest <?= count($sessions) ?> of
+                                <?= e((string) $sessionTotal) ?> sessions, newest first.
+                            <?php else: ?>
+                                Workouts you've logged, newest first.
+                            <?php endif; ?>
+                            Every lift here also lives in your strength history.
                         </span>
                     </div>
                     <a class="btn-link" href="<?= url('strength') ?>">
@@ -188,7 +193,7 @@ $fmtLoad = static function (array $r): string {
                 </header>
 
                 <ul class="session-list">
-                    <?php foreach ($sessions as $s):
+                    <?php foreach ($sessions as $idx => $s):
                         $lifts = $sessionLifts[(int) $s['id']] ?? [];
                         $n = count($lifts);
                         $confirmMsg = $n > 0
@@ -198,35 +203,49 @@ $fmtLoad = static function (array $r): string {
                             : "Delete this session? This can't be undone.";
                     ?>
                         <li class="session-item">
-                            <div class="session-item__top">
-                                <div>
-                                    <h3 class="session-item__name"><?= e($s['name']) ?></h3>
-                                    <p class="session-item__meta">
+                            <!-- Native <details>: the newest session renders
+                                 expanded (your just-logged confirmation), the
+                                 rest collapse to one line each so the list
+                                 stays scannable as sessions pile up. -->
+                            <details class="session-item__details"<?= $idx === 0 ? ' open' : '' ?>>
+                                <summary class="session-item__summary">
+                                    <svg class="session-item__chev" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         aria-hidden="true">
+                                        <polyline points="9 6 15 12 9 18"/>
+                                    </svg>
+                                    <span class="session-item__name"><?= e($s['name']) ?></span>
+                                    <span class="session-item__meta">
                                         <?= e($fmtDate($s['logged_date'])) ?>
                                         · <?= $n ?> lift<?= $n === 1 ? '' : 's' ?>
-                                    </p>
+                                    </span>
+                                </summary>
+                                <div class="session-item__body">
+                                    <?php if (!empty($lifts)): ?>
+                                        <ol class="workout-card__exercises">
+                                            <?php foreach ($lifts as $l): ?>
+                                                <li class="workout-exercise">
+                                                    <span class="workout-exercise__name"><?= e(StrengthLog::label($l['lift_type'])) ?></span>
+                                                    <span class="workout-exercise__target"><?= e($fmtLoad($l)) ?></span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ol>
+                                    <?php endif; ?>
+                                    <div class="session-item__foot">
+                                        <form method="post" action="<?= url('workouts/session/delete') ?>"
+                                              data-confirm="<?= e($confirmMsg) ?>"
+                                              data-confirm-ok="Delete">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="id" value="<?= e((string) $s['id']) ?>">
+                                            <button type="submit" class="btn-link-danger"
+                                                    aria-label="Delete session <?= e($s['name']) ?> from <?= e($fmtDate($s['logged_date'])) ?>">
+                                                Delete session
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
-                                <form method="post" action="<?= url('workouts/session/delete') ?>"
-                                      data-confirm="<?= e($confirmMsg) ?>"
-                                      data-confirm-ok="Delete">
-                                    <?= csrf_field() ?>
-                                    <input type="hidden" name="id" value="<?= e((string) $s['id']) ?>">
-                                    <button type="submit" class="btn-link-danger"
-                                            aria-label="Delete session <?= e($s['name']) ?> from <?= e($fmtDate($s['logged_date'])) ?>">
-                                        Delete
-                                    </button>
-                                </form>
-                            </div>
-                            <?php if (!empty($lifts)): ?>
-                                <ol class="workout-card__exercises">
-                                    <?php foreach ($lifts as $l): ?>
-                                        <li class="workout-exercise">
-                                            <span class="workout-exercise__name"><?= e(StrengthLog::label($l['lift_type'])) ?></span>
-                                            <span class="workout-exercise__target"><?= e($fmtLoad($l)) ?></span>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ol>
-                            <?php endif; ?>
+                            </details>
                         </li>
                     <?php endforeach; ?>
                 </ul>

@@ -4575,29 +4575,70 @@ html {
 }
 
 /* ----- Recent sessions (performed workouts) -------------------------- */
+/* Each session is a native <details>: the newest renders open, older
+   ones collapse to a one-line summary (name · date · lift count) so
+   the list stays scannable as sessions accumulate. No JS needed. */
 .session-list {
     list-style: none;
     margin: 0;
     padding: 0;
 }
-.session-item { padding: 1.15rem 0; }
+.session-item { padding: 0.85rem 0; }
 .session-item:first-child { padding-top: 0; }
 .session-item:last-child  { padding-bottom: 0; }
 .session-item + .session-item { border-top: 1px solid var(--border-soft); }
-.session-item__top {
+
+.session-item__summary {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.7rem;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    list-style: none;              /* hide the native marker (Firefox) */
+    border-radius: var(--radius-sm);
+    padding: 0.25rem 0.35rem;
+    margin: -0.25rem -0.35rem;     /* bigger hit area, text stays aligned */
+    transition: background-color .15s ease;
 }
-.session-item__top form { margin: 0; flex-shrink: 0; }
+.session-item__summary::-webkit-details-marker { display: none; }
+.session-item__summary:hover { background: rgba(255, 255, 255, 0.03); }
+.session-item__summary:focus-visible {
+    outline: 2px solid var(--primary-hot);
+    outline-offset: 2px;
+}
+.session-item__chev {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--text-faint);
+    transition: transform .2s ease;
+}
+.session-item__details[open] > .session-item__summary .session-item__chev {
+    transform: rotate(90deg);
+}
 .session-item__name {
-    margin: 0 0 0.2rem;
-    font-size: 1.05rem;
+    font-weight: 600;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .session-item__meta {
-    margin: 0;
+    margin-left: auto;
+    flex-shrink: 0;
     color: var(--text-dim);
     font-size: 0.88rem;
+}
+.session-item__body {
+    /* Indent past the chevron so the lift rows align with the name. */
+    padding: 0.7rem 0 0.15rem 1.6rem;
+}
+.session-item__foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.6rem;
+}
+.session-item__foot form { margin: 0; }
+
+@media (max-width: 560px) {
+    .session-item__body { padding-left: 0; }   /* reclaim width on phones */
 }
