@@ -15,9 +15,6 @@ storage/*
 # --- PHP config with real credentials (NEVER commit passwords) ---
 config/database.local.php
 
-# --- Local-only Claude context file (auto-read by Claude Code) ---
-CLAUDE.local.md
-
 # --- OS junk files ---
 .DS_Store
 Thumbs.db
@@ -28,7 +25,6 @@ desktop.ini
 .idea/
 *.sublime-project
 *.sublime-workspace
-.claude/
 
 # --- PHP error logs ---
 *.log
